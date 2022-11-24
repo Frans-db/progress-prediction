@@ -41,11 +41,11 @@ parser.add_argument(
 parser.add_argument(
     "--bg_path",
     type=str,
-    default="./data/epickitchens/EPIC-KITCHENS/train/P01/rgb_frames/",
+    default="./data/EPIC-KITCHENS/train/P01/rgb_frames/",
     help="Frames to use for bg",
 )
 parser.add_argument(
-    "--new_path", type=str, default="./data/MNIST/", help="New dataset path ..."
+    "--new_path", type=str, default="./data/MNIST/toy/", help="New dataset path ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
@@ -54,19 +54,19 @@ parser.add_argument(
     "--step", type=float, default=5, help="The step size with which digits move"
 )
 parser.add_argument(
-    "--shuffle", type=float, default=0, help="Percentage of tasks to shuffle around"
+    "--shuffle", type=float, default=0, help="Percentage of tasks to shuffle around" # 0.2
 )
 
-parser.add_argument("--drop", type=float, default=0, help="Percentage of tasks to drop")
+parser.add_argument("--drop", type=float, default=0, help="Percentage of tasks to drop") # 0.10
 
-parser.add_argument("--repeated", type=int, default=-1, help="Which task is repeated")
-parser.add_argument("--repeats", type=int, default=0, help="Maximum repeats: 3")
+parser.add_argument("--repeated", type=int, default=-1, help="Which task is repeated") # 3
+parser.add_argument("--repeats", type=int, default=0, help="Maximum repeats: 3")       # 3
 
 parser.add_argument(
-    "--max-segment", type=int, default=10, help="The maximum segment=task length"
+    "--max-segment", type=int, default=10, help="The maximum segment=task length"      # 10
 )
 parser.add_argument(
-    "--min-segment", type=int, default=10, help="The minimum segment=task length"
+    "--min-segment", type=int, default=10, help="The minimum segment=task length"      # 5
 )
 
 parser.add_argument(
@@ -258,11 +258,12 @@ def get_motion(
         y = y + math.sqrt(step * step) * f
 
     # If the motion exceeds the image, circulate
-    x = max(0, int(x)) % shape[1]
-    y = max(0, int(y)) % shape[0]
+    # x = max(0, int(x)) % shape[1]
+    # y = max(0, int(y)) % shape[0]
 
-    # x = min(max(0, int(x)),shape[1])
-    # y = min(max(0, int(y)),shape[0])
+    # When action should not circulate:
+    x = min(max(0, int(x)),shape[1])
+    y = min(max(0, int(y)),shape[0])
     return x, y
 
 
@@ -435,8 +436,8 @@ def view_videos(videos: List[np.array], labels: List[np.array]):
             + args.name
             + "video_{:05d}-img_{:05d}.png".format(i, f)
         )
-        # plt.pause(0.1)
-    # plt.show()
+        plt.pause(0.1)
+    plt.show()
 
 
 def data_stats(videos: List[np.array], labels: List[np.array]):
@@ -522,15 +523,15 @@ def read_activity_mnist(name="activity_mnist_small"):
 if __name__ == "__main__":
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
-    create_activity_mnist(
-        train=False,
-        targets=[
-            (1, "horizontal"),
-            (3, "inv_diagonal"),
-            (5, "inv-horizontal"),
-            (7, "diagonal"),
-            (9, "vertical"),
-        ],
-        file_name=args.name,
-    )
+    # create_activity_mnist(
+    #     train=False,
+    #     targets=[
+    #         (1, "horizontal"),
+    #         (3, "inv_diagonal"),
+    #         (5, "inv-horizontal"),
+    #         (7, "diagonal"),
+    #         (9, "vertical"),
+    #     ],
+    #     file_name=args.name,
+    # )
     read_activity_mnist(name=args.name)
