@@ -111,7 +111,7 @@ def create_activity_mnist(
 
         # Pick a global speed scaling factor
         video_speed = (
-            args.min_speed + (args.max_speed - args.min_speed) * random.random()
+            args.min_speed + (args.max_speed - args.min_speed) * 0.5 # random.random() removed random for now while playing around with dataloader
         )
 
         make_data(videos, labels, idx, new_subset_list, video_speed)
@@ -122,6 +122,13 @@ def create_activity_mnist(
     # Write down the data
     print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
     
+    '''
+    The VideoFrameDataset expects the annotation file to be in the following format:
+    video_id start_frame end_frame label* [as many labels as you want]
+    Normally these labels are integer id's, but as a workaround I'm returning them as floats
+    and each id i is the completion percentage of frame i. Note that this does not yet work
+    with subsampling
+    '''
     annotations_text = ''
     for video_id, video in enumerate(videos):
         # Create directory to store the video frames in
@@ -137,7 +144,7 @@ def create_activity_mnist(
             # plt.savefig(f'{args.new_path}/{video_id:05d}/img_{frame_id:05d}.png')
             # plt.clf()
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
-            image.save(f'{args.new_path}/{video_id:05d}/img_{frame_id:05d}.png')
+            image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id+1):05d}.png')
         annotations_text += ' '.join(percentages)
         annotations_text += '\n'
             
