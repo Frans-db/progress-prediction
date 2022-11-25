@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 from tqdm import tqdm
 
-from video_dataset import VideoFrameDataset, ImglistToTensor
+from dataset import VideoFrameDataset, ImglistToTensor
 
 class Network(nn.Module):
     """
@@ -49,7 +49,7 @@ def main():
     net = Network()
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001)
-    for epoch in range(10):
+    for epoch in range(1):
         epoch_loss = 0
         for i,(videos, labels) in tqdm(enumerate(dataloader)):
             num_samples = videos.shape[0]
