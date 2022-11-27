@@ -45,7 +45,11 @@ parser.add_argument(
     help="Frames to use for bg",
 )
 parser.add_argument(
-    "--new_path", type=str, default="./data/MNIST/toy/", help="New dataset path ..."
+    '--add_bg',
+    action=argparse.BooleanOptionalAction
+)
+parser.add_argument(
+    "--new_path", type=str, default="./data/toy/", help="New dataset path ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
@@ -105,7 +109,7 @@ def create_activity_mnist(
 
     videos = []
     labels = []
-    for idx in range(0, 10):  # for every video
+    for idx in range(0, min_len):  # for every video
         # Define the activities
         new_subset_list = randomly_permute_drop_repeat_tasks(subset_list)
 
@@ -117,7 +121,8 @@ def create_activity_mnist(
         make_data(videos, labels, idx, new_subset_list, video_speed)
     assert len(videos) == len(labels)
 
-    videos = add_background(videos)
+    if args.add_bg:
+        videos = add_background(videos)
 
     # Write down the data
     print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
@@ -138,11 +143,8 @@ def create_activity_mnist(
         percentages = []
         for frame_id, frame in enumerate(video):
             # Add a percentage done label for each frame
-            percentages.append(f'{frame_id / len(video)}')
+            percentages.append(f'{(frame_id+1) / len(video)}')
             # Save the frame
-            # plt.imshow(frame)
-            # plt.savefig(f'{args.new_path}/{video_id:05d}/img_{frame_id:05d}.png')
-            # plt.clf()
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
             image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id+1):05d}.png')
         annotations_text += ' '.join(percentages)
@@ -610,10 +612,10 @@ if __name__ == "__main__":
         train=False,
         targets=[
             (1, "horizontal"),
-            (3, "inv_diagonal"),
-            (5, "inv-horizontal"),
-            (7, "diagonal"),
-            (9, "vertical"),
+            # (3, "inv_diagonal"),
+            # (5, "inv-horizontal"),
+            # (7, "diagonal"),
+            # (9, "vertical"),
         ],
         file_name=args.name,
     )
