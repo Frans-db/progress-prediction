@@ -8,7 +8,7 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from dataset import VideoFrameDataset, ProgressDataset
-from dataset.transforms import ImglistToTensor, SparseSampling, DenseSampling
+from dataset.transforms import ImglistToTensor
 
 NUM_FRAMES = 18
 
@@ -38,7 +38,6 @@ def main():
             './data/toy',
             transform=transforms.Compose([
                 ImglistToTensor(),
-                SparseSampling()
             ])
             )      
     item, label = dataset[0]

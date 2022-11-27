@@ -5,12 +5,26 @@ from PIL import Image
 class ProgressDataset(torch.utils.data.Dataset):
     def __init__(self, 
                  root_path: str,
+                 num_segments: int = 3,
+                 frames_per_segment: int = 1,
                  transform = None) -> None:
         super().__init__()
         self.root_path = root_path
         self.items = os.listdir(self.root_path)
-        self.transform = transform
         
+        self.num_segments = num_segments
+        self.frames_per_segment = frames_per_segment
+
+        self.transform = transform
+
+        self._check_samples()
+
+    def _check_samples(self):
+        for video_directory in self.items:
+            path = os.path.join(self.root_path, video_directory)
+            frame_names = os.listdir(path)
+            num_frames = len(frame_names)
+            
     def __len__(self):
         return len(self.items)
 
