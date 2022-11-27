@@ -36,15 +36,17 @@ class Network(nn.Module):
 def main():
     dataset = ProgressDataset(
             './data/toy',
+            num_segments=1,
+            frames_per_segment=2,
             transform=transforms.Compose([
                 ImglistToTensor(),
-            ])
-            )      
-    item, label = dataset[0]
-    # for frame in item:
-    #     plt.imshow(frame)
-    #     plt.pause(0.1)
-    # plt.show()
+            ]),
+            )     
+    for i in range(10): 
+        item, labels = dataset[i]
+        print(labels)
+        plt.plot(labels)
+        plt.show()
 
 
 # def main():

@@ -134,25 +134,14 @@ def create_activity_mnist(
     and each id i is the completion percentage of frame i. Note that this does not yet work
     with subsampling
     '''
-    annotations_text = ''
     for video_id, video in enumerate(videos):
         # Create directory to store the video frames in
         os.mkdir(f'{args.new_path}/{video_id:05d}')
-        # Add video_id, start_frame, end_frame to the annotations text
-        annotations_text += f'{video_id:05d} {1} {len(video)} '
-        percentages = []
         for frame_id, frame in enumerate(video):
-            # Add a percentage done label for each frame
-            percentages.append(f'{(frame_id+1) / len(video)}')
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
-            image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id+1):05d}.png')
-        annotations_text += ' '.join(percentages)
-        annotations_text += '\n'
+            image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id):05d}.png')
             
-    # Save the annotations txt in the data path root
-    with open(f'{args.new_path}/annotations.txt', 'w+') as f:
-        f.write(annotations_text)
 
     # with open(args.new_path + file_name + ".pkl", "wb+") as f:
     #     pickle.dump((videos, labels), f)
