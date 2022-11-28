@@ -8,97 +8,57 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from dataset import VideoFrameDataset, ProgressDataset
-from dataset.transforms import ImglistToTensor
+from dataset.transforms import ImglistToTensor, SwapDimensions
+from networks import S3D, S2D
 
-NUM_FRAMES = 18
-
-class Network(nn.Module):
-    """
-    Very basic network to play around with the data
-    """
-    def __init__(self) -> None:
-        super().__init__()
-        self.conv1 = nn.Conv3d(3, 16, 5, padding=(2, 0, 0), stride=(1, 2, 2)) # (90,38,38)
-        self.conv2 = nn.Conv3d(16, 32, 5, padding=(2, 0, 0), stride=(1, 2, 2)) # (90,38,38)
-        self.conv3 = nn.Conv3d(32, 64, (5, 8, 8), padding=(2, 0, 0)) # (90,38,38)
-        self.conv4 = nn.Conv3d(64, 1, 1)
-        
-    def forward(self, x):
-        num_samples, num_frames = x.shape[0], x.shape[2]
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = torch.sigmoid(self.conv4(x))
-        x = x.reshape(num_samples, num_frames)
-        return x
 
 
 def main():
+    num_segments = 1
+    frames_per_segment = 15
+    num_frames = num_segments * frames_per_segment
+
     dataset = ProgressDataset(
-            './data/toy',
-            num_segments=1,
-            frames_per_segment=2,
+            './data/toy_1',
+            num_segments=num_segments,
+            frames_per_segment=frames_per_segment,
             transform=transforms.Compose([
                 ImglistToTensor(),
+                SwapDimensions()
             ]),
-            )     
-    for i in range(10): 
-        item, labels = dataset[i]
-        print(labels)
-        plt.plot(labels)
-        plt.show()
+            )         
+    dataloader = DataLoader(dataset=dataset, batch_size=4, shuffle=True, num_workers=1)
 
+    net = S3D()
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(net.parameters())
 
-# def main():
-#     dataset = VideoFrameDataset(
-#             './data/MNIST/toy', 
-#             './data/MNIST/annotations.txt',
-#             num_segments=1,
-#             frames_per_segment=NUM_FRAMES,
-#             imagefile_template='img_{:05d}.png',
-#             transform=transforms.Compose([
-#                 ImglistToTensor(),
-#             ])
-#         )
-#     dataloader = DataLoader(
-#         dataset=dataset,
-#         batch_size=3,
-#         shuffle=True,
-#         num_workers=1
-#     )
-#     net = Network()
-#     criterion = nn.MSELoss()
-#     optimizer = optim.Adam(net.parameters())
-
-#     for epoch in range(5):
-#         epoch_loss = 0
-#         for i,(videos, labels) in tqdm(enumerate(dataloader), total=len(dataset) // 3):
-#             num_samples = videos.shape[0]
-#             videos = videos.reshape(num_samples, 3, NUM_FRAMES, 42, 42)
-#             labels = torch.stack(labels).reshape(num_samples, NUM_FRAMES).float()
+    for epoch in range(3):
+        epoch_loss = 0
+        for i,(videos, labels) in enumerate(dataloader):
+            num_samples = videos.shape[0]
+            labels = torch.stack(labels).reshape(num_samples, num_frames).float()
             
-#             outputs = net(videos).float()
+            outputs = net(videos).float()
 
-#             optimizer.zero_grad()
-#             loss = criterion(outputs, labels)
-#             loss.backward()
-#             epoch_loss += loss.item()
-#             optimizer.step()
-#         print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
+            optimizer.zero_grad()
+            loss = criterion(outputs, labels)
+            loss.backward()
+            epoch_loss += loss.item()
+            optimizer.step()
+        print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
 
-#     for i,(video, labels) in enumerate(dataset):
-#         video = video.reshape(3, NUM_FRAMES, 42, 42)
-#         predictions = net(video.unsqueeze(0)).squeeze()
-#         print(predictions)
+    for i in range(20):
+        video, labels = dataset[i]
+        video = video.reshape(3, num_frames, 42, 42)
+        predictions = net(video.unsqueeze(0)).squeeze()
+        print(predictions)
 
-#         try:
-#             plt.plot(predictions.detach().numpy(), label='Predicted')
-#             plt.plot(labels, label='Actual')
-#             plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
-#             plt.legend(loc='best')
-#             plt.show()
-#         except KeyboardInterrupt:
-#             break
+        plt.plot(predictions.detach().numpy(), label='Predicted')
+        plt.plot(labels, label='Actual')
+        plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
+        plt.legend(loc='best')
+        plt.show()
                 
 if __name__ == '__main__':
     main()
