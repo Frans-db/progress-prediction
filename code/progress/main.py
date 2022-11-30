@@ -1,11 +1,10 @@
 import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import torch.optim as optim
-import math
+import argparse
 import random
 from tqdm import tqdm
 import numpy as np
@@ -17,47 +16,45 @@ from networks import S3D
 def get_device():
     return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-def bo_loss(p, p_hat):
-    l,u = 0,1
-    m = (l + u) / 2
-    r = (u - l) / 2
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--epochs', type=int, default=5)
 
-    real_part = (p - m) * (r * math.sqrt(2))
-    predicted_part = (p_hat - m) * (r * math.sqrt(2))
+    parser.add_argument('--num_segments', type=int, default=1)
+    parser.add_argument('--frames_per_segment', type=int, default=10)
+    parser.add_argument('--sample_every_n_frames', type=int, default=1)
     
-    energies = torch.clamp(torch.square(real_part) + torch.square(predicted_part), min=1)
-    losses = energies * (p - p_hat).abs()
-    return losses.mean()
+    return parser.parse_args()
 
-    
 def main():
     torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
 
-    num_segments = 1
-    frames_per_segment = 10
-    every_nth_frame = 1
-    num_frames = num_segments * (frames_per_segment // every_nth_frame)
+    args = parse_arguments()
+
+    num_frames = args.num_segments * (args.frames_per_segment // args.sample_every_n_frames)
 
     dataset = ProgressDataset(
             './data/toy',
-            num_segments=num_segments,
-            frames_per_segment=frames_per_segment,
-            every_nth_frame=every_nth_frame,
+            num_segments=args.num_segments,
+            frames_per_segment=args.frames_per_segment,
+            every_nth_frame=args.sample_every_n_frames,
             transform=transforms.Compose([
                 ImglistToTensor(),
                 SwapDimensions()
             ]),
             )      
 
-    dataloader = DataLoader(dataset=dataset, batch_size=8, shuffle=True, num_workers=1)
+    dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 
     net = S3D(num_classes=num_frames).to(get_device())
     criterion = nn.MSELoss()
     optimizer = optim.Adam(net.parameters(), lr=10**(-4))
 
-    for epoch in range(1):
+    for epoch in range(args.epochs):
         epoch_loss = 0
         for i,(videos, labels) in enumerate(tqdm(dataloader)):
             num_samples = videos.shape[0]
