@@ -58,14 +58,14 @@ class ProgressDataset(torch.utils.data.Dataset):
         # choose start indices that are perfectly evenly spread across the video frames.
         if self.test_mode:
             distance_between_indices = (
-                num_frames - self.frames_per_segment * self.every_nth_frame + 1) / float(self.num_segments)
+                num_frames - self.frames_per_segment + 1) / float(self.num_segments)
 
             start_indices = np.array([int(distance_between_indices / 2.0 + distance_between_indices * x)
                                       for x in range(self.num_segments)])
         # randomly sample start indices that are approximately evenly spread across the video frames.
         else:
             max_valid_start_index = (
-                num_frames - self.frames_per_segment * self.every_nth_frame + 1) // self.num_segments
+                num_frames - self.frames_per_segment + 1) // self.num_segments
             start_indices = np.multiply(list(range(self.num_segments)), max_valid_start_index) + \
                 np.random.randint(max_valid_start_index,
                                   size=self.num_segments)
