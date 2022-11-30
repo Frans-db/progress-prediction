@@ -18,6 +18,7 @@ def get_device():
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, default='toy')
     parser.add_argument('--num_workers', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--epochs', type=int, default=5)
@@ -38,7 +39,7 @@ def main():
     num_frames = args.num_segments * (args.frames_per_segment // args.sample_every_n_frames)
 
     dataset = ProgressDataset(
-            './data/toy',
+            f'./data/{args.dataset}',
             num_segments=args.num_segments,
             frames_per_segment=args.frames_per_segment,
             every_nth_frame=args.sample_every_n_frames,

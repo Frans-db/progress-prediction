@@ -136,7 +136,8 @@ class S3D(nn.Module):
         self.avgpool = nn.AvgPool3d(kernel_size=(3, 3, 3), stride=1)
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
-            nn.Linear(512, num_classes)
+            nn.Linear(512, num_classes),
+            nn.Sigmoid()
             # nn.Conv3d(512, num_classes, kernel_size=1, stride=1, bias=True),
         )
 
