@@ -66,7 +66,7 @@ def main():
             videos = videos.to(get_device())
             labels = labels.to(get_device())
 
-            outputs = net(videos).float()
+            outputs = net(videos)
 
             optimizer.zero_grad()
             loss = criterion(outputs, labels)
