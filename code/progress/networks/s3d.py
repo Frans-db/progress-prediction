@@ -136,14 +136,15 @@ class S3D(nn.Module):
         self.avgpool = nn.AvgPool3d(kernel_size=(3, 3, 3), stride=1)
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
-            nn.Linear(512, num_classes),
+            # nn.Linear(512, num_classes),
+            nn.Conv3d(512, num_classes, kernel_size=1, stride=1, bias=True),
             nn.Sigmoid()
-            # nn.Conv3d(512, num_classes, kernel_size=1, stride=1, bias=True),
         )
 
     def forward(self, x):
         x = self.features(x)
         x = self.avgpool(x)
-        x = x.squeeze(-1).squeeze(-1).squeeze(-1)
+        # x = x.squeeze(-1).squeeze(-1).squeeze(-1)
         x = self.classifier(x)
+        x = torch.mean(x, dim=(2, 3, 4))
         return x
