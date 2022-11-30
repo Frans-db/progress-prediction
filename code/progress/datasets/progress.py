@@ -9,6 +9,7 @@ class ProgressDataset(torch.utils.data.Dataset):
                  root_path: str,
                  num_segments: int,
                  frames_per_segment: int,
+                 every_nth_frame: int,
                  imagefile_template: str = 'img_{:05d}.png',
                  test_mode: bool = False,
                  transform=None) -> None:
@@ -17,6 +18,7 @@ class ProgressDataset(torch.utils.data.Dataset):
         self.items = os.listdir(self.root_path)
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
+        self.every_nth_frame = every_nth_frame
         self.imagefile_template = imagefile_template
         self.transform = transform
         self.test_mode = test_mode
@@ -56,15 +58,14 @@ class ProgressDataset(torch.utils.data.Dataset):
         # choose start indices that are perfectly evenly spread across the video frames.
         if self.test_mode:
             distance_between_indices = (
-                num_frames - self.frames_per_segment + 1) / float(self.num_segments)
+                num_frames - self.frames_per_segment * self.every_nth_frame + 1) / float(self.num_segments)
 
             start_indices = np.array([int(distance_between_indices / 2.0 + distance_between_indices * x)
                                       for x in range(self.num_segments)])
         # randomly sample start indices that are approximately evenly spread across the video frames.
         else:
             max_valid_start_index = (
-                num_frames - self.frames_per_segment + 1) // self.num_segments
-
+                num_frames - self.frames_per_segment * self.every_nth_frame + 1) // self.num_segments
             start_indices = np.multiply(list(range(self.num_segments)), max_valid_start_index) + \
                 np.random.randint(max_valid_start_index,
                                   size=self.num_segments)
@@ -82,11 +83,12 @@ class ProgressDataset(torch.utils.data.Dataset):
         images = []
         labels = []
         for start_index in start_indices:
-            for i in range(self.frames_per_segment):
-                image_name = self.imagefile_template.format(start_index + i)
+            indices = range(start_index, start_index+self.frames_per_segment)[::self.every_nth_frame]
+            for i in indices:
+                image_name = self.imagefile_template.format(i)
                 image_path = os.path.join(item_directory, image_name)
                 images.append(self._load_image(image_path))
-                labels.append((start_index + i + 1) / num_frames)
+                labels.append((i + 1) / num_frames)
 
         if self.transform is not None:
             return self.transform(images), labels

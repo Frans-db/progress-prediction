@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import torch.optim as optim
 import math
+import random
 from tqdm import tqdm
+import numpy as np
 
-from datasets import VideoFrameDataset, ProgressDataset
+from datasets import ProgressDataset
 from datasets.transforms import ImglistToTensor, SwapDimensions
 from networks import S3D
 
@@ -26,14 +28,20 @@ def bo_loss(p, p_hat):
 
     
 def main():
+    torch.manual_seed(42)
+    np.random.seed(42)
+    random.seed(42)
+
     num_segments = 1
     frames_per_segment = 10
-    num_frames = num_segments * frames_per_segment
+    every_nth_frame = 1
+    num_frames = num_segments * (frames_per_segment // every_nth_frame)
 
     dataset = ProgressDataset(
             './data/toy',
             num_segments=num_segments,
             frames_per_segment=frames_per_segment,
+            every_nth_frame=every_nth_frame,
             transform=transforms.Compose([
                 ImglistToTensor(),
                 SwapDimensions()
@@ -46,7 +54,7 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.Adam(net.parameters(), lr=10**(-4))
 
-    for epoch in range(3):
+    for epoch in range(20):
         epoch_loss = 0
         for i,(videos, labels) in enumerate(tqdm(dataloader)):
             num_samples = videos.shape[0]
@@ -61,6 +69,7 @@ def main():
             optimizer.step()
         print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
 
+    net.eval()
     for i in range(20):
         video, labels = dataset[i]
         video = video.reshape(3, num_frames, 42, 42)
