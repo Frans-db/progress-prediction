@@ -84,7 +84,7 @@ def main():
         plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
         plt.legend(loc='best')
         plt.savefig(f'./results/{i}.png')
-        plt.show()
-                
+        plt.clf()
+
 if __name__ == '__main__':
     main()
