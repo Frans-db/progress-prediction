@@ -31,8 +31,6 @@ def bo_loss(p, p_hat):
 
     
 def main():
-    print(get_device())
-    exit(0)
     torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
@@ -55,16 +53,19 @@ def main():
 
     dataloader = DataLoader(dataset=dataset, batch_size=8, shuffle=True, num_workers=1)
 
-    net = S3D(num_classes=num_frames)
+    net = S3D(num_classes=num_frames).to(get_device())
     criterion = nn.MSELoss()
     optimizer = optim.Adam(net.parameters(), lr=10**(-4))
 
-    for epoch in range(20):
+    for epoch in range(1):
         epoch_loss = 0
         for i,(videos, labels) in enumerate(tqdm(dataloader)):
             num_samples = videos.shape[0]
             labels = torch.stack(labels).reshape(num_samples, num_frames).float()
-            
+
+            videos = videos.to(get_device())
+            labels = labels.to(get_device())
+
             outputs = net(videos).float()
 
             optimizer.zero_grad()
@@ -81,10 +82,11 @@ def main():
         predictions = net(video.unsqueeze(0)).squeeze()
         print(predictions)
 
-        plt.plot(predictions.detach().numpy(), label='Predicted')
+        plt.plot(predictions.cpu().detach().numpy(), label='Predicted')
         plt.plot(labels, label='Actual')
         plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
         plt.legend(loc='best')
+        plt.savefig(f'./results/{i}.png')
         plt.show()
                 
 if __name__ == '__main__':
