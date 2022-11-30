@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import torch.optim as optim
 import math
+from tqdm import tqdm
 
 from datasets import VideoFrameDataset, ProgressDataset
 from datasets.transforms import ImglistToTensor, SwapDimensions
-from networks import S3D, S2D
+from networks import S3D
 
 def bo_loss(p, p_hat):
     l,u = 0,1
@@ -39,15 +40,15 @@ def main():
             ]),
             )      
 
-    dataloader = DataLoader(dataset=dataset, batch_size=4, shuffle=True, num_workers=1)
+    dataloader = DataLoader(dataset=dataset, batch_size=8, shuffle=True, num_workers=1)
 
-    net = S3D()
-    criterion = bo_loss
-    optimizer = optim.Adam(net.parameters())
+    net = S3D(num_classes=num_frames)
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(net.parameters(), lr=10**(-4))
 
     for epoch in range(3):
         epoch_loss = 0
-        for i,(videos, labels) in enumerate(dataloader):
+        for i,(videos, labels) in enumerate(tqdm(dataloader)):
             num_samples = videos.shape[0]
             labels = torch.stack(labels).reshape(num_samples, num_frames).float()
             
