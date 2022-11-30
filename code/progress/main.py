@@ -7,8 +7,8 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 import math
 
-from dataset import VideoFrameDataset, ProgressDataset
-from dataset.transforms import ImglistToTensor, SwapDimensions
+from datasets import VideoFrameDataset, ProgressDataset
+from datasets.transforms import ImglistToTensor, SwapDimensions
 from networks import S3D, S2D
 
 def bo_loss(p, p_hat):
