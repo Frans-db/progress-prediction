@@ -14,6 +14,9 @@ from datasets import ProgressDataset
 from datasets.transforms import ImglistToTensor, SwapDimensions
 from networks import S3D
 
+def get_device():
+    return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 def bo_loss(p, p_hat):
     l,u = 0,1
     m = (l + u) / 2
@@ -28,6 +31,8 @@ def bo_loss(p, p_hat):
 
     
 def main():
+    print(get_device())
+    exit(0)
     torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
