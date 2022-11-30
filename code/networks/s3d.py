@@ -9,13 +9,13 @@ class S3D(nn.Module):
         self.pool1 = nn.AvgPool3d((1, 2, 2))
         
         self.conv_2_1 = nn.Conv3d(32, 64, (1, 3, 3), stride=(1, 2, 2))
-        self.conv_2_2 = nn.Conv3d(64, 64, (5, 1, 1), padding=(2, 0, 0))
+        self.conv_2_2 = nn.Conv3d(64, 64, (7, 1, 1), padding=(3, 0, 0))
 
         self.conv_3_1 = nn.Conv3d(64, 128, (1, 3, 3), stride=(1, 2, 2))
-        self.conv_3_2 = nn.Conv3d(128, 128, (5, 1, 1), padding=(2, 0, 0))
+        self.conv_3_2 = nn.Conv3d(128, 128, (7, 1, 1), padding=(3, 0, 0))
 
         self.conv_4_1 = nn.Conv3d(128, 256, (1, 4, 4), stride=(1, 2, 2))
-        self.conv_4_2 = nn.Conv3d(256, 256, (5, 1, 1), padding=(2, 0, 0))     
+        self.conv_4_2 = nn.Conv3d(256, 256, (7, 1, 1), padding=(3, 0, 0))     
 
         self.conv5 = nn.Conv3d(256, 1, (1, 1, 1))
 
