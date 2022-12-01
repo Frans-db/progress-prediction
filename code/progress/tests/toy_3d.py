@@ -99,7 +99,7 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    for epoch in range(0):
+    for epoch in range(3):
         running_loss = 0.0
         for i, (inputs, labels) in enumerate(trainloader, 0):
             # batch_size = labels.shape[0]
