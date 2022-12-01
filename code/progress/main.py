@@ -90,7 +90,7 @@ def main():
     with torch.no_grad():
         for i in range(20):
             video = testset[i][0].to(device)
-            labels = torch.FloatTensor(testset[i][1]).to(device)
+            labels = testset[i][1]
             predictions = net(video.unsqueeze(0)).squeeze()
 
             plt.plot(predictions.cpu().detach().numpy(), label='Predicted')
