@@ -52,6 +52,7 @@ def main():
             ImglistToTensor(),
         ])
     )
+
     trainloader = DataLoader(
         dataset=trainset, 
         batch_size=args.batch_size,
