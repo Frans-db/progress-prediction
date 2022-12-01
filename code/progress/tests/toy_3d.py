@@ -36,7 +36,7 @@ class Toy3DDataset(Dataset):
         return self.num_videos
 
     def __getitem__(self, index):
-        new_index = index + self.offset * self.frames_per_video
+        new_index = index + self.offset
         images = []
         labels = []
         for frame_index in range(self.frames_per_video):
