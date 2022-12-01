@@ -18,23 +18,20 @@ import os
 import random
 
 class Toy2DDataset(Dataset):
-    def __init__(self, root_dir: str, num_videos: int, frames_per_video: int = 90, transform = None, shuffle: bool = False) -> None:
+    def __init__(self, root_dir: str, num_videos: int, offset: int = 0, frames_per_video: int = 90, transform = None) -> None:
         super().__init__()
         self.root_dir = root_dir
         self.num_videos = num_videos
+        self.offset = offset
         self.frames_per_video = frames_per_video
         self.transform = transform
-
-        self.indices = list(range(0, len(self)))
-        if shuffle:
-            random.shuffle(self.indices)
 
 
     def __len__(self):
         return self.num_videos * self.frames_per_video
 
     def __getitem__(self, index):
-        new_index = self.indices[index]
+        new_index = index + self.offset
         video_index = new_index // self.frames_per_video
         frame_index = new_index % self.frames_per_video
 
@@ -90,7 +87,7 @@ def main():
         [transforms.ToTensor()])
     
 
-    trainset = Toy2DDataset('./data/toy', num_videos=891, shuffle=True, transform=transform)
+    trainset = Toy2DDataset('./data/toy', num_videos=800, shuffle=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                             shuffle=True, num_workers=2)
 
@@ -118,7 +115,7 @@ def main():
                 running_loss = 0.0
 
     with torch.no_grad():
-        testset = Toy2DDataset('./data/toy', num_videos=891, transform=transform)
+        testset = Toy2DDataset('./data/toy', num_videos=91, offset=800, transform=transform)
         num_videos = 10
         for video_index in range(num_videos):
             predictions = []
@@ -134,7 +131,6 @@ def main():
             plt.plot(predictions, label='Predictions')
             plt.savefig(f'./results/{video_index}.png')
             plt.clf()
-            plt.show()
 
 if __name__ == '__main__':
     main()
