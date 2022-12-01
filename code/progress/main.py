@@ -20,6 +20,8 @@ def get_device():
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default='basic3d')
+
     parser.add_argument('--dataset', type=str, default='toy')
     parser.add_argument('--num_workers', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=8)
@@ -60,7 +62,10 @@ def main():
         num_workers=args.num_workers
     )
 
-    net = Basic3D(num_frames=num_frames).to(get_device())
+    if args.model == 'basic3d':
+        net = Basic3D(num_frames=num_frames).to(device)
+    elif args.model == 's3d':
+        net = S3D(num_classes=num_frames).to(device)
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
