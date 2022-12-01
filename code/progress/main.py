@@ -34,27 +34,20 @@ def parse_arguments():
 def main():
     device = get_device()
     args = parse_arguments()
-    num_frames = 90 #args.num_segments * args.frames_per_segment
+    num_frames = args.num_segments * args.frames_per_segment
 
-    # trainset = ProgressDataset(
-    #     f'./data/{args.dataset}',
-    #     num_segments=args.num_segments,
-    #     frames_per_segment=args.frames_per_segment,
-    #     transform=transforms.Compose([
-    #         ImglistToTensor(),
-    #     ])
-    # )
-    trainset = Toy3DDataset(
-        root_dir=f'./data/{args.dataset}',
-        num_videos=800,
+    trainset = ProgressDataset(
+        f'./data/{args.dataset}',
+        num_segments=args.num_segments,
+        frames_per_segment=args.frames_per_segment,
         transform=transforms.Compose([
             ImglistToTensor(),
         ])
     )
-    testset = Toy3DDataset(
-        root_dir=f'./data/{args.dataset}',
-        num_videos=92,
-        offset=800,
+    testset = ProgressDataset(
+        f'./data/{args.dataset}',
+        num_segments=args.num_segments,
+        frames_per_segment=args.frames_per_segment,
         transform=transforms.Compose([
             ImglistToTensor(),
         ])
