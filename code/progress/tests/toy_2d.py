@@ -138,6 +138,8 @@ def main():
                 predictions.append(prediction)
             plt.plot(reals, label='Real')
             plt.plot(predictions, label='Predictions')
+            plt.savefig(f'./results/{video_index}.png')
+            plt.clf()
             plt.show()
     # since we're not training, we don't need to calculate the gradients for our outputs
     # with torch.no_grad():
