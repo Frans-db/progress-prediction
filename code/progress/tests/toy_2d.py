@@ -106,8 +106,12 @@ def main():
 
     for epoch in range(2):
         running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
-            inputs, labels = data[0].to(device), data[1].to(device)
+        for i, (inputs, labels) in enumerate(trainloader, 0):
+            batch_size = labels.shape[0]
+            labels = labels.reshape(batch_size, 1).float()
+            inputs = inputs.to(device) 
+            labels = labels.to(device)
+
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = criterion(outputs, labels)
