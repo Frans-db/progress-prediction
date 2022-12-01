@@ -1,3 +1,7 @@
+"""
+Converting 2D MNIST images to 3D to test 3D convolutions
+"""
+
 import torch
 import torch.optim as optim
 import torch.nn as nn
