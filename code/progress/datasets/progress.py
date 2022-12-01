@@ -48,7 +48,7 @@ class ProgressDataset(torch.utils.data.Dataset):
         are to be loaded from.
 
         Args:
-            record: VideoRecord denoting a video sample.
+            num_frames: Number of frames the video has
         Returns:
             List of indices of where the frames of each
             segment are to be loaded from.

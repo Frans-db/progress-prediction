@@ -9,12 +9,14 @@ import random
 from tqdm import tqdm
 import numpy as np
 
-from datasets import ProgressDataset
-from datasets.transforms import ImglistToTensor, SwapDimensions
-from networks import S3D
+from datasets import ProgressDataset, Toy3DDataset
+from datasets.transforms import ImglistToTensor
+from networks import S3D, Basic3D
+
 
 def get_device():
     return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -25,67 +27,78 @@ def parse_arguments():
 
     parser.add_argument('--num_segments', type=int, default=1)
     parser.add_argument('--frames_per_segment', type=int, default=10)
-    parser.add_argument('--sample_every_n_frames', type=int, default=1)
-    
+
     return parser.parse_args()
 
+
 def main():
-    torch.manual_seed(42)
-    np.random.seed(42)
-    random.seed(42)
-
+    device = get_device()
     args = parse_arguments()
+    num_frames = 90 #args.num_segments * args.frames_per_segment
 
-    num_frames = args.num_segments * (args.frames_per_segment // args.sample_every_n_frames)
+    # trainset = ProgressDataset(
+    #     f'./data/{args.dataset}',
+    #     num_segments=args.num_segments,
+    #     frames_per_segment=args.frames_per_segment,
+    #     transform=transforms.Compose([
+    #         ImglistToTensor(),
+    #     ])
+    # )
+    trainset = Toy3DDataset(
+        root_dir=f'./data/{args.dataset}',
+        num_videos=800,
+        transform=transforms.Compose([
+            ImglistToTensor(),
+        ])
+    )
+    testset = Toy3DDataset(
+        root_dir=f'./data/{args.dataset}',
+        num_videos=92,
+        offset=800,
+        transform=transforms.Compose([
+            ImglistToTensor(),
+        ])
+    )
+    trainloader = DataLoader(
+        dataset=trainset, 
+        batch_size=args.batch_size,
+        shuffle=True, 
+        num_workers=args.num_workers
+    )
 
-    dataset = ProgressDataset(
-            f'./data/{args.dataset}',
-            num_segments=args.num_segments,
-            frames_per_segment=args.frames_per_segment,
-            every_nth_frame=args.sample_every_n_frames,
-            transform=transforms.Compose([
-                ImglistToTensor(),
-                SwapDimensions()
-            ]),
-            )      
-
-    dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
-
-    net = S3D(num_classes=num_frames).to(get_device())
+    net = Basic3D(num_frames=num_frames).to(get_device())
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(net.parameters(), lr=10**(-4))
+    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
     for epoch in range(args.epochs):
         epoch_loss = 0
-        for i,(videos, labels) in enumerate(tqdm(dataloader)):
-            num_samples = videos.shape[0]
-            labels = torch.stack(labels).reshape(num_samples, num_frames).float()
-
-            videos = videos.to(get_device())
-            labels = labels.to(get_device())
+        for i, (videos, labels) in enumerate(trainloader, 0):
+            videos = videos.to(device)
+            labels = labels.float().to(device)
 
             outputs = net(videos)
 
             optimizer.zero_grad()
             loss = criterion(outputs, labels)
             loss.backward()
-            epoch_loss += loss.item()
             optimizer.step()
+
+            epoch_loss += loss.item()
         print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
 
     net.eval()
-    for i in range(20):
-        video, labels = dataset[i]
-        video = video.reshape(3, num_frames, 42, 42)
-        predictions = net(video.unsqueeze(0)).squeeze()
-        print(predictions)
+    with torch.no_grad():
+        for i in range(20):
+            video, labels = testset[i]
+            predictions = net(video.unsqueeze(0)).squeeze()
 
-        plt.plot(predictions.cpu().detach().numpy(), label='Predicted')
-        plt.plot(labels, label='Actual')
-        plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
-        plt.legend(loc='best')
-        plt.savefig(f'./results/{i}.png')
-        plt.clf()
+            plt.plot(predictions.cpu().detach().numpy(), label='Predicted')
+            plt.plot(labels, label='Actual')
+            plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
+            plt.legend(loc='best')
+            plt.savefig(f'./results/{i}.png')
+            plt.clf()
+
 
 if __name__ == '__main__':
     main()
