@@ -99,7 +99,7 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    for epoch in range(3):
+    for epoch in range(0):
         running_loss = 0.0
         for i, (inputs, labels) in enumerate(trainloader, 0):
             # batch_size = labels.shape[0]
@@ -125,7 +125,7 @@ def main():
             video, labels = testset[video_index]
             video = video.to(device)
 
-            predictions = net(video.unsqueeze(0)).squeeze(0).cpu().item()
+            predictions = net(video.unsqueeze(0)).squeeze(0).cpu().numpy()
 
             plt.plot(labels, label='Real')
             plt.plot(predictions, label='Predictions')
