@@ -94,17 +94,11 @@ def main():
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                             shuffle=True, num_workers=2)
 
-    # testset = torchvision.datasets.MNIST(root='./data', train=False,
-    #                                     download=True, transform=transform)
-    # testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-    #                                         shuffle=False, num_workers=2)
-
     net = Net().to(device)
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
     
-
-    for epoch in range(2):
+    for epoch in range(1):
         running_loss = 0.0
         for i, (inputs, labels) in enumerate(trainloader, 0):
             batch_size = labels.shape[0]
@@ -141,18 +135,6 @@ def main():
             plt.savefig(f'./results/{video_index}.png')
             plt.clf()
             plt.show()
-    # since we're not training, we don't need to calculate the gradients for our outputs
-    # with torch.no_grad():
-    #     for data in testloader:
-    #         images, labels = data[0].to(device), data[1].to(device)
-    #         # calculate outputs by running images through the network
-    #         outputs = net(images)
-    #         # the class with the highest energy is what we choose as prediction
-    #         _, predicted = torch.max(outputs.data, 1)
-    #         total += labels.size(0)
-    #         correct += (predicted == labels).sum().item()
-
-    # print(f'Accuracy of the network on the 10000 test images: {100 * correct     // total} %')
 
 if __name__ == '__main__':
     main()
