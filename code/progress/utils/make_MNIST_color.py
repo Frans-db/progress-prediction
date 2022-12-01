@@ -46,7 +46,7 @@ parser.add_argument(
 )
 parser.add_argument(
     '--add_bg',
-    action=argparse.BooleanOptionalAction
+    action='store_true'
 )
 parser.add_argument(
     "--new_path", type=str, default="./data/toy/", help="New dataset path ..."
