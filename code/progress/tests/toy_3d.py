@@ -114,7 +114,7 @@ def main():
             optimizer.step()
 
             running_loss += loss.item()
-            if i % 500 == 499:
+            if i % 100 == 99:
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
                 running_loss = 0.0
 
@@ -125,7 +125,7 @@ def main():
             video, labels = testset[video_index]
             video = video.to(device)
 
-            predictions = net(predictions.unsqueeze(0)).squeeze(0).cpu().item()
+            predictions = net(video.unsqueeze(0)).squeeze(0).cpu().item()
 
             plt.plot(labels, label='Real')
             plt.plot(predictions, label='Predictions')
