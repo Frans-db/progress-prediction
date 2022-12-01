@@ -115,7 +115,7 @@ def create_activity_mnist(
 
         # Pick a global speed scaling factor
         video_speed = (
-            args.min_speed + (args.max_speed - args.min_speed) * 0.5 # random.random() removed random for now while playing around with dataloader
+            args.min_speed + (args.max_speed - args.min_speed) * random.random()
         )
 
         make_data(videos, labels, idx, new_subset_list, video_speed)
