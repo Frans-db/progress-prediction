@@ -39,6 +39,9 @@ def main():
     args = parse_arguments()
     num_frames = args.num_segments * args.frames_per_segment
 
+    print(f'[Running on {device}]')
+    print(f'[{num_frames} frames per sample]')
+
     trainset = ProgressDataset(
         f'./data/{args.dataset}',
         num_segments=args.num_segments,
