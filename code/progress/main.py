@@ -37,7 +37,7 @@ def parse_arguments():
 def main():
     device = get_device()
     args = parse_arguments()
-    num_frames = args.num_segments * args.frames_per_segment
+    num_frames = (args.num_segments * args.frames_per_segment) // args.sample_every
 
     print(f'[Running on {device}]')
     print(f'[{num_frames} frames per sample]')
