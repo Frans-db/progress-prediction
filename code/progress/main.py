@@ -11,7 +11,7 @@ import numpy as np
 
 from datasets import ProgressDataset, Toy3DDataset
 from datasets.transforms import ImglistToTensor
-from networks import S3D, Basic3D
+from networks import S3D, Basic3D, LSTMNetwork
 
 
 def get_device():
@@ -66,6 +66,9 @@ def main():
         net = Basic3D(num_frames=num_frames).to(device)
     elif args.model == 's3d':
         net = S3D(num_classes=num_frames).to(device)
+    elif args.model == 'lstm':
+        net = LSTMNetwork().to(device)
+
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
