@@ -9,6 +9,7 @@ class ProgressDataset(torch.utils.data.Dataset):
                  root_path: str,
                  num_segments: int,
                  frames_per_segment: int,
+                 sample_every: int,
                  imagefile_template: str = 'img_{:05d}.png',
                  test_mode: bool = False,
                  transform=None) -> None:
@@ -17,6 +18,7 @@ class ProgressDataset(torch.utils.data.Dataset):
         self.items = os.listdir(self.root_path)
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
+        self.sample_every = sample_every
         self.imagefile_template = imagefile_template
         self.transform = transform
         self.test_mode = test_mode
@@ -81,7 +83,7 @@ class ProgressDataset(torch.utils.data.Dataset):
         images = []
         labels = []
         for start_index in start_indices:
-            indices = range(start_index, start_index+self.frames_per_segment)
+            indices = list(range(start_index, start_index+self.frames_per_segment))[::self.sample_every]
             for i in indices:
                 image_name = self.imagefile_template.format(i)
                 image_path = os.path.join(item_directory, image_name)

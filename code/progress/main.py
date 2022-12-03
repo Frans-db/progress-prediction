@@ -29,6 +29,7 @@ def parse_arguments():
 
     parser.add_argument('--num_segments', type=int, default=1)
     parser.add_argument('--frames_per_segment', type=int, default=10)
+    parser.add_argument('--sample_every', type=int, default=1)
 
     return parser.parse_args()
 
@@ -42,6 +43,7 @@ def main():
         f'./data/{args.dataset}',
         num_segments=args.num_segments,
         frames_per_segment=args.frames_per_segment,
+        sample_every=args.sample_every,
         transform=transforms.Compose([
             ImglistToTensor(),
         ])
@@ -50,6 +52,7 @@ def main():
         f'./data/{args.dataset}',
         num_segments=args.num_segments,
         frames_per_segment=args.frames_per_segment,
+        sample_every=args.sample_every,
         transform=transforms.Compose([
             ImglistToTensor(),
         ])
