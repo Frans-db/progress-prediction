@@ -62,7 +62,8 @@ def main():
         sample_every=args.sample_every,
         transform=transforms.Compose([
             ImglistToTensor(),
-        ])
+        ]),
+        test_mode=True,
     )
 
     trainloader = DataLoader(

@@ -114,6 +114,7 @@ def main():
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
                 running_loss = 0.0
 
+    os.mkdir('./results/toy_2d_test')
     with torch.no_grad():
         testset = Toy2DDataset('./data/toy', num_videos=91, offset=800, transform=transform)
         num_videos = 10
@@ -129,7 +130,7 @@ def main():
                 predictions.append(prediction)
             plt.plot(reals, label='Real')
             plt.plot(predictions, label='Predictions')
-            plt.savefig(f'./results/{video_index}.png')
+            plt.savefig(f'./results/toy_2d_test/{video_index}.png')
             plt.clf()
 
 if __name__ == '__main__':
