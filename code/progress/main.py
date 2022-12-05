@@ -5,9 +5,8 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import torch.optim as optim
 import argparse
-import random
-from tqdm import tqdm
-import numpy as np
+import uuid
+import os
 
 from datasets import ProgressDataset, Toy3DDataset
 from datasets.transforms import ImglistToTensor
@@ -20,6 +19,8 @@ def get_device():
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', type=str, default=None)
+
     parser.add_argument('--model', type=str, default='basic3d')
 
     parser.add_argument('--dataset', type=str, default='toy')
@@ -31,14 +32,17 @@ def parse_arguments():
     parser.add_argument('--frames_per_segment', type=int, default=10)
     parser.add_argument('--sample_every', type=int, default=1)
 
-    return parser.parse_args()
-
+    args = parser.parse_args()
+    if args.name is None:
+        args.name = uuid.uuid4()
+    return args
 
 def main():
     device = get_device()
     args = parse_arguments()
     num_frames = (args.num_segments * args.frames_per_segment) // args.sample_every
 
+    print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
     print(f'[{num_frames} frames per sample]')
 
@@ -94,6 +98,7 @@ def main():
             epoch_loss += loss.item()
         print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
 
+    os.mkdir(f'./results/{args.name}')
     net.eval()
     with torch.no_grad():
         for i in range(20):
@@ -105,7 +110,7 @@ def main():
             plt.plot(labels, label='Actual')
             plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
             plt.legend(loc='best')
-            plt.savefig(f'./results/{i}.png')
+            plt.savefig(f'./results/{args.name}/{i}.png')
             plt.clf()
 
 
