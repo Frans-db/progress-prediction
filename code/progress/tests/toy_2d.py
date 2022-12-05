@@ -87,7 +87,7 @@ def main():
         [transforms.ToTensor()])
     
 
-    trainset = Toy2DDataset('./data/toy', num_videos=800, shuffle=True, transform=transform)
+    trainset = Toy2DDataset('./data/toy', num_videos=800, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                             shuffle=True, num_workers=2)
 
