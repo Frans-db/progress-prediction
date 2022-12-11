@@ -109,7 +109,8 @@ def main():
             epoch_loss += loss.item()
         print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
 
-    os.mkdir(f'./results/{args.name}')
+    if not os.path.isdir(f'./results/{args.name}'):
+        os.mkdir(f'./results/{args.name}')
     net.eval()
     with torch.no_grad():
         for i in range(20):
