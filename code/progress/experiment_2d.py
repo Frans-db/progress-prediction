@@ -55,6 +55,7 @@ def main():
     np.random.seed(args.seed)
     random.seed(args.seed)
 
+    print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
 

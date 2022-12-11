@@ -7,10 +7,12 @@ import torch.optim as optim
 import argparse
 import uuid
 import os
+import random
+import numpy as np
 
-from datasets import ProgressDataset, Toy3DDataset, Toy2DDataset
+from datasets import ProgressDataset
 from datasets.transforms import ImglistToTensor
-from networks import S3D, Basic3D, LSTMNetwork
+from networks import S3D, Basic3D, Basic3DTemporal, LSTMNetwork
 
 
 def get_device():
@@ -20,6 +22,7 @@ def get_device():
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default=None)
+    parser.add_argument('--seed', type=int, default=None)
 
     parser.add_argument('--model', type=str, default='basic3d')
 
@@ -35,6 +38,8 @@ def parse_arguments():
     args = parser.parse_args()
     if args.name is None:
         args.name = uuid.uuid4()
+    if args.seed is None:
+        args.seed = random.randint(0, 1_000_000_000)
     return args
 
 def main():
@@ -42,8 +47,13 @@ def main():
     args = parse_arguments()
     num_frames = (args.num_segments * args.frames_per_segment) // args.sample_every
 
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
+    print(f'[Seed {args.seed}]')
     print(f'[{num_frames} frames per sample]')
 
     trainset = ProgressDataset(

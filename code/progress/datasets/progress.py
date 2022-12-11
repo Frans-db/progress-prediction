@@ -16,7 +16,7 @@ class ProgressDataset(torch.utils.data.Dataset):
                  transform=None) -> None:
         super().__init__()
         self.root_path = root_path
-        self.items = os.listdir(self.root_path)
+        self.items = sorted(os.listdir(self.root_path))
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
         self.sample_every = sample_every
