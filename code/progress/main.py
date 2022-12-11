@@ -77,7 +77,7 @@ def main():
         transform=transforms.Compose([
             ImglistToTensor(),
         ]),
-        test_mode=True,
+        test_mode=False,
     )
 
     trainloader = DataLoader(
