@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import os
 import argparse
 import uuid
-from datasets import Toy3DDataset, Toy2DDataset, ProgressDataset
+from datasets import Toy3DDataset, ProgressDataset, SimpleProgressDataset
 from networks import Basic2D
 from datasets.transforms import ImglistToTensor
 import random
@@ -63,9 +63,8 @@ def main():
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
 
-    trainset = ProgressDataset(
+    trainset = SimpleProgressDataset(
         f'./data/{args.dataset}',
-        num_segments=args.num_segments,
         frames_per_segment=args.frames_per_segment,
         sample_every=args.sample_every,
         transform=transforms.Compose([
