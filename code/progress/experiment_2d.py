@@ -97,11 +97,13 @@ def main():
         num_videos = 10
         for video_index in range(num_videos):
             video, labels = testset[video_index]
+
             num_frames = video.shape[1]
 
             predictions = []
             for i in range(num_frames):
                 frame = video[:, i, :, :]
+
                 frame = frame.to(device)
                 prediction = net(frame.unsqueeze(0)).squeeze(0).cpu().item()
                 predictions.append(prediction)

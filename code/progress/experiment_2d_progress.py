@@ -69,7 +69,7 @@ def main():
         frames_per_segment=args.frames_per_segment,
         sample_every=args.sample_every,
         transform=transforms.Compose([
-            ImglistToTensor(),
+            ImglistToTensor(dim=0),
         ])
     )
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
@@ -83,7 +83,7 @@ def main():
     for epoch in range(args.epochs):
         running_loss = 0.0
         for i, (inputs, labels) in enumerate(trainloader, 0):
-            batch_size, C, T, W, H = inputs.shape
+            batch_size, T, C, W, H = inputs.shape
             inputs = inputs.reshape(batch_size * T, C, W, H)
             labels = labels.reshape(batch_size * T, 1).float()
 

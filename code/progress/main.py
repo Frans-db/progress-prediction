@@ -14,6 +14,10 @@ from datasets import ProgressDataset
 from datasets.transforms import ImglistToTensor
 from networks import S3D, Basic3D, Basic3DTemporal, LSTMNetwork
 
+def imshow(img):
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show()
 
 def get_device():
     return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -98,6 +102,7 @@ def main():
         for i, (videos, labels) in enumerate(trainloader, 0):
             videos = videos.to(device)
             labels = labels.float().to(device)
+
 
             outputs = net(videos)
 
