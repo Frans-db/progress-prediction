@@ -96,7 +96,6 @@ class ProgressDataset(torch.utils.data.Dataset):
                 image_path = os.path.join(item_directory, image_name)
                 images.append(self._load_image(image_path))
                 labels.append((i + 1) / num_frames)
-
         if self.transform is not None:
             images = self.transform(images)
         return images, np.array(labels)
