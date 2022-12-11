@@ -98,7 +98,7 @@ def main():
             optimizer.step()
 
             running_loss += loss.item()
-            if i % 2000 == 1999:
+            if i % 200 == 199:
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
                 running_loss = 0.0
 
