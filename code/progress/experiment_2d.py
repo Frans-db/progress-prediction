@@ -62,7 +62,7 @@ def main():
     trainset = Toy2DDataset(
         f'./data/{args.dataset}', num_videos=800, transform=transforms.ToTensor())
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=False, num_workers=args.num_workers)
+                                              shuffle=True, num_workers=args.num_workers)
 
     print(f'[{len(trainset)} frames]')
 

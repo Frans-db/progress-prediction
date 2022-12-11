@@ -72,7 +72,7 @@ def main():
         ])
     )
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=False, num_workers=args.num_workers)
+                                              shuffle=True, num_workers=args.num_workers)
 
 
     net = Basic2D().to(device)
@@ -114,6 +114,8 @@ def main():
             predictions = []
             for i in range(num_frames):
                 frame = video[:, i, :, :]
+                if video_index == 0:
+                    imshow(frame)
                 frame = frame.to(device)
                 prediction = net(frame.unsqueeze(0)).squeeze(0).cpu().item()
                 predictions.append(prediction)
