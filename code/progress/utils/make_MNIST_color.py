@@ -127,13 +127,6 @@ def create_activity_mnist(
     # Write down the data
     print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
     
-    '''
-    The VideoFrameDataset expects the annotation file to be in the following format:
-    video_id start_frame end_frame label* [as many labels as you want]
-    Normally these labels are integer id's, but as a workaround I'm returning them as floats
-    and each id i is the completion percentage of frame i. Note that this does not yet work
-    with subsampling
-    '''
     for video_id, video in enumerate(videos):
         # Create directory to store the video frames in
         os.mkdir(f'{args.new_path}/{video_id:05d}')

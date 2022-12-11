@@ -63,6 +63,8 @@ def main():
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=False, num_workers=args.num_workers)
 
+    print(f'[{len(trainset)} frames]')
+
     net = Basic2D().to(device)
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
@@ -108,6 +110,7 @@ def main():
             plt.xlabel('Frame Number')
             plt.ylabel('Progression (%)')
             plt.title('Real vs Predicted progression')
+            plt.legend(loc='best')
             plt.savefig(f'./results/{args.name}/{video_index}.png')
             plt.clf()
 
