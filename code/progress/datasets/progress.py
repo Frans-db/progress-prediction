@@ -10,6 +10,7 @@ class ProgressDataset(torch.utils.data.Dataset):
                  num_segments: int,
                  frames_per_segment: int,
                  sample_every: int,
+                 cutoff: int = 0,
                  imagefile_template: str = 'img_{:05d}.png',
                  test_mode: bool = False,
                  transform=None) -> None:
@@ -19,9 +20,13 @@ class ProgressDataset(torch.utils.data.Dataset):
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
         self.sample_every = sample_every
+        self.cutoff = cutoff
         self.imagefile_template = imagefile_template
         self.transform = transform
         self.test_mode = test_mode
+
+        if self.cutoff <= 0:
+            self.cutoff = len(self)
 
         self._check_samples()
 
@@ -78,7 +83,9 @@ class ProgressDataset(torch.utils.data.Dataset):
         image_files = sorted(os.listdir(item_directory))
         num_frames = len(image_files)
 
-        start_indices = self._get_start_indices(num_frames)
+        # randomly sample cutoff from num_frames
+        # sample at different scales
+        start_indices = self._get_start_indices(min(self.cutoff, num_frames))
 
         images = []
         labels = []

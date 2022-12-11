@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 import torch
 from torch import nn
 from torchvision.ops.misc import Conv3dNormActivation
-
+from torchsummary import summary
 
 class TemporalSeparableConv(nn.Sequential):
     def __init__(

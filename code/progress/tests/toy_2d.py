@@ -52,6 +52,10 @@ def get_device():
     return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 def main():
+    torch.manual_seed(0)
+    np.random.seed(0)
+    random.seed(0)
+    
     device = get_device()
     print(f'[Running on {device}]')
     class Net(nn.Module):
@@ -89,7 +93,7 @@ def main():
 
     trainset = Toy2DDataset('./data/toy', num_videos=800, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                            shuffle=True, num_workers=2)
+                                            shuffle=False, num_workers=2)
 
     net = Net().to(device)
     criterion = nn.MSELoss()

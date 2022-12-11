@@ -8,7 +8,7 @@ import argparse
 import uuid
 import os
 
-from datasets import ProgressDataset, Toy3DDataset
+from datasets import ProgressDataset, Toy3DDataset, Toy2DDataset
 from datasets.transforms import ImglistToTensor
 from networks import S3D, Basic3D, LSTMNetwork
 
