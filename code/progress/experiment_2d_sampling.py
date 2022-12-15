@@ -55,6 +55,8 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
 
+    sampled = {}
+
     for epoch in range(args.epochs):
         train_loss = 0
         for i, (inputs, labels) in enumerate(trainloader):
@@ -62,6 +64,11 @@ def main():
 
             labels = labels.reshape(batch_size * T, 1).float()
             inputs = inputs.reshape(batch_size * T, C, W, H)
+
+            for label in labels.squeeze(-1).numpy():
+                if label not in sampled:
+                    sampled[label] = 0
+                sampled[label] += 1
 
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -74,10 +81,20 @@ def main():
 
             train_loss += loss.item()
 
+
         print(f'[{epoch:2d}] train loss: {train_loss:.4f}')
 
     if not os.path.isdir(f'./results/experiments/2d_sampled/{args.name}'):
         os.mkdir(f'./results/experiments/2d_sampled/{args.name}')
+
+    keys = sorted(list(sampled.keys()))
+    values = [sampled[key] for key in keys]
+    print(sampled)
+    plt.bar(keys, values)
+    plt.xlabel('Progress Value')
+    plt.ylabel('Times Sampled')
+    plt.savefig(f'./results/experiments/2d_sampled/{args.name}/sampled.png')
+
     net.eval()
     with torch.no_grad():
         for video_index in range(20):

@@ -2,7 +2,7 @@ import os
 import torch
 from PIL import Image
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 class ProgressDataset(torch.utils.data.Dataset):
     def __init__(self,
@@ -84,11 +84,12 @@ class ProgressDataset(torch.utils.data.Dataset):
         labels = []
         for start_index in start_indices:
             indices = list(range(start_index, start_index+self.frames_per_segment))[::self.sample_every]
-            for i in indices:
-                image_name = self.imagefile_template.format(i)
+            for image_index in indices:
+                image_name = self.imagefile_template.format(image_index)
                 image_path = os.path.join(item_directory, image_name)
                 images.append(self._load_image(image_path))
-                labels.append((i + 1) / num_frames)
+                labels.append((image_index + 1) / num_frames)
+
         if self.transform is not None:
             images = self.transform(images)
         return images, np.array(labels)
