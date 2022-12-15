@@ -70,7 +70,7 @@ parser.add_argument(
     "--max-segment", type=int, default=10, help="The maximum segment=task length" # 10
 )
 parser.add_argument(
-    "--min-segment", type=int, default=10, help="The minimum segment=task length" # 5
+    "--min-segment", type=int, default=5, help="The minimum segment=task length" # 5
 )
 
 parser.add_argument(

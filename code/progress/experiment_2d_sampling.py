@@ -15,7 +15,7 @@ import argparse
 import uuid
 import random
 
-from datasets import VideoDataset, VideoFrameDataset
+from datasets import VideoDataset, VideoFrameDataset, ProgressDataset
 from networks import Conv2D
 from datasets.transforms import ImglistToTensor
 from utils import parse_arguments, get_device, set_seeds
