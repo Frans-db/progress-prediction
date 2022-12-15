@@ -3,7 +3,7 @@ from PIL import Image
 import numpy as np
 import os
 
-class Toy2DDataset(Dataset):
+class VideoFrameDataset(Dataset):
     def __init__(self, root_dir: str, num_videos: int, offset: int = 0, transform = None) -> None:
         super().__init__()
         self.root_dir = root_dir

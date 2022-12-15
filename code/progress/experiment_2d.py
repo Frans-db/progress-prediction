@@ -13,38 +13,12 @@ import matplotlib.pyplot as plt
 import os
 import argparse
 import uuid
-from datasets import Toy3DDataset, Toy2DDataset
-from networks import Basic2D
-from datasets.transforms import ImglistToTensor
 import random
 
-
-def imshow(img):
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
-
-
-def get_device():
-    return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default=None)
-    parser.add_argument('--seed', type=int, default=None)
-
-    parser.add_argument('--dataset', type=str, default='toy')
-    parser.add_argument('--num_workers', type=int, default=2)
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--epochs', type=int, default=1)
-
-    args = parser.parse_args()
-    if args.name is None:
-        args.name = uuid.uuid4()
-    if args.seed is None:
-        args.seed = random.randint(0, 1_000_000_000)
-    return args
+from datasets import VideoDataset, VideoFrameDataset
+from networks import Conv2D
+from datasets.transforms import ImglistToTensor
+from utils import parse_arguments, get_device
 
 
 def main():
@@ -59,14 +33,14 @@ def main():
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
 
-    trainset = Toy2DDataset(
+    trainset = VideoFrameDataset(
         f'./data/{args.dataset}', num_videos=800, transform=transforms.ToTensor())
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
 
     print(f'[{len(trainset)} frames]')
 
-    net = Basic2D().to(device)
+    net = Conv2D().to(device)
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
 
@@ -93,7 +67,7 @@ def main():
     if not os.path.isdir(f'./results/{args.name}'):
         os.mkdir(f'./results/{args.name}')
     with torch.no_grad():
-        testset = Toy3DDataset(f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
+        testset = VideoDataset(f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
         num_videos = 10
         for video_index in range(num_videos):
             video, labels = testset[video_index]

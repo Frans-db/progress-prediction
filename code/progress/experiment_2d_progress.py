@@ -18,6 +18,7 @@ from networks import Basic2D
 from datasets.transforms import ImglistToTensor
 import random
 
+from ..progress.datasets import VideoFrameDataset
 
 def imshow(img):
     npimg = img.numpy()

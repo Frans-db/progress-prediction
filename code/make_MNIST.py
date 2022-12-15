@@ -45,7 +45,7 @@ parser.add_argument(
     help="Frames to use for bg",
 )
 parser.add_argument(
-    "--new_path", type=str, default="./data/MNIST/toy/", help="New dataset path ..."
+    "--new_path", type=str, default="./data/toy/", help="New dataset path ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
@@ -84,8 +84,8 @@ def create_activity_mnist(
     train: bool, targets: List, file_name: str = "activity_mnist"
 ):
     global args
-    random.seed(args.seed)
-    np.random.seed(args.seed)
+    # random.seed(args.seed)
+    # np.random.seed(args.seed)
 
     # ---------------------
     dataset = torchvision.datasets.MNIST(args.path, train=train, download=True)
@@ -523,15 +523,15 @@ def read_activity_mnist(name="activity_mnist_small"):
 if __name__ == "__main__":
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
-    # create_activity_mnist(
-    #     train=False,
-    #     targets=[
-    #         (1, "horizontal"),
-    #         (3, "inv_diagonal"),
-    #         (5, "inv-horizontal"),
-    #         (7, "diagonal"),
-    #         (9, "vertical"),
-    #     ],
-    #     file_name=args.name,
-    # )
+    create_activity_mnist(
+        train=False,
+        targets=[
+            (1, "horizontal"),
+            (3, "inv_diagonal"),
+            (5, "inv-horizontal"),
+            (7, "diagonal"),
+            (9, "vertical"),
+        ],
+        file_name=args.name,
+    )
     read_activity_mnist(name=args.name)

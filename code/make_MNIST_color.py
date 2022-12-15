@@ -136,8 +136,8 @@ def create_activity_mnist(
             image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id):05d}.png')
             
 
-    # with open(args.new_path + file_name + ".pkl", "wb+") as f:
-    #     pickle.dump((videos, labels), f)
+    with open(args.new_path + file_name + ".pkl", "wb+") as f:
+        pickle.dump((videos, labels), f)
 
     # See some examples
     # view_videos(videos, labels)
@@ -579,10 +579,10 @@ def read_activity_mnist(name="activity_mnist_small"):
     print(videos[0][0, :, :].max(), videos[0][0, :, :].min())
 
     # See some examples
-    view_videos(videos, labels)
+    # view_videos(videos, labels)
 
     # Get data statistics
-    # data_stats(videos, labels)
+    data_stats(videos, labels)
 
 
 # ------------------------------------------------------------------------------------
@@ -590,15 +590,15 @@ if __name__ == "__main__":
     
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
-    create_activity_mnist(
-        train=False,
-        targets=[
-            (1, "horizontal"),
-            (3, "inv_diagonal"),
-            (5, "inv-horizontal"),
-            (7, "diagonal"),
-            (9, "vertical"),
-        ],
-        file_name=args.name,
-    )
-    # read_activity_mnist(name=args.name)
+    # create_activity_mnist(
+    #     train=False,
+    #     targets=[
+    #         (1, "horizontal"),
+    #         (3, "inv_diagonal"),
+    #         (5, "inv-horizontal"),
+    #         (7, "diagonal"),
+    #         (9, "vertical"),
+    #     ],
+    #     file_name=args.name,
+    # )
+    read_activity_mnist(name=args.name)
