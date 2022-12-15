@@ -13,7 +13,7 @@ import numpy as np
 from datasets import ProgressDataset
 from datasets.transforms import ImglistToTensor
 from networks import S3D, Conv3D, LSTMNetwork
-from utils import parse_arguments, get_device
+from utils import parse_arguments, get_device, set_seeds
 
 
 
@@ -23,9 +23,7 @@ def main():
     args = parse_arguments()
     num_frames = (args.num_segments * args.frames_per_segment) // args.sample_every
 
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
+    set_seeds(args.seed)
 
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
@@ -84,7 +82,7 @@ def main():
             optimizer.step()
 
             epoch_loss += loss.item()
-        print(f'[{epoch:2d}] loss: {epoch_loss:.3f}')
+        print(f'[{epoch:2d}] loss: {epoch_loss:.4f}')
 
     if not os.path.isdir(f'./results/{args.name}'):
         os.mkdir(f'./results/{args.name}')

@@ -18,26 +18,30 @@ import random
 from datasets import VideoDataset, VideoFrameDataset
 from networks import Conv2D
 from datasets.transforms import ImglistToTensor
-from utils import parse_arguments, get_device
+from utils import parse_arguments, get_device, set_seeds
 
+
+def get_datasets(args):
+    trainset = VideoFrameDataset(
+        f'./data/{args.dataset}', num_videos=800, transform=transforms.ToTensor())
+
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+                                              shuffle=True, num_workers=args.num_workers)
+    testset = VideoDataset(
+        f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
+
+    return trainset, trainloader, testset
 
 def main():
     device = get_device()
     args = parse_arguments()
+    set_seeds(args.seed)
 
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
+    trainset, trainloader, testset = get_datasets(args)
 
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
-
-    trainset = VideoFrameDataset(
-        f'./data/{args.dataset}', num_videos=800, transform=transforms.ToTensor())
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=True, num_workers=args.num_workers)
-
     print(f'[{len(trainset)} frames]')
 
     net = Conv2D().to(device)
@@ -45,7 +49,7 @@ def main():
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
 
     for epoch in range(args.epochs):
-        running_loss = 0.0
+        epoch_loss = 0
         for i, (inputs, labels) in enumerate(trainloader, 0):
             batch_size = labels.shape[0]
             labels = labels.reshape(batch_size, 1).float()
@@ -58,18 +62,14 @@ def main():
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
-            if i % 2000 == 1999:
-                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-                running_loss = 0.0
+            epoch_loss += loss.item()
+        print(f'[{epoch:2d}] loss: {epoch_loss:.4f}')
 
-
-    if not os.path.isdir(f'./results/{args.name}'):
+    if not os.path.isdir(f'./results/experiments/{args.name}'):
         os.mkdir(f'./results/{args.name}')
+    net.eval()
     with torch.no_grad():
-        testset = VideoDataset(f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
-        num_videos = 10
-        for video_index in range(num_videos):
+        for video_index in range(20):
             video, labels = testset[video_index]
 
             num_frames = video.shape[1]

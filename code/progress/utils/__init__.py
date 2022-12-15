@@ -1,1 +1,6 @@
-from .utils import parse_arguments, get_device, imshow
+from .utils import *
+
+"""
+TODO:
+utils is not a very clear name, extract all functionality into properly named modules
+"""

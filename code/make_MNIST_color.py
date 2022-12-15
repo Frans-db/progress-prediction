@@ -70,24 +70,24 @@ parser.add_argument(
     "--max-segment", type=int, default=10, help="The maximum segment=task length" # 10
 )
 parser.add_argument(
-    "--min-segment", type=int, default=10, help="The minimum segment=task length" # 10
+    "--min-segment", type=int, default=10, help="The minimum segment=task length" # 5
 )
 
 parser.add_argument(
-    "--min-speed", type=float, default=3.0 / 4.0, help="The minimum speed scaling"
+    "--min-speed", type=float, default=2, help="The minimum speed scaling" # 3 / 4
 )
 parser.add_argument(
-    "--max-speed", type=float, default=3.0, help="The maximum speed scaling"
+    "--max-speed", type=float, default=2, help="The maximum speed scaling" # 3
 )
 
 
 args = parser.parse_args()
 
-
 def create_activity_mnist(
     train: bool, targets: List, file_name: str = "activity_mnist"
 ):
     global args
+    print(args)
     random.seed(args.seed)
     np.random.seed(args.seed)
 
@@ -136,8 +136,8 @@ def create_activity_mnist(
             image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id):05d}.png')
             
 
-    with open(args.new_path + file_name + ".pkl", "wb+") as f:
-        pickle.dump((videos, labels), f)
+    # with open(args.new_path + file_name + ".pkl", "wb+") as f:
+    #     pickle.dump((videos, labels), f)
 
     # See some examples
     # view_videos(videos, labels)
@@ -590,15 +590,15 @@ if __name__ == "__main__":
     
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
-    # create_activity_mnist(
-    #     train=False,
-    #     targets=[
-    #         (1, "horizontal"),
-    #         (3, "inv_diagonal"),
-    #         (5, "inv-horizontal"),
-    #         (7, "diagonal"),
-    #         (9, "vertical"),
-    #     ],
-    #     file_name=args.name,
-    # )
-    read_activity_mnist(name=args.name)
+    create_activity_mnist(
+        train=False,
+        targets=[
+            (1, "horizontal"),
+            (3, "inv_diagonal"),
+            (5, "inv-horizontal"),
+            (7, "diagonal"),
+            (9, "vertical"),
+        ],
+        file_name=args.name,
+    )
+    # read_activity_mnist(name=args.name)
