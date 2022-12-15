@@ -27,30 +27,38 @@ def get_datasets(args):
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
-    testset = VideoDataset(
+
+    testset = VideoFrameDataset(
+        f'./data/{args.dataset}', num_videos=90, offset=800, transform=transforms.ToTensor())
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                              shuffle=True, num_workers=args.num_workers)
+
+    videoset = VideoDataset(
         f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
 
-    return trainset, trainloader, testset
+    return trainset, trainloader, testset, testloader, videoset
 
 def main():
     device = get_device()
     args = parse_arguments()
     set_seeds(args.seed)
 
-    trainset, trainloader, testset = get_datasets(args)
+    trainset, trainloader, testset, testloader, videoset = get_datasets(args)
 
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
-    print(f'[{len(trainset)} frames]')
+    print(f'[{len(trainset)} train frames]')
+    print(f'[{len(testset)} test frames]')
 
     net = Conv2D().to(device)
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
 
     for epoch in range(args.epochs):
-        epoch_loss = 0
-        for i, (inputs, labels) in enumerate(trainloader, 0):
+        train_loss = 0
+        test_loss = 0
+        for i, (inputs, labels) in enumerate(trainloader):
             batch_size = labels.shape[0]
             labels = labels.reshape(batch_size, 1).float()
             inputs = inputs.to(device)
@@ -62,15 +70,25 @@ def main():
             loss.backward()
             optimizer.step()
 
-            epoch_loss += loss.item()
-        print(f'[{epoch:2d}] loss: {epoch_loss:.4f}')
+            train_loss += loss.item()
+        for i, (inputs, labels) in enumerate(testloader):
+            batch_size = labels.shape[0]
+            labels = labels.reshape(batch_size, 1).float()
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            test_loss += loss.item()
+
+        print(f'[{epoch:2d}] train loss: {train_loss:.4f} test loss: {test_loss:.4f}')
 
     if not os.path.isdir(f'./results/experiments/{args.name}'):
         os.mkdir(f'./results/experiments/{args.name}')
     net.eval()
     with torch.no_grad():
         for video_index in range(20):
-            video, labels = testset[video_index]
+            video, labels = videoset[video_index]
 
             num_frames = video.shape[1]
 
