@@ -107,6 +107,9 @@ def main():
         for video_index in range(20):
             video, labels = testset[video_index]
 
+            video = video.to(device)
+            labels = labels.float().to(device)
+
             predictions = net(video.unsqueeze(0)).squeeze(0).cpu().numpy()
 
             plt.plot(labels, label='Real')
@@ -121,6 +124,9 @@ def main():
         testset.test_mode = True
         for video_index in range(20):
             video, labels = testset[video_index]
+
+            video = video.to(device)
+            labels = labels.float().to(device)
 
             predictions = net(video.unsqueeze(0)).squeeze(0).cpu().numpy()
 
