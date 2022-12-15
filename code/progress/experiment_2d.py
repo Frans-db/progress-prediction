@@ -66,7 +66,7 @@ def main():
         print(f'[{epoch:2d}] loss: {epoch_loss:.4f}')
 
     if not os.path.isdir(f'./results/experiments/{args.name}'):
-        os.mkdir(f'./results/{args.name}')
+        os.mkdir(f'./results/experiments/{args.name}')
     net.eval()
     with torch.no_grad():
         for video_index in range(20):
@@ -88,7 +88,7 @@ def main():
             plt.ylabel('Progression (%)')
             plt.title('Real vs Predicted progression')
             plt.legend(loc='best')
-            plt.savefig(f'./results/{args.name}/{video_index}.png')
+            plt.savefig(f'./results/experiments/{args.name}/{video_index}.png')
             plt.clf()
 
 
