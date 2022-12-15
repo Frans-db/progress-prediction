@@ -16,8 +16,10 @@ def parse_arguments():
     parser.add_argument('--seed', type=int, default=None)
 
     parser.add_argument('--model', type=str, default='conv3d')
+    parser.add_argument('--temporal_dimension', type=int, default=1)
+    parser.add_argument('--intermediate_size', type=int, default=-1)
 
-    parser.add_argument('--dataset', type=str, default='toy')
+    parser.add_argument('--dataset', type=str, default='toy_static')
     parser.add_argument('--num_workers', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--epochs', type=int, default=1)
@@ -26,11 +28,15 @@ def parse_arguments():
     parser.add_argument('--frames_per_segment', type=int, default=10)
     parser.add_argument('--sample_every', type=int, default=1)
 
+
+
     args = parser.parse_args()
     if args.name is None:
         args.name = uuid.uuid4()
     if args.seed is None:
         args.seed = random.randint(0, 1_000_000_000)
+    if args.intermediate_size == -1:
+        args.intermediate_size = args.num_segments * args.frames_per_segment
     return args
 
 

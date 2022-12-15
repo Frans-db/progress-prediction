@@ -30,15 +30,15 @@ class Conv2D(nn.Module):
         return x
 
 class Conv3D(nn.Module):
-    def __init__(self, num_frames: int = 90, debug: bool = False) -> None:
+    def __init__(self, output_frames: int, intermediate_num_frames: int, temporal_kernel_size: int = 1, debug: bool = False) -> None:
         super().__init__()
         self.debug = debug
-        self.conv1 = nn.Conv3d(3, 6, (1, 5, 5))
+        self.conv1 = nn.Conv3d(3, 6, (temporal_kernel_size, 5, 5))
         self.pool = nn.MaxPool3d((1, 2, 2))
-        self.conv2 = nn.Conv3d(6, 16, (1, 5, 5))
-        self.fc1 = nn.Linear(16*num_frames*7*7, 120)
+        self.conv2 = nn.Conv3d(6, 16, (temporal_kernel_size, 5, 5))
+        self.fc1 = nn.Linear(16*intermediate_num_frames*7*7, 120)
         self.fc2 = nn.Linear(120, 100)
-        self.fc3 = nn.Linear(100, num_frames)
+        self.fc3 = nn.Linear(100, output_frames)
 
 
     def forward(self, x):
