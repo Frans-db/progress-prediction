@@ -22,34 +22,34 @@ from utils import parse_arguments, get_device, set_seeds
 
 
 def get_datasets(args):
-    trainset = VideoFrameDataset(
-        f'./data/{args.dataset}', num_videos=800, transform=transforms.ToTensor())
+    trainset = ProgressDataset(
+        f'./data/{args.dataset}', 
+        num_segments=args.num_segments, 
+        frames_per_segment=args.frames_per_segment,
+        sample_every=args.sample_every,
+        transform=ImglistToTensor(dim=0)
+    )
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=True, num_workers=args.num_workers)
-
-    testset = VideoFrameDataset(
-        f'./data/{args.dataset}', num_videos=90, offset=800, transform=transforms.ToTensor())
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
 
     videoset = VideoDataset(
         f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
 
-    return trainset, trainloader, testset, testloader, videoset
+    return trainset, trainloader, videoset
+
 
 def main():
     device = get_device()
     args = parse_arguments()
     set_seeds(args.seed)
 
-    trainset, trainloader, testset, testloader, videoset = get_datasets(args)
+    trainset, trainloader, videoset = get_datasets(args)
 
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
     print(f'[{len(trainset)} train frames]')
-    print(f'[{len(testset)} test frames]')
 
     net = Conv2D().to(device)
     criterion = nn.MSELoss()
@@ -57,10 +57,12 @@ def main():
 
     for epoch in range(args.epochs):
         train_loss = 0
-        test_loss = 0
         for i, (inputs, labels) in enumerate(trainloader):
-            batch_size = labels.shape[0]
-            labels = labels.reshape(batch_size, 1).float()
+            batch_size, T, C, W, H = inputs.shape
+
+            labels = labels.reshape(batch_size * T, 1).float()
+            inputs = inputs.reshape(batch_size * T, C, W, H)
+
             inputs = inputs.to(device)
             labels = labels.to(device)
 
@@ -71,20 +73,11 @@ def main():
             optimizer.step()
 
             train_loss += loss.item()
-        for i, (inputs, labels) in enumerate(testloader):
-            batch_size = labels.shape[0]
-            labels = labels.reshape(batch_size, 1).float()
-            inputs = inputs.to(device)
-            labels = labels.to(device)
 
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            test_loss += loss.item()
+        print(f'[{epoch:2d}] train loss: {train_loss:.4f}')
 
-        print(f'[{epoch:2d}] train loss: {train_loss:.4f} test loss: {test_loss:.4f}')
-
-    if not os.path.isdir(f'./results/experiments/{args.name}'):
-        os.mkdir(f'./results/experiments/{args.name}')
+    if not os.path.isdir(f'./results/experiments/2d_sampled/{args.name}'):
+        os.mkdir(f'./results/experiments/2d_sampled/{args.name}')
     net.eval()
     with torch.no_grad():
         for video_index in range(20):
@@ -100,14 +93,13 @@ def main():
                 prediction = net(frame.unsqueeze(0)).squeeze(0).cpu().item()
                 predictions.append(prediction)
 
-
             plt.plot(labels, label='Real')
             plt.plot(predictions, label='Predictions')
             plt.xlabel('Frame Number')
             plt.ylabel('Progression (%)')
             plt.title('Real vs Predicted progression')
             plt.legend(loc='best')
-            plt.savefig(f'./results/experiments/{args.name}/{video_index}.png')
+            plt.savefig(f'./results/experiments/2d_sampled/{args.name}/{video_index}.png')
             plt.clf()
 
 
