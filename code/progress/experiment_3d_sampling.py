@@ -108,7 +108,7 @@ def main():
             video, labels = testset[video_index]
 
             video = video.to(device)
-            labels = labels.float().to(device)
+            labels = labels.to(device)
 
             predictions = net(video.unsqueeze(0)).squeeze(0).cpu().numpy()
 
@@ -126,7 +126,7 @@ def main():
             video, labels = testset[video_index]
 
             video = video.to(device)
-            labels = labels.float().to(device)
+            labels = labels.to(device)
 
             predictions = net(video.unsqueeze(0)).squeeze(0).cpu().numpy()
 
