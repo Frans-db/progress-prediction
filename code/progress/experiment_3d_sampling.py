@@ -98,8 +98,8 @@ def main():
 
         print(f'[{epoch:2d}] train loss: {train_loss:.4f} test loss: {test_loss:.4f}')
 
-    if not os.path.isdir(f'./results/experiments/2d_sampled/{args.name}'):
-        os.mkdir(f'./results/experiments/2d_sampled/{args.name}')
+    if not os.path.isdir(f'./results/experiments/3d_sampled/{args.name}'):
+        os.mkdir(f'./results/experiments/3d_sampled/{args.name}')
 
     net.eval()
     with torch.no_grad():
@@ -115,7 +115,7 @@ def main():
             plt.ylabel('Progression (%)')
             plt.title('Real vs Predicted progression')
             plt.legend(loc='best')
-            plt.savefig(f'./results/experiments/2d_sampled/{args.name}/{video_index}.png')
+            plt.savefig(f'./results/experiments/3d_sampled/{args.name}/{video_index}.png')
             plt.clf()
 
         testset.test_mode = True
@@ -130,7 +130,7 @@ def main():
             plt.ylabel('Progression (%)')
             plt.title('Real vs Predicted progression')
             plt.legend(loc='best')
-            plt.savefig(f'./results/experiments/2d_sampled/{args.name}/{video_index}_test.png')
+            plt.savefig(f'./results/experiments/3d_sampled/{args.name}/{video_index}_test.png')
             plt.clf()
 
 
