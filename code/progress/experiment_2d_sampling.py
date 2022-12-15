@@ -24,6 +24,8 @@ from utils import parse_arguments, get_device, set_seeds
 def get_datasets(args):
     trainset = ProgressDataset(
         f'./data/{args.dataset}', 
+        num_videos=800,
+        offset=0,
         num_segments=args.num_segments, 
         frames_per_segment=args.frames_per_segment,
         sample_every=args.sample_every,
@@ -33,10 +35,23 @@ def get_datasets(args):
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
 
+    testset = ProgressDataset(
+        f'./data/{args.dataset}', 
+        num_videos=90,
+        offset=800,
+        num_segments=args.num_segments, 
+        frames_per_segment=args.frames_per_segment,
+        sample_every=args.sample_every,
+        transform=ImglistToTensor(dim=0)
+    )
+
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                              shuffle=True, num_workers=args.num_workers)
+
     videoset = VideoDataset(
         f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
 
-    return trainset, trainloader, videoset
+    return trainset, trainloader, testset, testloader, videoset
 
 
 def main():
@@ -44,7 +59,7 @@ def main():
     args = parse_arguments()
     set_seeds(args.seed)
 
-    trainset, trainloader, videoset = get_datasets(args)
+    trainset, trainloader, testset, testloader, videoset = get_datasets(args)
 
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
@@ -55,20 +70,15 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
 
-    sampled = {}
 
     for epoch in range(args.epochs):
         train_loss = 0
+        test_loss = 0
         for i, (inputs, labels) in enumerate(trainloader):
             batch_size, T, C, W, H = inputs.shape
 
             labels = labels.reshape(batch_size * T, 1).float()
             inputs = inputs.reshape(batch_size * T, C, W, H)
-
-            for label in labels.squeeze(-1).numpy():
-                if label not in sampled:
-                    sampled[label] = 0
-                sampled[label] += 1
 
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -80,20 +90,24 @@ def main():
             optimizer.step()
 
             train_loss += loss.item()
+        for i, (inputs, labels) in enumerate(testloader):
+            batch_size, T, C, W, H = inputs.shape
 
+            labels = labels.reshape(batch_size * T, 1).float()
+            inputs = inputs.reshape(batch_size * T, C, W, H)
 
-        print(f'[{epoch:2d}] train loss: {train_loss:.4f}')
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+
+            test_loss += loss.item()
+
+        print(f'[{epoch:2d}] train loss: {train_loss:.4f} test loss: {test_loss:.4f}')
 
     if not os.path.isdir(f'./results/experiments/2d_sampled/{args.name}'):
         os.mkdir(f'./results/experiments/2d_sampled/{args.name}')
-
-    keys = sorted(list(sampled.keys()))
-    values = [sampled[key] for key in keys]
-    print(sampled)
-    plt.bar(keys, values)
-    plt.xlabel('Progress Value')
-    plt.ylabel('Times Sampled')
-    plt.savefig(f'./results/experiments/2d_sampled/{args.name}/sampled.png')
 
     net.eval()
     with torch.no_grad():

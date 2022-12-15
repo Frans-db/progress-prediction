@@ -7,18 +7,23 @@ import matplotlib.pyplot as plt
 class ProgressDataset(torch.utils.data.Dataset):
     def __init__(self,
                  root_path: str,
+                 num_videos: int,
+                 offset: int,
                  num_segments: int,
                  frames_per_segment: int,
                  sample_every: int,
+                 videoname_template: str = '{:05d}',
                  imagefile_template: str = 'img_{:05d}.png',
                  test_mode: bool = False,
                  transform=None) -> None:
         super().__init__()
         self.root_path = root_path
-        self.items = sorted(os.listdir(self.root_path))
+        self.num_videos = num_videos
+        self.offset = offset
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
         self.sample_every = sample_every
+        self.videoname_template = videoname_template
         self.imagefile_template = imagefile_template
         self.transform = transform
         self.test_mode = test_mode
@@ -29,7 +34,8 @@ class ProgressDataset(torch.utils.data.Dataset):
         """
         Check if each video has enough frames to be sampled
         """
-        for video_name in self.items:
+        for video_index in range(self.num_videos):
+            video_name = self.videoname_template.format(video_index + self.offset)
             path = os.path.join(self.root_path, video_name)
             frame_names = os.listdir(path)
             num_frames = len(frame_names)
@@ -73,7 +79,7 @@ class ProgressDataset(torch.utils.data.Dataset):
         return start_indices
 
     def __getitem__(self, idx):
-        item = self.items[idx]
+        item = self.videoname_template.format(idx + self.offset)
         item_directory = os.path.join(self.root_path, item)
         image_files = sorted(os.listdir(item_directory))
         num_frames = len(image_files)
@@ -98,4 +104,4 @@ class ProgressDataset(torch.utils.data.Dataset):
         return Image.open(path).convert('RGB')
 
     def __len__(self):
-        return len(self.items)
+        return self.num_videos
