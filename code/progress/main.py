@@ -141,15 +141,27 @@ def main():
 
                 counter = next_counter
                 next_counter = testset.counter
+                
 
+            differences = [abs(real - predicted) for (real, predicted) in zip(labels, predictions)]
 
-            plt.plot(predictions, label='Predicted')
-            plt.plot(labels, label='Actual')
-            plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
-            plt.legend(loc='best')
-            plt.savefig(f'./results/{args.name}/{i}.png')
-            plt.clf()
+            fig, (ax1, ax2) = plt.subplots(1, 2)
+            ax1.set_title('Real vs Predicted progression')
+            ax1.plot(labels, label='Real')
+            ax1.plot(predictions, label='Predictions')
+            ax1.set_xlabel('Frame Number')
+            ax1.set_ylabel('Progression (%)')
+            ax1.legend(loc='best')
 
+            ax2.set_title('Real vs Predicted Error')
+            ax2.plot(differences, label='Error')
+            ax2.set_xlabel('Frame Number')
+            ax2.set_ylabel('Error (Absolute Percentage)')
+            ax2.legend(loc='best')
+
+            fig.set_figwidth(fig.get_figwidth() * 2)
+            fig.savefig(f'./results/experiments/3d_sampled/{args.name}/{i}.png')
+            fig.clf()
 
 if __name__ == '__main__':
     main()
