@@ -141,7 +141,7 @@ def main():
 
                 counter = next_counter
                 next_counter = testset.counter
-                
+
 
             differences = [abs(real - predicted) for (real, predicted) in zip(labels, predictions)]
 
@@ -160,7 +160,7 @@ def main():
             ax2.legend(loc='best')
 
             fig.set_figwidth(fig.get_figwidth() * 2)
-            fig.savefig(f'./results/experiments/3d_sampled/{args.name}/{i}.png')
+            fig.savefig(f'./results/{args.name}/{i}.png')
             fig.clf()
 
 if __name__ == '__main__':
