@@ -98,7 +98,7 @@ class ProgressDataset(torch.utils.data.Dataset):
 
         if self.transform is not None:
             images = self.transform(images)
-        return images, np.array(labels)
+        return images, labels[-1]
 
     def _load_image(self, path: str) -> Image.Image:
         return Image.open(path).convert('RGB')

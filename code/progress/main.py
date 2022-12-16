@@ -15,8 +15,61 @@ from datasets.transforms import ImglistToTensor
 from networks import S3D, Conv3D, LSTMNetwork
 from utils import parse_arguments, get_device, set_seeds
 
+def get_datasets(args):
+    trainset = ProgressDataset(
+        f'./data/{args.dataset}',
+        num_videos=800,
+        offset=0,
+        num_segments=args.num_segments,
+        frames_per_segment=args.frames_per_segment,
+        sample_every=args.sample_every,
+        transform=transforms.Compose([
+            ImglistToTensor(),
+        ])
+    )
+    testset = ProgressDataset(
+        f'./data/{args.dataset}',
+        num_videos=90,
+        offset=800,
+        num_segments=args.num_segments,
+        frames_per_segment=args.frames_per_segment,
+        sample_every=args.sample_every,
+        transform=transforms.Compose([
+            ImglistToTensor(),
+        ]),
+    )
 
+    trainloader = DataLoader(
+        dataset=trainset, 
+        batch_size=args.batch_size,
+        shuffle=True, 
+        num_workers=args.num_workers
+    )
+    testloader = DataLoader(
+        dataset=testset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers
+    )
 
+    return trainset, trainloader, testset, testloader
+
+def epoch(net, videos, labels, criterion, device, optimizer=None):
+    videos = videos.to(device)
+    labels = labels.float().to(device)
+
+    outputs = net(videos).squeeze(-1)
+
+    if optimizer is not None:
+        optimizer.zero_grad()
+
+    loss = criterion(outputs, labels)
+
+    if optimizer is not None:
+        loss.backward()
+        optimizer.step()
+
+    return loss.item()
 
 def main():
     device = get_device()
@@ -30,35 +83,13 @@ def main():
     print(f'[Seed {args.seed}]')
     print(f'[{num_frames} frames per sample]')
 
-    trainset = ProgressDataset(
-        f'./data/{args.dataset}',
-        num_segments=args.num_segments,
-        frames_per_segment=args.frames_per_segment,
-        sample_every=args.sample_every,
-        transform=transforms.Compose([
-            ImglistToTensor(),
-        ])
-    )
-    testset = ProgressDataset(
-        f'./data/{args.dataset}',
-        num_segments=args.num_segments,
-        frames_per_segment=args.frames_per_segment,
-        sample_every=args.sample_every,
-        transform=transforms.Compose([
-            ImglistToTensor(),
-        ]),
-        test_mode=False,
-    )
-
-    trainloader = DataLoader(
-        dataset=trainset, 
-        batch_size=args.batch_size,
-        shuffle=True, 
-        num_workers=args.num_workers
-    )
+    trainset, trainloader, testset, testloader = get_datasets(args)
 
     if args.model == 'conv3d':
-        net = Conv3D(num_frames=num_frames).to(device)
+        net = Conv3D(
+            intermediate_num_frames=args.intermediate_size,
+            temporal_kernel_size=args.temporal_dimension
+        ).to(device)
     elif args.model == 's3d':
         net = S3D(num_classes=num_frames).to(device)
     elif args.model == 'lstm':
@@ -67,22 +98,18 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    for epoch in range(args.epochs):
-        epoch_loss = 0
-        for i, (videos, labels) in enumerate(trainloader, 0):
-            videos = videos.to(device)
-            labels = labels.float().to(device)
+    for epoch_index in range(args.epochs):
+        train_loss = 0
+        test_loss = 0
 
+        for i, (videos, labels) in enumerate(trainloader):
+            loss = epoch(net, videos, labels, criterion, device, optimizer=optimizer)
+            train_loss += loss
+        for i, (videos, labels) in enumerate(testloader):
+            loss = epoch(net, videos, labels, criterion, device)
+            test_loss += loss
 
-            outputs = net(videos)
-
-            optimizer.zero_grad()
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            epoch_loss += loss.item()
-        print(f'[{epoch:2d}] loss: {epoch_loss:.4f}')
+        print(f'[{epoch_index:2d}] train loss: {train_loss:.4f} test loss: {test_loss:.4f}')
 
     if not os.path.isdir(f'./results/{args.name}'):
         os.mkdir(f'./results/{args.name}')
