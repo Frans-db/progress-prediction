@@ -14,7 +14,7 @@ class ProgressDataset(torch.utils.data.Dataset):
                  sample_every: int,
                  videoname_template: str = '{:05d}',
                  imagefile_template: str = 'img_{:05d}.png',
-                 test_mode: bool = False,
+                 mode: bool = 'train',
                  transform=None) -> None:
         super().__init__()
         self.root_path = root_path
@@ -26,7 +26,8 @@ class ProgressDataset(torch.utils.data.Dataset):
         self.videoname_template = videoname_template
         self.imagefile_template = imagefile_template
         self.transform = transform
-        self.test_mode = test_mode
+        self.mode = mode
+        self.counter = 0
 
         self._check_samples()
 
@@ -62,19 +63,26 @@ class ProgressDataset(torch.utils.data.Dataset):
             segment are to be loaded from.
         """
         # choose start indices that are perfectly evenly spread across the video frames.
-        if self.test_mode:
+        if self.mode == 'test':
             distance_between_indices = (
                 num_frames - self.frames_per_segment + 1) / float(self.num_segments)
 
             start_indices = np.array([int(distance_between_indices / 2.0 + distance_between_indices * x)
                                       for x in range(self.num_segments)])
         # randomly sample start indices that are approximately evenly spread across the video frames.
-        else:
+        elif self.mode == 'train':
             max_valid_start_index = (
                 num_frames - self.frames_per_segment + 1) // self.num_segments
             start_indices = np.multiply(list(range(self.num_segments)), max_valid_start_index) + \
                 np.random.randint(max_valid_start_index,
-                                  size=self.num_segments)
+                                  size=self.num_segments)       
+        elif self.mode == 'visualise':
+            max_valid_start_index = (
+                num_frames - self.frames_per_segment + 1) // self.num_segments
+            start_indices = np.multiply(list(range(self.num_segments)), max_valid_start_index) + \
+                np.full(self.num_segments, self.counter)
+            self.counter = (self.counter + 1) % max_valid_start_index
+
 
         return start_indices
 

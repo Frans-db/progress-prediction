@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-    iterations = 10_000
+    iterations = 100_000
 
     num_frames = 100
-    num_segments = 25
-    frames_per_segment = 1
+    num_segments = 1
+    frames_per_segment = 5
 
     results = {}
 

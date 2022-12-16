@@ -111,16 +111,39 @@ def main():
 
         print(f'[{epoch_index:2d}] train loss: {train_loss:.4f} test loss: {test_loss:.4f}')
 
+    """
+    Problem:
+    Currently no way to get all possible inputs from a video, so no way to predict the full progress graph
+    Solutions:
+    - Hack it into the current ProgressDataset using a counter
+    - New dataset (Progressive Temporal Sampling?)
+    - 
+    """
     if not os.path.isdir(f'./results/{args.name}'):
         os.mkdir(f'./results/{args.name}')
     net.eval()
+    testset.mode = 'visualise'
     with torch.no_grad():
         for i in range(20):
-            video = testset[i][0].to(device)
-            labels = testset[i][1]
-            predictions = net(video.unsqueeze(0)).squeeze()
+            labels = []
+            predictions = []
+            testset.counter = 0
+            counter = 0
+            next_counter = 1
+            while next_counter >= counter:
+                data = testset[i]
+                video = data[0].to(device)
+                label = data[1]
 
-            plt.plot(predictions.cpu().detach().numpy(), label='Predicted')
+                prediction = net(video.unsqueeze(0)).squeeze().item()
+                predictions.append(prediction)
+                labels.append(label)
+
+                counter = next_counter
+                next_counter = testset.counter
+
+
+            plt.plot(predictions, label='Predicted')
             plt.plot(labels, label='Actual')
             plt.title(f'Predicted vs Actul Completion Percentage - Video {i:5d}')
             plt.legend(loc='best')
