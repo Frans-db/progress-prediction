@@ -96,7 +96,7 @@ def main():
         net = LSTMNetwork().to(device)
 
     criterion = nn.MSELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=3e-4)
 
     for epoch_index in range(args.epochs):
         train_loss = 0
