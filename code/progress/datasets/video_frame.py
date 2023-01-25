@@ -30,9 +30,6 @@ class VideoFrameDataset(Dataset):
         return len(self.frames_paths)
 
     def __getitem__(self, index):
-        video_index = index // 90
-        frame_index = index % 90
-
         image = Image.open(self.frames_paths[index]).convert('RGB')
 
         if self.transform:

@@ -24,7 +24,7 @@ import sys
 parser = argparse.ArgumentParser()
 
 # ------------------------ Dataset Configs ------------------------
-parser.add_argument("--seed", type=int, default=0, help="Manual seed")
+parser.add_argument("--seed", type=int, default=42, help="Manual seed")
 parser.add_argument(
     "--path",
     type=str,
@@ -74,10 +74,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--min-speed", type=float, default=2, help="The minimum speed scaling" # 3 / 4
+    "--min-speed", type=float, default=3/4, help="The minimum speed scaling" # 3 / 4
 )
 parser.add_argument(
-    "--max-speed", type=float, default=2, help="The maximum speed scaling" # 3
+    "--max-speed", type=float, default=3, help="The maximum speed scaling" # 3
 )
 
 
@@ -127,20 +127,36 @@ def create_activity_mnist(
     # Write down the data
     print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
     
-    for video_id, video in enumerate(videos):
-        # Create directory to store the video frames in
-        os.mkdir(f'{args.new_path}/{video_id:05d}')
+    os.mkdir(f'{args.new_path}')
+    os.mkdir(f'{args.new_path}/videos')
+    os.mkdir(f'{args.new_path}/groundTruth')
+    
+    label_translations = []
+    for video_id, (video, labels) in enumerate(zip(videos, labels)):
+        translated_labels = []
+        for label in labels:
+            label = int(label)
+            if label not in label_translations:
+                label_translations.append(label)
+            translated_labels.append(str(label_translations.index(label)))
+
+
+        with open(f'{args.new_path}/groundTruth/{video_id:05d}', 'w+') as f:
+            f.write('\n'.join(translated_labels))
+        
+
+        os.mkdir(f'{args.new_path}/videos/{video_id:05d}')
         for frame_id, frame in enumerate(video):
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
-            image.save(f'{args.new_path}/{video_id:05d}/img_{(frame_id):05d}.png')
+            image.save(f'{args.new_path}/videos/{video_id:05d}/img_{(frame_id):05d}.png')
             
 
     # with open(args.new_path + file_name + ".pkl", "wb+") as f:
     #     pickle.dump((videos, labels), f)
 
     # See some examples
-    # view_videos(videos, labels)
+    view_videos(videos, labels)
 
 
 def add_background(videos):
@@ -411,7 +427,7 @@ def view_videos(videos: List[np.array], labels: List[np.array]):
     class_length = []
     idx = []
     for i in range(0, 10):  # Over videos
-        idx.append(random.randint(0, len(videos) - 1))
+        idx.append(i)
 
     # Get statistics plot
     max_cls = 0
@@ -502,8 +518,8 @@ def view_videos(videos: List[np.array], labels: List[np.array]):
             + args.name
             + "/video_{:05d}-img_{:05d}.png".format(i, f)
         )
-        # plt.pause(0.1)
-    # plt.show()
+        plt.pause(0.1)
+    plt.show()
 
 
 def data_stats(videos: List[np.array], labels: List[np.array]):

@@ -25,7 +25,7 @@ class Conv2D(nn.Module):
         if self.debug: print(x.shape)
         x = F.relu(self.fc2(x))
         if self.debug: print(x.shape)
-        x = self.fc3(x)
+        x = torch.sigmoid(self.fc3(x))
         if self.debug: print(x.shape)
         return x
 
@@ -53,6 +53,6 @@ class Conv3D(nn.Module):
         if self.debug: print(x.shape)
         x = F.relu(self.fc2(x))
         if self.debug: print(x.shape)
-        x = self.fc3(x)
+        x = torch.sigmoid(self.fc3(x))
         if self.debug: print(x.shape)
         return x

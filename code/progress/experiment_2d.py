@@ -14,27 +14,28 @@ import os
 import argparse
 import uuid
 import random
+from tqdm import tqdm
 
 from datasets import VideoDataset, VideoFrameDataset
 from networks import Conv2D
 from datasets.transforms import ImglistToTensor
-from utils import parse_arguments, get_device, set_seeds
+from utils import parse_arguments, get_device, set_seeds, imshow
 
 
 def get_datasets(args):
     trainset = VideoFrameDataset(
-        f'./data/{args.dataset}', num_videos=800, transform=transforms.ToTensor())
+        f'./data/{args.dataset}', num_videos=1, transform=transforms.ToTensor())
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
 
     testset = VideoFrameDataset(
-        f'./data/{args.dataset}', num_videos=90, offset=800, transform=transforms.ToTensor())
+        f'./data/{args.dataset}', num_videos=1, offset=0, transform=transforms.ToTensor())
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
 
     videoset = VideoDataset(
-        f'./data/{args.dataset}', num_videos=90, offset=800, transform=ImglistToTensor())
+        f'./data/{args.dataset}', num_videos=1, offset=0, transform=ImglistToTensor())
 
     return trainset, trainloader, testset, testloader, videoset
 
@@ -45,6 +46,7 @@ def main():
 
     trainset, trainloader, testset, testloader, videoset = get_datasets(args)
 
+
     print(f'[Experiment {args.name}]')
     print(f'[Running on {device}]')
     print(f'[Seed {args.seed}]')
@@ -53,7 +55,7 @@ def main():
 
     net = Conv2D().to(device)
     criterion = nn.MSELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001,  momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=3e-3)
 
     for epoch in range(args.epochs):
         train_loss = 0
@@ -87,7 +89,7 @@ def main():
         os.mkdir(f'./results/experiments/2d/{args.name}')
     net.eval()
     with torch.no_grad():
-        for video_index in range(20):
+        for video_index in range(min(len(videoset), 1)):
             video, labels = videoset[video_index]
 
             num_frames = video.shape[1]

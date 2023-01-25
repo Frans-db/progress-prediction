@@ -54,19 +54,19 @@ parser.add_argument(
     "--step", type=float, default=5, help="The step size with which digits move"
 )
 parser.add_argument(
-    "--shuffle", type=float, default=0, help="Percentage of tasks to shuffle around" # 0.2
+    "--shuffle", type=float, default=1.0, help="Percentage of tasks to shuffle around" # 0.2
 )
 
-parser.add_argument("--drop", type=float, default=0, help="Percentage of tasks to drop") # 0.10
+parser.add_argument("--drop", type=float, default=0.333, help="Percentage of tasks to drop") # 0.10
 
-parser.add_argument("--repeated", type=int, default=-1, help="Which task is repeated") # 3
-parser.add_argument("--repeats", type=int, default=0, help="Maximum repeats: 3")       # 3
+parser.add_argument("--repeated", type=int, default=3, help="Which task is repeated") # 3
+parser.add_argument("--repeats", type=int, default=3, help="Maximum repeats: 3")       # 3
 
 parser.add_argument(
     "--max-segment", type=int, default=10, help="The maximum segment=task length"      # 10
 )
 parser.add_argument(
-    "--min-segment", type=int, default=10, help="The minimum segment=task length"      # 5
+    "--min-segment", type=int, default=5, help="The minimum segment=task length"      # 5
 )
 
 parser.add_argument(
@@ -118,7 +118,7 @@ def create_activity_mnist(
         make_data(videos, labels, idx, new_subset_list, video_speed)
     assert len(videos) == len(labels)
 
-    videos = add_background(videos)
+    # videos = add_background(videos)
 
     # Write down the data
     print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
@@ -523,15 +523,15 @@ def read_activity_mnist(name="activity_mnist_small"):
 if __name__ == "__main__":
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
-    create_activity_mnist(
-        train=False,
-        targets=[
-            (1, "horizontal"),
-            (3, "inv_diagonal"),
-            (5, "inv-horizontal"),
-            (7, "diagonal"),
-            (9, "vertical"),
-        ],
-        file_name=args.name,
-    )
+    # create_activity_mnist(
+    #     train=False,
+    #     targets=[
+    #         (1, "horizontal"),
+    #         (3, "inv_diagonal"),
+    #         (5, "inv-horizontal"),
+    #         (7, "diagonal"),
+    #         (9, "vertical"),
+    #     ],
+    #     file_name=args.name,
+    # )
     read_activity_mnist(name=args.name)
