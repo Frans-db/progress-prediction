@@ -24,7 +24,7 @@ import sys
 parser = argparse.ArgumentParser()
 
 # ------------------------ Dataset Configs ------------------------
-parser.add_argument("--seed", type=int, default=42, help="Manual seed")
+parser.add_argument("--seed", type=int, default=0, help="Manual seed")
 parser.add_argument(
     "--path",
     type=str,
@@ -66,19 +66,15 @@ parser.add_argument("--drop", type=float, default=0, help="Percentage of tasks t
 parser.add_argument("--repeated", type=int, default=-1, help="Which task is repeated") # 3
 parser.add_argument("--repeats", type=int, default=0, help="Maximum repeats: 3") # 3
 
-parser.add_argument("--big", type=int, default=5, help="Which task to make big") # 5
-parser.add_argument("--big_multiplier", type=int, default=5, help="How much bigger to make task") # 5
-parser.add_argument("--big_chance", type=float, default=50, help="Percentage of tasks to make bigger") # 100
-
 parser.add_argument(
-    "--max-segment", type=int, default=5, help="The maximum segment=task length" # 10
+    "--max-segment", type=int, default=100, help="The maximum segment=task length" # 10
 )
 parser.add_argument(
-    "--min-segment", type=int, default=5, help="The minimum segment=task length" # 5
+    "--min-segment", type=int, default=10, help="The minimum segment=task length" # 5
 )
 
 parser.add_argument(
-    "--min-speed", type=float, default=3, help="The minimum speed scaling" # 3 / 4
+    "--min-speed", type=float, default=3/4, help="The minimum speed scaling" # 3 / 4
 )
 parser.add_argument(
     "--max-speed", type=float, default=3, help="The maximum speed scaling" # 3
@@ -125,20 +121,16 @@ def create_activity_mnist(
 
         make_data(videos, labels, database, idx, new_subset_list, video_speed)
     assert len(videos) == len(labels)
-
     if args.add_bg:
         videos = add_background(videos)
 
     # Write down the data
     print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
-    
-    os.mkdir(f'{args.new_path}')
-    os.mkdir(f'{args.new_path}/rgb-images')
-    os.mkdir(f'{args.new_path}/labels')
-    os.mkdir(f'{args.new_path}/figures')
-    os.mkdir(f'{args.new_path}/experiments')
-    os.mkdir(f'{args.new_path}/splitfiles')
-    
+    os.mkdir(os.path.join(args.new_path, 'splitfiles'))
+    os.mkdir(os.path.join(args.new_path, 'rgb-images'))
+    os.mkdir(os.path.join(args.new_path, 'figures'))
+    os.mkdir(os.path.join(args.new_path, 'experiments'))
+
     video_names = [f'{video_id:05d}\n' for video_id in range(len(videos))]
     random.shuffle(video_names)
     with open(os.path.join(args.new_path, 'splitfiles', 'train_split.txt'), 'w+') as f:
@@ -149,21 +141,9 @@ def create_activity_mnist(
     with open(os.path.join(args.new_path, 'splitfiles/pyannot.pkl'), 'wb+') as f:
         pickle.dump(database, f)
 
-    label_translations = []
-    for video_id, (video, labels) in enumerate(zip(videos, labels)):
-        translated_labels = []
-        for label in labels:
-            label = int(label)
-            if label not in label_translations:
-                label_translations.append(label)
-            translated_labels.append(str(label_translations.index(label)))
-
-
-        with open(f'{args.new_path}/labels/{video_id:05d}', 'w+') as f:
-            f.write('\n'.join(translated_labels))
-        
-
-        os.mkdir(f'{args.new_path}/rgb-images/{video_id:05d}')
+    for video_id, video in enumerate(videos):
+        # Create directory to store the video frames in
+        os.mkdir(os.path.join(args.new_path, 'rgb-images', f'{video_id:05d}'))
         for frame_id, frame in enumerate(video):
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
@@ -261,8 +241,7 @@ def randomly_permute_drop_repeat_tasks(subset_list: List):
     if args.repeated < len(new_subset_list) - 1 and args.repeats > 1:
         args.repeated = int(args.repeated)
         to_repeat = new_subset_list[args.repeated]
-        nr_repeats = random.randint(1, args.repeats)
-        # print(nr_repeats)
+        nr_repeats = random.randint(2, args.repeats)
         repeat_pos = np.arange(
             args.repeated - 2 * args.repeats, args.repeated + 2 * args.repeats + 2, 2
         ).tolist()
@@ -274,7 +253,6 @@ def randomly_permute_drop_repeat_tasks(subset_list: List):
                 and (new_subset_list[pos + 1]) != to_repeat
             ):
                 new_subset_list.insert(pos, to_repeat)
-                
                 inserts += 1
             if inserts >= nr_repeats:
                 break
@@ -369,11 +347,10 @@ def make_data(
     subset_list: List["torchvision.datasets"],
     video_speed: float,
 ):
-    global args
-
     boxes = []
     numf = 0
 
+    global args
     # Loop over list of activities
     for (motion, targ, subset) in subset_list:
         # Read the pill image associated with this video activity
@@ -387,9 +364,6 @@ def make_data(
 
         # Select the number of frames for this activity
         frames = int(random.randint(args.min_segment, args.max_segment) * video_speed)
-        if np.random.rand() < (args.big_chance / 100):
-            frames *= args.big_multiplier
-
         numf += frames
         try:
             start_frame = videos[idx].shape[0]
@@ -447,6 +421,7 @@ def make_data(
                 start_x : (start_x + image.shape[1]),
                 :,
             ] = rgb_image
+
     database[f'{idx:05d}'] = {
         "annotations": [
             {
@@ -459,6 +434,7 @@ def make_data(
         "numf": numf,
         "label": 0,
     }
+        
 
 
 def view_videos(videos: List[np.array], labels: List[np.array]):
@@ -468,7 +444,7 @@ def view_videos(videos: List[np.array], labels: List[np.array]):
     class_length = []
     idx = []
     for i in range(0, 10):  # Over videos
-        idx.append(i)
+        idx.append(random.randint(0, len(videos) - 1))
 
     # Get statistics plot
     max_cls = 0
@@ -559,8 +535,8 @@ def view_videos(videos: List[np.array], labels: List[np.array]):
             + args.name
             + "/video_{:05d}-img_{:05d}.png".format(i, f)
         )
-        plt.pause(0.1)
-    plt.show()
+        # plt.pause(0.1)
+    # plt.show()
 
 
 def data_stats(videos: List[np.array], labels: List[np.array]):
