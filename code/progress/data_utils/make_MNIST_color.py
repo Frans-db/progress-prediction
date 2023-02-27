@@ -49,7 +49,7 @@ parser.add_argument(
     action='store_true'
 )
 parser.add_argument(
-    "--new_path", type=str, default="./data/toy/", help="New dataset path ..."
+    "--new_path", type=str, default="/home/frans/Datasets/toy_static_drop_shuffle", help="New dataset path ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
@@ -58,17 +58,17 @@ parser.add_argument(
     "--step", type=float, default=5, help="The step size with which digits move"
 )
 parser.add_argument(
-    "--shuffle", type=float, default=0, help="Percentage of tasks to shuffle around" # 20
+    "--shuffle", type=float, default=100, help="Percentage of tasks to shuffle around" # 20
 )
 
-parser.add_argument("--drop", type=float, default=0, help="Percentage of tasks to drop") # 10
+parser.add_argument("--drop", type=float, default=50, help="Percentage of tasks to drop") # 10
 
 parser.add_argument("--repeated", type=int, default=-1, help="Which task is repeated") # 3
 parser.add_argument("--repeats", type=int, default=0, help="Maximum repeats: 3") # 3
 
 parser.add_argument("--big", type=int, default=5, help="Which task to make big") # 5
 parser.add_argument("--big_multiplier", type=int, default=5, help="How much bigger to make task") # 5
-parser.add_argument("--big_chance", type=float, default=50, help="Percentage of tasks to make bigger") # 100
+parser.add_argument("--big_chance", type=float, default=0, help="Percentage of tasks to make bigger") # 100
 
 parser.add_argument(
     "--max-segment", type=int, default=5, help="The maximum segment=task length" # 10
@@ -78,10 +78,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--min-speed", type=float, default=3, help="The minimum speed scaling" # 3 / 4
+    "--min-speed", type=float, default=2, help="The minimum speed scaling" # 3 / 4
 )
 parser.add_argument(
-    "--max-speed", type=float, default=3, help="The maximum speed scaling" # 3
+    "--max-speed", type=float, default=2, help="The maximum speed scaling" # 3
 )
 
 
@@ -135,15 +135,14 @@ def create_activity_mnist(
     os.mkdir(f'{args.new_path}')
     os.mkdir(f'{args.new_path}/rgb-images')
     os.mkdir(f'{args.new_path}/labels')
-    os.mkdir(f'{args.new_path}/figures')
     os.mkdir(f'{args.new_path}/experiments')
     os.mkdir(f'{args.new_path}/splitfiles')
     
     video_names = [f'{video_id:05d}\n' for video_id in range(len(videos))]
     random.shuffle(video_names)
-    with open(os.path.join(args.new_path, 'splitfiles', 'train_split.txt'), 'w+') as f:
+    with open(os.path.join(args.new_path, 'splitfiles', 'trainlist01.txt'), 'w+') as f:
         f.writelines(sorted(video_names[:int(0.9 * len(videos))]))
-    with open(os.path.join(args.new_path, 'splitfiles', 'test_split.txt'), 'w+') as f:
+    with open(os.path.join(args.new_path, 'splitfiles', 'testlist01.txt'), 'w+') as f:
         f.writelines(sorted(video_names[int(0.9 * len(videos)):]))
 
     with open(os.path.join(args.new_path, 'splitfiles/pyannot.pkl'), 'wb+') as f:
@@ -242,7 +241,7 @@ def randomly_permute_drop_repeat_tasks(subset_list: List):
     if args.shuffle > 0:
         shuffle = np.random.rand()
         if shuffle < args.shuffle / 100.0:
-            perm_size = math.ceil(args.shuffle / 100.0 * (len(subset_list) - 2))
+            perm_size = math.ceil(args.shuffle / 100.0 * (len(subset_list) - 1))
             perms = [
                 subset
                 for subset in itertools.combinations(range(1, len(subset_list) - 1), 2)
@@ -283,7 +282,7 @@ def randomly_permute_drop_repeat_tasks(subset_list: List):
     if args.drop > 0:
         drop = np.random.rand()
         if drop < args.drop / 100.0:
-            task_dropped = random.randint(1, len(new_subset_list) - 2)
+            task_dropped = random.randint(1, len(new_subset_list) - 1)
             del new_subset_list[task_dropped]
 
     return new_subset_list
