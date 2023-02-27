@@ -58,34 +58,41 @@ parser.add_argument(
     "--step", type=float, default=5, help="The step size with which digits move"
 )
 parser.add_argument(
-    "--shuffle", type=float, default=100, help="Percentage of tasks to shuffle around" # 20
+    "--shuffle", type=float, default=100, help="Percentage of tasks to shuffle around"  # 20
 )
 
-parser.add_argument("--drop", type=float, default=50, help="Percentage of tasks to drop") # 10
+parser.add_argument("--drop", type=float, default=50,
+                    help="Percentage of tasks to drop")  # 10
 
-parser.add_argument("--repeated", type=int, default=-1, help="Which task is repeated") # 3
-parser.add_argument("--repeats", type=int, default=0, help="Maximum repeats: 3") # 3
+parser.add_argument("--repeated", type=int, default=-1,
+                    help="Which task is repeated")  # 3
+parser.add_argument("--repeats", type=int, default=0,
+                    help="Maximum repeats: 3")  # 3
 
-parser.add_argument("--big", type=int, default=5, help="Which task to make big") # 5
-parser.add_argument("--big_multiplier", type=int, default=5, help="How much bigger to make task") # 5
-parser.add_argument("--big_chance", type=float, default=0, help="Percentage of tasks to make bigger") # 100
+parser.add_argument("--big", type=int, default=5,
+                    help="Which task to make big")  # 5
+parser.add_argument("--big_multiplier", type=int, default=5,
+                    help="How much bigger to make task")  # 5
+parser.add_argument("--big_chance", type=float, default=0,
+                    help="Percentage of tasks to make bigger")  # 100
 
 parser.add_argument(
-    "--max-segment", type=int, default=5, help="The maximum segment=task length" # 10
+    "--max-segment", type=int, default=5, help="The maximum segment=task length"  # 10
 )
 parser.add_argument(
-    "--min-segment", type=int, default=5, help="The minimum segment=task length" # 5
+    "--min-segment", type=int, default=5, help="The minimum segment=task length"  # 5
 )
 
 parser.add_argument(
-    "--min-speed", type=float, default=2, help="The minimum speed scaling" # 3 / 4
+    "--min-speed", type=float, default=2, help="The minimum speed scaling"  # 3 / 4
 )
 parser.add_argument(
-    "--max-speed", type=float, default=2, help="The maximum speed scaling" # 3
+    "--max-speed", type=float, default=2, help="The maximum speed scaling"  # 3
 )
 
 
 args = parser.parse_args()
+
 
 def create_activity_mnist(
     train: bool, targets: List, file_name: str = "activity_mnist"
@@ -98,7 +105,8 @@ def create_activity_mnist(
     # ---------------------
     dataset = torchvision.datasets.MNIST(args.path, train=train, download=True)
     subsets = {
-        target: Subset(dataset, [i for i, (x, y) in enumerate(dataset) if y == target])
+        target: Subset(
+            dataset, [i for i, (x, y) in enumerate(dataset) if y == target])
         for _, target in dataset.class_to_idx.items()
     }
 
@@ -106,7 +114,8 @@ def create_activity_mnist(
     min_len = math.inf
     for (targ, motion) in targets:
         subset_list.append((motion, targ, subsets[targ]))  # for every sub-task
-        min_len = len(subsets[targ]) if len(subsets[targ]) < min_len else min_len
+        min_len = len(subsets[targ]) if len(
+            subsets[targ]) < min_len else min_len
 
     for i in range(len(subset_list)):
         print("#images for class ", i, ": ", len(subset_list[i][2]))
@@ -120,7 +129,8 @@ def create_activity_mnist(
 
         # Pick a global speed scaling factor
         video_speed = (
-            args.min_speed + (args.max_speed - args.min_speed) * random.random()
+            args.min_speed + (args.max_speed -
+                              args.min_speed) * random.random()
         )
 
         make_data(videos, labels, database, idx, new_subset_list, video_speed)
@@ -130,14 +140,15 @@ def create_activity_mnist(
         videos = add_background(videos)
 
     # Write down the data
-    print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
-    
+    print("Created data: (", videos[0].shape,
+          ",", labels[0].shape, ") x ", len(videos))
+
     os.mkdir(f'{args.new_path}')
     os.mkdir(f'{args.new_path}/rgb-images')
     os.mkdir(f'{args.new_path}/labels')
     os.mkdir(f'{args.new_path}/experiments')
     os.mkdir(f'{args.new_path}/splitfiles')
-    
+
     video_names = [f'{video_id:05d}\n' for video_id in range(len(videos))]
     random.shuffle(video_names)
     with open(os.path.join(args.new_path, 'splitfiles', 'trainlist01.txt'), 'w+') as f:
@@ -157,17 +168,15 @@ def create_activity_mnist(
                 label_translations.append(label)
             translated_labels.append(str(label_translations.index(label)))
 
-
         with open(f'{args.new_path}/labels/{video_id:05d}', 'w+') as f:
             f.write('\n'.join(translated_labels))
-        
 
         os.mkdir(f'{args.new_path}/rgb-images/{video_id:05d}')
         for frame_id, frame in enumerate(video):
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
-            image.save(f'{args.new_path}/rgb-images/{video_id:05d}/img_{(frame_id):05d}.png')
-            
+            image.save(
+                f'{args.new_path}/rgb-images/{video_id:05d}/img_{(frame_id):05d}.png')
 
     # with open(args.new_path + file_name + ".pkl", "wb+") as f:
     #     pickle.dump((videos, labels), f)
@@ -188,7 +197,8 @@ def add_background(videos):
 
     frames = []
     for d in dirs:
-        files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".jpg")]
+        files = [os.path.join(d, f)
+                 for f in os.listdir(d) if f.endswith(".jpg")]
         frames.append(files)
 
     # Loop over videos:
@@ -219,7 +229,8 @@ def add_background(videos):
                 )
             )
             """
-            v[f, :, :, :] = (v[f, :, :, :] + im[startx:endx, starty:endy, :]) / 2.0
+            v[f, :, :, :] = (
+                v[f, :, :, :] + im[startx:endx, starty:endy, :]) / 2.0
 
             # Show the frame
             # plt.imshow(v[f,:,:])
@@ -241,7 +252,8 @@ def randomly_permute_drop_repeat_tasks(subset_list: List):
     if args.shuffle > 0:
         shuffle = np.random.rand()
         if shuffle < args.shuffle / 100.0:
-            perm_size = math.ceil(args.shuffle / 100.0 * (len(subset_list) - 1))
+            perm_size = math.ceil(args.shuffle / 100.0 *
+                                  (len(subset_list) - 1))
             perms = [
                 subset
                 for subset in itertools.combinations(range(1, len(subset_list) - 1), 2)
@@ -273,7 +285,7 @@ def randomly_permute_drop_repeat_tasks(subset_list: List):
                 and (new_subset_list[pos + 1]) != to_repeat
             ):
                 new_subset_list.insert(pos, to_repeat)
-                
+
                 inserts += 1
             if inserts >= nr_repeats:
                 break
@@ -385,7 +397,8 @@ def make_data(
         imsize = image.shape
 
         # Select the number of frames for this activity
-        frames = int(random.randint(args.min_segment, args.max_segment) * video_speed)
+        frames = int(random.randint(args.min_segment,
+                     args.max_segment) * video_speed)
         if np.random.rand() < (args.big_chance / 100):
             frames *= args.big_multiplier
 
@@ -420,10 +433,12 @@ def make_data(
 
         for f in range(0, frames):
             start_x = (
-                pick_start_x  # np.random.normal(loc=pick_start_x, scale=args.noise_var)
+                # np.random.normal(loc=pick_start_x, scale=args.noise_var)
+                pick_start_x
             )
             start_y = (
-                pick_start_y  # np.random.normal(loc=pick_start_y, scale=args.noise_var)
+                # np.random.normal(loc=pick_start_y, scale=args.noise_var)
+                pick_start_y
             )
             start_x, start_y = get_motion(
                 start_x,
@@ -439,11 +454,11 @@ def make_data(
 
             rgb_image = get_color(image, motion, f, frames)
             # print(motion, start_x," : ",(start_x + image.shape[0])," ",start_y," : ",(start_y + image.shape[1])," ",videos[idx].shape)
-            boxes.append([start_x, start_x + image.shape[1], start_y, start_y + image.shape[0]])
+            boxes.append([start_x, start_y, image.shape[1], image.shape[0]])
             videos[idx][
                 start_frame + f,
-                start_y : (start_y + image.shape[0]),
-                start_x : (start_x + image.shape[1]),
+                start_y: (start_y + image.shape[0]),
+                start_x: (start_x + image.shape[1]),
                 :,
             ] = rgb_image
     database[f'{idx:05d}'] = {
@@ -607,11 +622,14 @@ def data_stats(videos: List[np.array], labels: List[np.array]):
     fig, ax = plt.subplots(1, len(class_names), constrained_layout=True)
     video_mean = np.array(avg_video).mean()
     video_std = np.array(avg_video).std()
-    plt.title(("Video length: {0:.2f}" + "+/-{1:.2f}").format(video_mean, video_std))
-    print(("Video length: {0:.2f}" + "+/-{1:.2f}").format(video_mean, video_std))
+    plt.title(("Video length: {0:.2f}" +
+              "+/-{1:.2f}").format(video_mean, video_std))
+    print(("Video length: {0:.2f}" +
+          "+/-{1:.2f}").format(video_mean, video_std))
     for c in range(0, len(class_names)):  # loop over classes
         cls = class_names[c]
-        ax[c].barh(list(range(0, len(histo[cls]))), histo[cls], color=color_dict[cls])
+        ax[c].barh(list(range(0, len(histo[cls]))),
+                   histo[cls], color=color_dict[cls])
 
         cls_mean = np.array(cls_stats[cls]).mean()
         cls_std = np.array(cls_stats[cls]).std()
@@ -620,7 +638,8 @@ def data_stats(videos: List[np.array], labels: List[np.array]):
         )
         ax[c].legend([cls_legend])
         print(
-            ("Class " + str(cls) + ": {0:.2f}" + "+/-{1:.2f}").format(cls_mean, cls_std)
+            ("Class " + str(cls) + ": {0:.2f}" +
+             "+/-{1:.2f}").format(cls_mean, cls_std)
         )
         plt.savefig(args.new_path + "/stats/" + "img_{:05d}.png".format(f))
         plt.pause(0.1)
@@ -631,7 +650,8 @@ def read_activity_mnist(name="activity_mnist_small"):
     with open(args.new_path + name + ".pkl", "rb") as f:
         (videos, labels) = pickle.load(f)
 
-    print("Created data: (", videos[0].shape, ",", labels[0].shape, ") x ", len(videos))
+    print("Created data: (", videos[0].shape,
+          ",", labels[0].shape, ") x ", len(videos))
     print(videos[0][0, :, :].max(), videos[0][0, :, :].min())
 
     # See some examples
@@ -643,7 +663,7 @@ def read_activity_mnist(name="activity_mnist_small"):
 
 # ------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    
+
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
     create_activity_mnist(
