@@ -6,22 +6,16 @@ from os.path import join
 from PIL import Image
 
 from transforms import ImglistToTensor
-
-
-def load_splitfile(split_path: str):
-    split_names = []
-    with open(split_path, 'r') as f:
-        for line in f.readlines():
-            video_name = line.strip()
-            split_names.append(video_name)
-    return split_names
+from utils import load_splitfile
 
 
 class ProgressDataset(Dataset):
     def __init__(self, data_root: str, data_type: str, splitfile_path: str, transform=None):
         super(ProgressDataset, self).__init__()
+        # create paths
         self.data_root = join(data_root, data_type)
         self.splitfile_path = join(data_root, splitfile_path)
+        # load split
         self.split_names = load_splitfile(self.splitfile_path)
         self.transform = transform
 
@@ -67,6 +61,7 @@ class ProgressDataset(Dataset):
         return sum(lengths) / len(lengths)
 
     def get_max_video_length(self):
+        lengths = self.get_video_lengths()
         return max(lengths)
 
 
