@@ -24,13 +24,14 @@ class ProgressDataset(Dataset):
     def __getitem__(self, index):
         video_path = join(self.data_root, self.split_names[index])
         frames = self._load_frames(video_path)
+        video_name = self.split_names[index]
         num_frames = len(frames)
         progress_values = [(i+1) / num_frames for i in range(num_frames)]
 
         if self.transform:
             frames = self.transform(frames)
 
-        return frames, torch.FloatTensor(progress_values)
+        return video_name, frames, torch.FloatTensor(progress_values)
 
     def __len__(self) -> int:
         return len(self.split_names)
@@ -72,7 +73,10 @@ def main():
         'splitfiles/testlist01.txt',
         transform=ImglistToTensor(dim=0)
     )
-    frames, progress_values = dataset[0]
+    video_name, frames, progress_values = dataset[0]
+    print(video_name)
+    print(frames.shape)
+    print(progress_values)
     print(dataset.get_average_video_length(), dataset.get_max_video_length())
 
 

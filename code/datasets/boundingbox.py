@@ -22,13 +22,14 @@ class BoundingBoxDataset(Dataset):
         self.image_size = image_size
         # load split & tubes
         self.split_names = load_splitfile(self.splitfile_path)
-        self.frame_paths, self.tubes = self._load_tubes()
+        self.video_names, self.frame_paths, self.tubes = self._load_tubes()
 
     # Dunder Methods
 
     def __getitem__(self, index):
         frame_paths = self.frame_paths[index]
         frames = self._load_frames(frame_paths)
+        video_name = self.video_names[index]
         tube = self.tubes[index]
 
         num_frames = len(frames)
@@ -38,7 +39,7 @@ class BoundingBoxDataset(Dataset):
             frames = self.transform(frames)
 
 
-        return frames, tube, torch.FloatTensor(progress_values)
+        return video_name, frames, tube, torch.FloatTensor(progress_values)
 
     def __len__(self) -> int:
         return len(self.tubes)
@@ -57,6 +58,7 @@ class BoundingBoxDataset(Dataset):
 
         all_frame_paths = []
         all_boxes = []
+        video_names = []
         for video_name in database:
             if video_name not in self.split_names:
                 continue
@@ -68,9 +70,10 @@ class BoundingBoxDataset(Dataset):
                 frame_paths, boxes = self._load_tube(tube, video_path)
 
                 all_frame_paths.append(frame_paths)
-                all_boxes.append(torch.FloatTensor(boxes))
+                all_boxes.append(boxes)
+                video_names.append(video_name)
 
-        return all_frame_paths, all_boxes
+        return video_names, all_frame_paths, all_boxes
 
     def _load_tube(self, tube, video_path: str):
         frame_paths = []
@@ -81,7 +84,7 @@ class BoundingBoxDataset(Dataset):
 
         boxes = tube['boxes'].astype('float32')
         # TODO: function modifies boxes inplace, not a big fan of this
-        self._convert_boxes(boxes)
+        boxes = self._convert_boxes(boxes)
 
         return frame_paths, boxes
 
@@ -94,6 +97,8 @@ class BoundingBoxDataset(Dataset):
         boxes[:, 2] /= self.image_size[0]
         boxes[:, 1] /= self.image_size[1]
         boxes[:, 3] /= self.image_size[1]
+
+        return torch.FloatTensor(boxes)
 
     # Data Analysis Methods
     # TODO: Turn some of these into properties?
@@ -125,7 +130,8 @@ def main():
 
     print(len(dataset))
     print(dataset.get_average_tube_length(), dataset.get_max_tube_length())
-    frames, tube, progress_values = dataset[0]
+    video_name, frames, tube, progress_values = dataset[0]
+    print(video_name)
     print(frames.shape, tube.shape)
     print(progress_values)
 
