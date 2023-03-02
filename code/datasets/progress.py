@@ -49,7 +49,7 @@ class ProgressDataset(Dataset):
     # Data Analysis Methods
     # TODO: Turn some of these into properties?
 
-    def get_video_lengths(self):
+    def get_video_frame_lengths(self):
         lengths = []
         for video_name in self.split_names:
             video_path = join(self.data_root, video_name)
@@ -57,12 +57,12 @@ class ProgressDataset(Dataset):
             lengths.append(len(frames))
         return lengths
 
-    def get_average_video_length(self):
-        lengths = self.get_video_lengths()
+    def get_average_video_frame_length(self):
+        lengths = self.get_video_frame_lengths()
         return sum(lengths) / len(lengths)
 
-    def get_max_video_length(self):
-        lengths = self.get_video_lengths()
+    def get_max_video_frame_length(self):
+        lengths = self.get_video_frame_lengths()
         return max(lengths)
 
 
@@ -77,7 +77,7 @@ def main():
     print(video_name)
     print(frames.shape)
     print(progress_values)
-    print(dataset.get_average_video_length(), dataset.get_max_video_length())
+    print(dataset.get_average_video_frame_length(), dataset.get_max_video_frame_length())
 
 
 

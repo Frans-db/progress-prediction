@@ -103,18 +103,18 @@ class BoundingBoxDataset(Dataset):
     # Data Analysis Methods
     # TODO: Turn some of these into properties?
 
-    def get_tube_lengths(self):
+    def get_tube_frame_lengths(self):
         lengths = []
         for tube in self.tubes:
             lengths.append(len(tube))
         return lengths
 
-    def get_average_tube_length(self):
-        lengths = self.get_tube_lengths()
+    def get_average_tube_frame_length(self):
+        lengths = self.get_tube_frame_lengths()
         return sum(lengths) / len(lengths)
 
-    def get_max_tube_length(self):
-        lengths = self.get_tube_lengths()
+    def get_max_tube_frame_length(self):
+        lengths = self.get_tube_frame_lengths()
         return max(lengths)
 
 
@@ -129,7 +129,7 @@ def main():
     )
 
     print(len(dataset))
-    print(dataset.get_average_tube_length(), dataset.get_max_tube_length())
+    print(dataset.get_average_tube_frame_length(), dataset.get_max_tube_framelength())
     video_name, frames, tube, progress_values = dataset[0]
     print(video_name)
     print(frames.shape, tube.shape)
