@@ -104,7 +104,12 @@ def main():
             test_l1_loss += l1.sum().item()
             test_l2_loss += l2.sum().item()
             test_count += count.item()
-        print(f'[{epoch:03d} train] avg bo loss {(train_bo_loss / train_count):.4f} avg l1 loss {(train_l1_loss / train_count):.4f} avg l2 loss {(train_l2_loss / train_count):.4f}')
-        print(f'[{epoch:03d} test]  avg bo loss {(test_bo_loss / test_count):.4f} avg l1 loss {(test_l1_loss / test_count):.4f} avg l2 loss {(test_l2_loss / test_count):.4f}')
+        logging.info(f'[{epoch:03d} train] avg bo loss {(train_bo_loss / train_count):.4f} avg l1 loss {(train_l1_loss / train_count):.4f} avg l2 loss {(train_l2_loss / train_count):.4f}')
+        logging.info(f'[{epoch:03d} test]  avg bo loss {(test_bo_loss / test_count):.4f} avg l1 loss {(test_l1_loss / test_count):.4f} avg l2 loss {(test_l2_loss / test_count):.4f}')
+        if epoch % args.save_every == 0 and epoch > 0:
+            model_name = f'{epoch:03d}.pth'
+            model_path = join(model_directory, model_name)
+            logging.info(f'[{epoch:03d}] saving model {model_name}')
+            torch.save(progressnet.state_dict(), model_path)
 if __name__ == '__main__':
     main()
