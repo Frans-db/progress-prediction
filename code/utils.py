@@ -18,13 +18,22 @@ def parse_arguments():
     parser.add_argument('--figures', action='store_true')
     parser.add_argument('--figure_every', type=int, default=1)
     # dataset
-    parser.add_argument('--data_root', type=str, default='/home/frans/Datasets/')
+    parser.add_argument('--data_root', type=str, default='/home/frans/Datasets')
     parser.add_argument('--dataset', type=str, default='ucf24')
     parser.add_argument('--data_type', type=str, default='rgb-images')
     parser.add_argument('--splitfile_dir', type=str, default='splitfiles')
     parser.add_argument('--annotation_file', type=str, default='pyannot.pkl')
     parser.add_argument('--train_split_file', type=str, default='trainlist01.txt')
     parser.add_argument('--test_split_file', type=str, default='testlist01.txt')
+    # training
+    parser.add_argument('--epochs', type=int, default=11)
+    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--num_workers', type=int, default=3)
+    parser.add_argument('--save_every', type=int, default=5)
+    parser.add_argument('--learning_rate', type=float, default=1e-4)
+    parser.add_argument('--subsection_chance', type=float, default=0)
+    parser.add_argument('--subsample_chance', type=float, default=0)
+    parser.add_argument('--dropout_chance', type=float, default=0)
     # progressnet
     parser.add_argument('--embed_size', type=int, default=2048)
     # model loading
