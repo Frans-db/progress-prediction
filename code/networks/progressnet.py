@@ -3,10 +3,10 @@ import torch.nn as nn
 from torchvision.ops import roi_pool
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from .pyramidpooling import SpatialPyramidPooling
+from .layers import SpatialPyramidPooling
 
 class ProgressNet(nn.Module):
-    def __init__(self, embed_size=4069, p_dropout=0.5, finetune=False):
+    def __init__(self, embed_size=4069, p_dropout=0, finetune=False):
         super(ProgressNet, self).__init__()
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)

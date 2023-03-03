@@ -5,8 +5,8 @@ import os
 from os.path import join
 from PIL import Image
 
-from transforms import ImglistToTensor
-from utils import load_splitfile
+from .transforms import ImglistToTensor
+from .utils import load_splitfile
 
 
 class ProgressDataset(Dataset):

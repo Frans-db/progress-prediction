@@ -1,7 +1,7 @@
 import torch
 
-from progress import ProgressDataset
-from transforms import ImglistToTensor
+from .progress import ProgressDataset
+from .transforms import ImglistToTensor
 
 class RSDDataset(ProgressDataset):
     def __init__(self, data_root, data_type, splitfile_path, fps: int = 25, mode='seconds', transform=None):

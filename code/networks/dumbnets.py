@@ -17,7 +17,7 @@ class StaticNet(nn.Module):
         super(ProgressNet, self).__init__()
         self.value = value
 
-    def forward(self, frames, *):
+    def forward(self, frames, *args, **kwargs):
         batch_size, sequence_length, C, H, W = frames.shape
         
         return torch.full((batch_size, sequence_length), self.value)
