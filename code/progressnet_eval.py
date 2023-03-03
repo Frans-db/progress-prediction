@@ -9,7 +9,7 @@ from tqdm import tqdm
 from utils import parse_arguments, get_device, set_seeds, create_directory
 from datasets import BoundingBoxDataset, bounding_box_collate
 from datasets.transforms import ImglistToTensor
-from networks import ProgressNet
+from networks import ProgressNet, RandomNet, StaticNet, RelativeNet
 from losses import bo_weight
 
 """
@@ -22,7 +22,7 @@ def train(network, batch, l1_loss, l2_loss, device, optimizer=None):
     boxes = boxes.to(device)
     labels = labels.to(device)
     if optimizer:
-        optimizer.zero_grad()
+        optimizer.zero_grad
     predictions = network(frames, boxes, lengths)
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to fill our loss with 0s for padded values
@@ -55,7 +55,7 @@ def main():
     model_directory = join(experiment_directory, args.model_directory)
     figures_directory = join(experiment_directory, args.figures_directory)
     log_directory = join(experiment_directory, args.log_directory)
-    log_path = join(log_directory, f'train.log')
+    log_path = join(log_directory, f'test.log')
     # create directories
     create_directory(experiment_directory)
     create_directory(log_directory)
@@ -73,9 +73,7 @@ def main():
     )
 
     # create datasets
-    train_set = BoundingBoxDataset(dataset_directory, args.data_type, annotation_path, train_splitfile_path, lambda x: f'{(x+1):05d}.jpg', transform=ImglistToTensor(dim=0))
     test_set = BoundingBoxDataset(dataset_directory, args.data_type, annotation_path, test_splitfile_path, lambda x: f'{(x+1):05d}.jpg', transform=ImglistToTensor(dim=0))
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=bounding_box_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
 
     progressnet = ProgressNet(embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
@@ -83,42 +81,43 @@ def main():
         model_path = join(model_directory, args.model_name)
         net.load_state_dict(torch.load(model_path))
 
+    dumbnets = {}
+    loss_dict = {
+        'bo_loss': 0.0,
+        'l1_loss': 0.0,
+        'l2_loss': 0.0,
+    }
+    if args.dumb_random:
+        dumbnets['dumb_random'] = loss_dict.copy()
+        dumbnets['model'] = RandomNet()
+    if args.dumb_static:
+        dumbnets['dumb_static'] = loss_dict.copy()
+        dumbnets['model'] = StaticNet()
+    if args.dumb_relative:
+        dumbnets['dumb_relative'] = loss_dict.copy()
+        dumbnets['model'] = RelativeNet(test_set.get_average_tube_frame_length())
+    
     l1_loss = nn.L1Loss(reduction='none')
     l2_loss = nn.MSELoss(reduction='none')
-    optimizer = optim.Adam(progressnet.parameters(), lr=args.learning_rate)
 
     logging.info(f'[{args.experiment_name}] starting experiment')
-    for epoch in range(args.epochs):
-        train_bo_loss, test_bo_loss = 0.0, 0.0
-        train_l1_loss, test_l1_loss = 0.0, 0.0
-        train_l2_loss, test_l2_loss = 0.0, 0.0
-        train_count, test_count = 0, 0
+    progressnet.eval()
+    test_bo_loss, test_l1_loss, test_l2_loss, test_count = 0.0, 0.0, 0.0, 0
+    for batch in tqdm(test_loader, leave=False):
+        l1, l2, bo_weight, count = train(progressnet, batch, l1_loss, l2_loss, device)
+        test_bo_loss += (l1 * bo_weight).sum().item()
+        test_l1_loss += l1.sum().item()
+        test_l2_loss += l2.sum().item()
+        test_count += count.item()
 
-        progressnet.train()
-        for batch in tqdm(train_loader, leave=False):
-            l1, l2, bo_weight, count = train(progressnet, batch, l1_loss, l2_loss, device, optimizer=optimizer)
-            train_bo_loss += (l1 * bo_weight).sum().item()
-            train_l1_loss += l1.sum().item()
-            train_l2_loss += l2.sum().item()
-            train_count += count.item()
-
-        progressnet.eval()
-        for batch in tqdm(test_loader, leave=False):
-            l1, l2, bo_weight, count = train(progressnet, batch, l1_loss, l2_loss, device)
-            test_bo_loss += (l1 * bo_weight).sum().item()
-            test_l1_loss += l1.sum().item()
-            test_l2_loss += l2.sum().item()
-            test_count += count.item()
-
-        logging.info(f'[{epoch:03d} train] avg bo loss {(train_bo_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
-        logging.info(f'[{epoch:03d} test]  avg bo loss {(test_bo_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
-        
-        if epoch % args.save_every == 0 and epoch > 0:
-            model_name = f'{epoch:03d}.pth'
-            model_path = join(model_directory, model_name)
-            logging.info(f'[{epoch:03d}] saving model {model_name}')
-            torch.save(progressnet.state_dict(), model_path)
-
+        for model_name in dumbnets:
+            l1, l2, bo_weight, count = train(dumbnets[model_name], batch, l1_loss, l2_loss, device)
+            dumbnets[model_name]['bo_loss'] += (l1 * bo_weight).sum().item()
+            dumbnets[model_name]['l1_loss'] += l1.sum().item()
+            dumbnets[model_name]['l2_loss'] += l2.sum().item()
+    logging.info(f'[{epoch:03d} progressnet]  avg bo loss {(test_bo_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
+    for model_name in dumbnets:
+        logging.info(f'[{epoch:03d} {model_name}]  avg bo loss {(dumbnets[model_name]["bo_loss"] / test_count):.4f}, avg l1 loss {(dumbnets[model_name]["l1_loss"] / test_count):.4f}, avg l2 loss {(dumbnets[model_name]["l2_loss"] / test_count):.4f}')
 
 if __name__ == '__main__':
     main()

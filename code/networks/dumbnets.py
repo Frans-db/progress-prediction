@@ -28,5 +28,5 @@ class RelativeNet(nn.Module):
         super(ProgressNet, self).__init__()
         self.value = value
 
-    def forward(self, indices):
+    def forward(self, frames, *args, **kwargs):
         return indices / self.value

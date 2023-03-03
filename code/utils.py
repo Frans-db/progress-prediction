@@ -30,14 +30,18 @@ def parse_arguments():
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--num_workers', type=int, default=3)
     parser.add_argument('--save_every', type=int, default=5)
-    parser.add_argument('--learning_rate', type=float, default=1e-4)
+    parser.add_argument('--learning_rate', type=float, default=3e-3)
     parser.add_argument('--subsection_chance', type=float, default=0)
     parser.add_argument('--subsample_chance', type=float, default=0)
     parser.add_argument('--dropout_chance', type=float, default=0)
     # progressnet
     parser.add_argument('--embed_size', type=int, default=2048)
     # model loading
-    parser.add_argument('--model_name', type=str, default='010.pth')
+    parser.add_argument('--model_name', type=str, default=None)
+    # eval
+    parser.add_argument('--dumb_random', action='store_true')
+    parser.add_argument('--dumb_static', action='store_true')
+    parser.add_argument('--dumb_relative', action='store_true')
 
     return parser.parse_args()
 
