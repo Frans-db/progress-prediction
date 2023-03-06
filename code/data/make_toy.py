@@ -175,8 +175,8 @@ def create_activity_mnist(
         for frame_id, frame in enumerate(video):
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
-            image.save(
-                f'{args.new_path}/rgb-images/{video_id:05d}/img_{(frame_id):05d}.png')
+            frame_name = f'{args.new_path}/rgb-images/{video_id:05d}/{(frame_id+1):05d}.jpg'
+            image.save(frame_name)
 
     # with open(args.new_path + file_name + ".pkl", "wb+") as f:
     #     pickle.dump((videos, labels), f)
