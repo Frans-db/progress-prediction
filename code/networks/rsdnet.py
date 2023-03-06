@@ -8,20 +8,17 @@ class RSDNet(nn.Module):
         super(RSDNet, self).__init__()
         self.finetune = finetune
         self.resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
-
-        if self.finetune:
-            # Replace last layer of resnet with a progress prediction head
-            self.resnet.fc = nn.Sequential(
-                nn.Linear(512, 1),
-                nn.Sigmoid()
-            )
-        else:
-            # Remove last layer of resnet, second to last layer is used as an embedding
-            self.resnet.fc = nn.Identity()
+        self.resnet.fc = nn.Sequential(
+            nn.Linear(512, 1),
+            nn.Sigmoid()
+        )
 
         self.lstm = nn.LSTM(512, 64, 1)
         self.fc_rsd = nn.Linear(64, 1)
         self.fc_progress = nn.Linear(64, 1)
+
+    def disable_finetune(self):
+        self.resnet.fc = nn.Identity()
 
     def forward(self, frames, lengths):
         batch_size, sequence_length, C, H, W = frames.shape
@@ -31,13 +28,13 @@ class RSDNet(nn.Module):
 
         # resnet encoding
         encoded = self.resnet(flat_frames)
-        encoded = encoded.reshape(batch_size, sequence_length, -1)
 
         if self.finetune:
-            print(encoded.shape)
-            exit(0)
+            progress = encoded.reshape(batch_size, sequence_length)
+            return progress.clone(), progress
         else:
             # packing & lstm
+            encoded = encoded.reshape(batch_size, sequence_length, -1)
             packed = pack_padded_sequence(encoded, lengths, batch_first=True, enforce_sorted=False)
             packed, _ = self.lstm(packed)
 

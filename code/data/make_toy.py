@@ -58,10 +58,10 @@ parser.add_argument(
     "--step", type=float, default=5, help="The step size with which digits move"
 )
 parser.add_argument(
-    "--shuffle", type=float, default=100, help="Percentage of tasks to shuffle around"  # 20
+    "--shuffle", type=float, default=0, help="Percentage of tasks to shuffle around"  # 20
 )
 
-parser.add_argument("--drop", type=float, default=50,
+parser.add_argument("--drop", type=float, default=0,
                     help="Percentage of tasks to drop")  # 10
 
 parser.add_argument("--repeated", type=int, default=-1,

@@ -16,7 +16,9 @@ def setup_directores(args):
     model_directory = join(experiment_directory, args.model_directory)
     figures_directory = join(experiment_directory, args.figures_directory)
     log_directory = join(experiment_directory, args.log_directory)
-    log_path = join(log_directory, 'eval.log' if args.eval else 'train.log')
+    log_file = 'eval' if args.eval else 'train'
+    log_file += '_finetune.log' if args.finetune else '.log'
+    log_path = join(log_directory, log_file)
     # create directories
     create_directory(experiment_directory)
     create_directory(log_directory)

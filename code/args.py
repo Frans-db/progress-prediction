@@ -33,6 +33,7 @@ def parse_arguments():
     parser.add_argument('--subsection_chance', type=float, default=0)
     parser.add_argument('--subsample_chance', type=float, default=0)
     parser.add_argument('--dropout_chance', type=float, default=0)
+    parser.add_argument('--finetune', action='store_true')
     # progressnet
     parser.add_argument('--embed_size', type=int, default=2048)
     parser.add_argument('--model_type', type=str, default='progressnet')
