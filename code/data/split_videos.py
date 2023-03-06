@@ -7,7 +7,6 @@ import subprocess
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_root', type=str, default='/mnt/hdd/datasets/cholec80')
-    parser.add_argument('--save_root', type=str, default='/mnt/hdd/datasets/cholec80_split')
 
     return parser.parse_args()
 
