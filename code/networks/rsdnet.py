@@ -7,7 +7,7 @@ class RSDNet(nn.Module):
     def __init__(self, p_dropout=0.3, finetune=False):
         super(RSDNet, self).__init__()
         self.finetune = finetune
-        self.resnet = models.resnet18()
+        self.resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 
         if self.finetune:
             # Replace last layer of resnet with a progress prediction head

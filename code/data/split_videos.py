@@ -17,6 +17,8 @@ def split_video(video_path: str, save_dir: str):
     print(f'[splitting {video_path}]')
     os.mkdir(save_dir)
     frame_save_path = join(save_dir, 'frame_%06d.jpg')
+    # Using subprocess and ffmpeg here. Original implementation used opencv
+    # to iterate over frames and save. Using built in ffmpeg appears to be much faster
     subprocess.run(
         ['ffmpeg', '-i', video_path, frame_save_path]
     )
