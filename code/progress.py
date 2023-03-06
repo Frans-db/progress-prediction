@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from os.path import join
 import logging
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from utils import get_device, set_seeds, create_directory, setup
@@ -99,7 +100,8 @@ def main():
                 torch.save(net.state_dict(), model_path)
 
         net.eval()
-        for batch in tqdm(test_loader, leave=False):
+        for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
+            do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
             for model_name in networks:
                 predictions, l1_loss, l2_loss, bo_weight, count = train(networks[model_name]['net'], batch, l1_criterion, l2_criterion, device)
                 networks[model_name]['bo_loss'] += (l1_loss * bo_weight).sum().item()
@@ -107,11 +109,22 @@ def main():
                 networks[model_name]['l2_loss'] += l2_loss.sum().item()
                 networks[model_name]['count'] += count.item()
 
-                if args.figures and args.batch_size == 1:
-                    pass # TODO
+                if do_figure:
+                    plot_predictions = predictions.cpu().detach().squeeze().numpy()
+                    plt.plot(plot_predictions, label=model_name)
 
-            if args.figures and args.batch_size == 1:
-                pass # TODO
+            if do_figure:
+                video_names, frames, boxes, labels, lengths = batch
+                plot_labels = labels.cpu().detach().squeeze().numpy()
+                plt.plot(plot_labels, label='ground truth')
+                plt.title('Progress Predictions')
+                plt.xlabel('Frame')
+                plt.ylabel('Percentag (%)')
+                plt.legend(loc='best')
+                plot_name = f'figure_{batch_index}.png'
+                plot_path = join(dirs['figures_directory'], plot_name)
+                plt.savefig(plot_path)
+                plt.clf()
 
         for model_name in networks:
             logging.info(f'[{epoch:03d} test {model_name}] avg bo loss {(networks[model_name]["bo_loss"] / networks[model_name]["count"]):.4f}, avg l1 loss {(networks[model_name]["l1_loss"] / networks[model_name]["count"]):.4f}, avg l2 loss {(networks[model_name]["l2_loss"] / networks[model_name]["count"]):.4f}')

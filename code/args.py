@@ -15,7 +15,7 @@ def parse_arguments():
     parser.add_argument('--figures_directory', type=str, default='figures')
     # figures
     parser.add_argument('--figures', action='store_true')
-    # parser.add_argument('--figure_every', type=int, default=1)
+    parser.add_argument('--figure_every', type=int, default=25)
     # dataset
     parser.add_argument('--data_root', type=str, default='/home/frans/Datasets')
     parser.add_argument('--dataset', type=str, default='ucf24')
