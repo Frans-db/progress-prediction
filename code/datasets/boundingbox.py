@@ -119,6 +119,8 @@ class BoundingBoxDataset(Dataset):
 
 
 def main():
+    import matplotlib.pyplot as plt
+
     dataset = BoundingBoxDataset(
         '/mnt/hdd/datasets/ucf24',
         'rgb-images',
@@ -128,12 +130,15 @@ def main():
         transform=ImglistToTensor(dim=0)
     )
 
-    print(len(dataset))
-    print(dataset.get_average_tube_frame_length(), dataset.get_max_tube_framelength())
-    video_name, frames, tube, progress_values = dataset[0]
-    print(video_name)
-    print(frames.shape, tube.shape)
-    print(progress_values)
+    lengths = dataset.get_tube_frame_lengths()
+    plot_data = {}
+    for length in lengths:
+        if length not in plot_data:
+            plot_data[length] = 0
+        plot_data[length] += 1
+
+    # plt.ba
+    
 
 if __name__ == '__main__':
     main()

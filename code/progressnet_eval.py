@@ -26,7 +26,8 @@ def train(network, batch, l1_loss, l2_loss, device, optimizer=None):
     predictions = network(frames, boxes, lengths)
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to fill our loss with 0s for padded values
-    predictions.masked_fill_(labels == 0, 0.0)
+    mask = (labels != 0).int().to(device)
+    predictions = predictions * mask
 
     bo = bo_weight(labels, predictions)
     l1 = l1_loss(predictions, labels)
@@ -55,7 +56,7 @@ def main():
     model_directory = join(experiment_directory, args.model_directory)
     figures_directory = join(experiment_directory, args.figures_directory)
     log_directory = join(experiment_directory, args.log_directory)
-    log_path = join(log_directory, f'test.log')
+    log_path = join(log_directory, f'eval.log')
     # create directories
     create_directory(experiment_directory)
     create_directory(log_directory)
@@ -79,7 +80,7 @@ def main():
     progressnet = ProgressNet(embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
     if args.model_name:
         model_path = join(model_directory, args.model_name)
-        net.load_state_dict(torch.load(model_path))
+        progressnet.load_state_dict(torch.load(model_path))
 
     dumbnets = {}
     loss_dict = {
@@ -89,13 +90,13 @@ def main():
     }
     if args.dumb_random:
         dumbnets['dumb_random'] = loss_dict.copy()
-        dumbnets['model'] = RandomNet()
+        dumbnets['dumb_random']['model'] = RandomNet(device)
     if args.dumb_static:
         dumbnets['dumb_static'] = loss_dict.copy()
-        dumbnets['model'] = StaticNet()
+        dumbnets['dumb_static']['model'] = StaticNet(device)
     if args.dumb_relative:
         dumbnets['dumb_relative'] = loss_dict.copy()
-        dumbnets['model'] = RelativeNet(test_set.get_average_tube_frame_length())
+        dumbnets['dumb_relative']['model'] = RelativeNet(device, test_set.get_average_tube_frame_length())
     
     l1_loss = nn.L1Loss(reduction='none')
     l2_loss = nn.MSELoss(reduction='none')
@@ -111,13 +112,13 @@ def main():
         test_count += count.item()
 
         for model_name in dumbnets:
-            l1, l2, bo_weight, count = train(dumbnets[model_name], batch, l1_loss, l2_loss, device)
+            l1, l2, bo_weight, count = train(dumbnets[model_name]['model'], batch, l1_loss, l2_loss, device)
             dumbnets[model_name]['bo_loss'] += (l1 * bo_weight).sum().item()
             dumbnets[model_name]['l1_loss'] += l1.sum().item()
             dumbnets[model_name]['l2_loss'] += l2.sum().item()
-    logging.info(f'[{epoch:03d} progressnet]  avg bo loss {(test_bo_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
+    logging.info(f'[progressnet]  avg bo loss {(test_bo_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
     for model_name in dumbnets:
-        logging.info(f'[{epoch:03d} {model_name}]  avg bo loss {(dumbnets[model_name]["bo_loss"] / test_count):.4f}, avg l1 loss {(dumbnets[model_name]["l1_loss"] / test_count):.4f}, avg l2 loss {(dumbnets[model_name]["l2_loss"] / test_count):.4f}')
+        logging.info(f'[{model_name}]  avg bo loss {(dumbnets[model_name]["bo_loss"] / test_count):.4f}, avg l1 loss {(dumbnets[model_name]["l1_loss"] / test_count):.4f}, avg l2 loss {(dumbnets[model_name]["l2_loss"] / test_count):.4f}')
 
 if __name__ == '__main__':
     main()
