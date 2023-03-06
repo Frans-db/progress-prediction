@@ -7,6 +7,7 @@ class RSDDataset(ProgressDataset):
     def __init__(self, data_root, data_type, splitfile_path, fps: int = 25, mode='seconds', transform=None):
         super(RSDDataset, self).__init__(data_root, data_type, splitfile_path, transform=transform)
         self.fps = fps
+        self.mode = mode
 
     # Dunder Methods
 

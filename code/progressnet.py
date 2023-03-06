@@ -56,7 +56,7 @@ def main():
     model_directory = join(experiment_directory, args.model_directory)
     figures_directory = join(experiment_directory, args.figures_directory)
     log_directory = join(experiment_directory, args.log_directory)
-    log_path = join(log_directory, f'train.log')
+    log_path = join(log_directory, 'eval.log' if args.eval else 'train.log')
     # create directories
     create_directory(experiment_directory)
     create_directory(log_directory)
@@ -74,8 +74,8 @@ def main():
     )
 
     # create datasets
-    train_set = BoundingBoxDataset(dataset_directory, args.data_type, annotation_path, train_splitfile_path, lambda x: f'{(x+1):05d}.jpg', transform=ImglistToTensor(dim=0))
-    test_set = BoundingBoxDataset(dataset_directory, args.data_type, annotation_path, test_splitfile_path, lambda x: f'{(x+1):05d}.jpg', transform=ImglistToTensor(dim=0))
+    train_set = BoundingBoxDataset(dataset_directory, args.data_type, annotation_path, train_splitfile_path, lambda x: f'img_{(x):05d}.png', transform=ImglistToTensor(dim=0))
+    test_set = BoundingBoxDataset(dataset_directory, args.data_type, annotation_path, test_splitfile_path, lambda x: f'img_{(x):05d}.png', transform=ImglistToTensor(dim=0))
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=bounding_box_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
 
@@ -99,13 +99,22 @@ def main():
         train_l2_loss, test_l2_loss = 0.0, 0.0
         train_count, test_count = 0, 0
 
-        net.train()
-        for batch in tqdm(train_loader, leave=False):
-            l1, l2, bo_weight, count = train(net, batch, l1_loss, l2_loss, device, optimizer=optimizer)
-            train_bo_loss += (l1 * bo_weight).sum().item()
-            train_l1_loss += l1.sum().item()
-            train_l2_loss += l2.sum().item()
-            train_count += count.item()
+        if not args.eval:
+            net.train()
+            for batch in tqdm(train_loader, leave=False):
+                l1, l2, bo_weight, count = train(net, batch, l1_loss, l2_loss, device, optimizer=optimizer)
+                train_bo_loss += (l1 * bo_weight).sum().item()
+                train_l1_loss += l1.sum().item()
+                train_l2_loss += l2.sum().item()
+                train_count += count.item()
+
+            logging.info(f'[{epoch:03d} train] avg bo loss {(train_bo_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
+        
+            if epoch % args.save_every == 0 and epoch > 0:
+                model_name = f'{epoch:03d}.pth'
+                model_path = join(model_directory, model_name)
+                logging.info(f'[{epoch:03d}] saving model {model_name}')
+                torch.save(net.state_dict(), model_path)
 
         net.eval()
         for batch in tqdm(test_loader, leave=False):
@@ -115,14 +124,12 @@ def main():
             test_l2_loss += l2.sum().item()
             test_count += count.item()
 
-        logging.info(f'[{epoch:03d} train] avg bo loss {(train_bo_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
         logging.info(f'[{epoch:03d} test]  avg bo loss {(test_bo_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
         
-        if epoch % args.save_every == 0 and epoch > 0:
-            model_name = f'{epoch:03d}.pth'
-            model_path = join(model_directory, model_name)
-            logging.info(f'[{epoch:03d}] saving model {model_name}')
-            torch.save(net.state_dict(), model_path)
+        # TODO: Eval on other baselines (dumbnets)
+        # TODO: Indices from dataset?
+        if args.eval:
+            break # only 1 epoch for evaluation
 
 
 if __name__ == '__main__':

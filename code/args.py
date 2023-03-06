@@ -1,6 +1,9 @@
 import argparse
 
 def parse_arguments():
+    # TODO: Clean up arguments
+    # perhaps split into segments?
+
     parser = argparse.ArgumentParser()
     # experiment
     parser.add_argument('--experiment_name', type=str, default=None)
@@ -36,6 +39,7 @@ def parse_arguments():
     # model loading
     parser.add_argument('--model_name', type=str, default=None)
     # eval
+    parser.add_argument('--eval', action='store_true')
     parser.add_argument('--dumb_random', action='store_true')
     parser.add_argument('--dumb_static', action='store_true')
     parser.add_argument('--dumb_relative', action='store_true')

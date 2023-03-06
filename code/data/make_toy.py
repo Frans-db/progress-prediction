@@ -28,7 +28,7 @@ parser.add_argument("--seed", type=int, default=42, help="Manual seed")
 parser.add_argument(
     "--path",
     type=str,
-    default="/mnt/hdd/datasets/",
+    default="/home/frans/Datasets/",
     help="Dataset location ...",
 )
 parser.add_argument(
@@ -49,7 +49,7 @@ parser.add_argument(
     action='store_true'
 )
 parser.add_argument(
-    "--new_path", type=str, default="/mnt/hdd/datasets/toy", help="New dataset path ..."
+    "--new_path", type=str, default="/home/frans/Datasets/toy", help="New dataset path ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
