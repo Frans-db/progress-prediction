@@ -15,7 +15,7 @@ def parse_arguments():
     parser.add_argument('--figures_directory', type=str, default='figures')
     # figures
     parser.add_argument('--figures', action='store_true')
-    parser.add_argument('--figure_every', type=int, default=1)
+    # parser.add_argument('--figure_every', type=int, default=1)
     # dataset
     parser.add_argument('--data_root', type=str, default='/home/frans/Datasets')
     parser.add_argument('--dataset', type=str, default='ucf24')
@@ -40,8 +40,8 @@ def parse_arguments():
     parser.add_argument('--model_name', type=str, default=None)
     # eval
     parser.add_argument('--eval', action='store_true')
-    parser.add_argument('--dumb_random', action='store_true')
-    parser.add_argument('--dumb_static', action='store_true')
-    parser.add_argument('--dumb_relative', action='store_true')
+    parser.add_argument('--random', action='store_true')
+    parser.add_argument('--static', action='store_true')
+    parser.add_argument('--relative', action='store_true')
 
     return parser.parse_args()
