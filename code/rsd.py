@@ -33,10 +33,7 @@ def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, devic
 
     rsd_loss = smooth_l1_criterion(rsd_predictions, rsd_values)
     progress_loss = smooth_l1_criterion(progress_predictions, progress_values)
-    if network.finetune:
-        loss = progress_loss
-    else:
-        loss = rsd_loss + progress_loss
+    loss = rsd_loss + progress_loss
 
     progress_l1_loss = l1_criterion(progress_predictions, progress_values)
     progress_l2_loss = l2_criterion(progress_predictions, progress_values)
@@ -59,12 +56,12 @@ def main():
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=rsd_collate)
 
     # load model
-    net = RSDNet(finetune=args.finetune).to(device)
+    # TODO: Load basenet
+    net = RSDNet().to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))
-    if not args.finetune:
-        net.disable_finetune()
+
 
     # criterions & optimizer
     smooth_l1_criterion = nn.SmoothL1Loss(reduction='none')
@@ -88,13 +85,10 @@ def main():
                 train_progress_l2_loss += progress_l2_loss.sum().item()
                 train_count += count.item()
 
-            if net.finetune:
-                logging.info(f'[{epoch:03d} train] avg progress loss {(train_progress_loss / train_count):.4f}, avg progress l1 loss {(train_progress_l1_loss / train_count):.4f}, avg progress l2 loss {(train_progress_l2_loss / train_count):.4f}')
-            else:
-                logging.info(f'[{epoch:03d} train] avg loss {(train_loss / train_count):.4f}, avg rsd loss {(train_rsd_loss / train_count):.4f}, avg progress loss {(train_progress_loss / train_count):.4f}, avg progress l1 loss {(train_progress_l1_loss / train_count):.4f}, avg progress l2 loss {(train_progress_l2_loss / train_count):.4f}')
+            logging.info(f'[{epoch:03d} train] avg loss {(train_loss / train_count):.4f}, avg rsd loss {(train_rsd_loss / train_count):.4f}, avg progress loss {(train_progress_loss / train_count):.4f}, avg progress l1 loss {(train_progress_l1_loss / train_count):.4f}, avg progress l2 loss {(train_progress_l2_loss / train_count):.4f}')
 
             if epoch % args.save_every == 0 and epoch > 0:
-                model_name = f'{epoch:03d}{"_finetune" if args.finetune else ""}.pth'
+                model_name = f'{epoch:03d}.pth'
                 model_path = join(dirs['model_directory'], model_name)
                 logging.info(f'[{epoch:03d}] saving model {model_name}')
                 torch.save(net.state_dict(), model_path)
@@ -112,10 +106,7 @@ def main():
             test_progress_l2_loss += progress_l2_loss.sum().item()
             test_count += count.item()
 
-        if net.finetune:
-            logging.info(f'[{epoch:03d} test] avg progress loss {(test_progress_loss / test_count):.4f}, avg progress l1 loss {(test_progress_l1_loss / test_count):.4f}, avg progress l2 loss {(test_progress_l2_loss / test_count):.4f}')
-        else:
-            logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg rsd loss {(test_rsd_loss / test_count):.4f}, avg progress loss {(test_progress_loss / test_count):.4f}, avg progress l1 loss {(test_progress_l1_loss / test_count):.4f}, avg progress l2 loss {(test_progress_l2_loss / test_count):.4f}')
+        logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg rsd loss {(test_rsd_loss / test_count):.4f}, avg progress loss {(test_progress_loss / test_count):.4f}, avg progress l1 loss {(test_progress_l1_loss / test_count):.4f}, avg progress l2 loss {(test_progress_l2_loss / test_count):.4f}')
 
 
         if args.eval:
