@@ -41,11 +41,15 @@ class RSDNet(nn.Module):
             packed = pack_padded_sequence(encoded, lengths, batch_first=True, enforce_sorted=False)
             packed, _ = self.lstm(packed)
 
-            # # unpacking & linear
+            # unpacking
             unpacked, unpacked_lengths = pad_packed_sequence(packed, batch_first=True)
             unpacked = unpacked.reshape(batch_size * sequence_length, -1)
-            unpacked = self.fc1(unpacked)
-            unpacked = unpacked.reshape(batch_size, sequence_length)
 
-            # return unpacked
-            return unpacked
+            # rsd & progress predictions
+            rsd_predictions = self.fc_rsd(unpacked)
+            progress_predictions = torch.sigmoid(self.fc_progress(unpacked))
+
+            rsd_predictions = rsd_predictions.reshape(batch_size, sequence_length)
+            progress_predictions = progress_predictions.reshape(batch_size, sequence_length)
+
+            return rsd_predictions, progress_predictions

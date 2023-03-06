@@ -26,8 +26,10 @@ def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, devic
     rsd_predictions, progress_predictions = network(frames, lengths)
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to fill our loss with 0s for padded values
-    rsd_predictions.masked_fill_(progress_values == 0, 0.0)
-    progress_predictions.masked_fill_(progress_values == 0, 0.0)
+    mask = (progress_values != 0).int().to(device)
+
+    rsd_predictions = rsd_predictions * mask
+    progress_predictions = progress_predictions * mask
 
     rsd_loss = smooth_l1_criterion(rsd_predictions, rsd_values)
     progress_loss = smooth_l1_criterion(progress_predictions, progress_values)
@@ -42,7 +44,7 @@ def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, devic
         loss.backward()
         optimizer.step()
 
-    return predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count
+    return rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count
 
 def main():
     args, dirs, device = setup()
@@ -73,12 +75,15 @@ def main():
         if not args.eval:
             net.train()
             for batch in tqdm(train_loader, leave=False):
-                predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
-                train_l1_loss += l1_loss.sum().item()
-                train_l2_loss += l2_loss.sum().item()
+                rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
+                train_loss += loss.sum().item()
+                train_rsd_loss += loss.sum().item()
+                train_progress_loss += progress_loss.sum().item()
+                train_progress_l1_loss += progress_l1_loss.sum().item()
+                train_progress_l2_loss += progress_l2_loss.sum().item()
                 train_count += count.item()
 
-            logging.info(f'[{epoch:03d} train]        avg bo loss {(train_bo_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
+            logging.info(f'[{epoch:03d} train]        avg loss {(train_loss / train_count):.4f}, avg rsd loss {(train_rsd_loss / train_count):.4f}, avg progress loss {(train_progress_loss / train_count):.4f}, avg progress l1 loss {(train_progress_l1_loss / train_count):.4f}, avg progress l2 loss {(train_progress_l2_loss / train_count):.4f}')
         
             if epoch % args.save_every == 0 and epoch > 0:
                 model_name = f'{epoch:03d}.pth'
@@ -90,7 +95,7 @@ def main():
         for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
             do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
 
-            predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
+            rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
             train_l1_loss += l1_loss.sum().item()
             train_l2_loss += l2_loss.sum().item()
             train_count += count.item()
