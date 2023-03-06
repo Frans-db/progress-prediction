@@ -1,6 +1,6 @@
 import torch
 
-from .progress import ProgressDataset
+from .progressdataset import ProgressDataset
 from .transforms import ImglistToTensor
 
 class RSDDataset(ProgressDataset):
