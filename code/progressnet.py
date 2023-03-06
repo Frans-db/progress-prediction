@@ -6,10 +6,11 @@ from os.path import join
 import logging
 from tqdm import tqdm
 
-from utils import parse_arguments, get_device, set_seeds, create_directory
+from utils import get_device, set_seeds, create_directory
+from args import parse_arguments
 from datasets import BoundingBoxDataset, bounding_box_collate
 from datasets.transforms import ImglistToTensor
-from networks import ProgressNet
+from networks import ProgressNet, LSTMRelativeNet
 from losses import bo_weight
 
 """
@@ -78,14 +79,18 @@ def main():
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=bounding_box_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
 
-    progressnet = ProgressNet(embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
+    if args.model_type == 'progressnet':
+        net = ProgressNet(embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
+    elif args.model_type == 'relativenet':
+        net = LSTMRelativeNet(device, train_set.get_average_tube_frame_length()).to(device)
+
     if args.model_name:
         model_path = join(model_directory, args.model_name)
         net.load_state_dict(torch.load(model_path))
 
     l1_loss = nn.L1Loss(reduction='none')
     l2_loss = nn.MSELoss(reduction='none')
-    optimizer = optim.Adam(progressnet.parameters(), lr=args.learning_rate)
+    optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
 
     logging.info(f'[{args.experiment_name}] starting experiment')
     for epoch in range(args.epochs):
@@ -94,17 +99,17 @@ def main():
         train_l2_loss, test_l2_loss = 0.0, 0.0
         train_count, test_count = 0, 0
 
-        progressnet.train()
+        net.train()
         for batch in tqdm(train_loader, leave=False):
-            l1, l2, bo_weight, count = train(progressnet, batch, l1_loss, l2_loss, device, optimizer=optimizer)
+            l1, l2, bo_weight, count = train(net, batch, l1_loss, l2_loss, device, optimizer=optimizer)
             train_bo_loss += (l1 * bo_weight).sum().item()
             train_l1_loss += l1.sum().item()
             train_l2_loss += l2.sum().item()
             train_count += count.item()
 
-        progressnet.eval()
+        net.eval()
         for batch in tqdm(test_loader, leave=False):
-            l1, l2, bo_weight, count = train(progressnet, batch, l1_loss, l2_loss, device)
+            l1, l2, bo_weight, count = train(net, batch, l1_loss, l2_loss, device)
             test_bo_loss += (l1 * bo_weight).sum().item()
             test_l1_loss += l1.sum().item()
             test_l2_loss += l2.sum().item()
@@ -117,7 +122,7 @@ def main():
             model_name = f'{epoch:03d}.pth'
             model_path = join(model_directory, model_name)
             logging.info(f'[{epoch:03d}] saving model {model_name}')
-            torch.save(progressnet.state_dict(), model_path)
+            torch.save(net.state_dict(), model_path)
 
 
 if __name__ == '__main__':
