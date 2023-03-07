@@ -53,7 +53,7 @@ def main():
     # load model
     net = models.resnet152().to(device)
     net.fc = nn.Sequential(
-        nn.Linear(512, 1),
+        nn.Linear(2048, 1),
         nn.Sigmoid()
     ).to(device)
 
