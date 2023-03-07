@@ -29,7 +29,7 @@ class ImageDataset(Dataset):
         if self.transform:
             frame = self.transform(frame)
 
-        return frame, torch.FloatTensor(self.progress[index])
+        return frame, self.progress[index]
 
     def __len__(self) -> int:
         return len(self.frame_paths)
