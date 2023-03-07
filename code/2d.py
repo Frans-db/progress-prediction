@@ -59,6 +59,7 @@ def main():
 
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
+        logging.info(f'[{epoch:03d}] saving model {model_path}')
         net.load_state_dict(torch.load(model_path))
 
     # criterions & optimizer
