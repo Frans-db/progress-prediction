@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import torchvision.models as models
 from os.path import join
 import logging
 import matplotlib.pyplot as plt
@@ -57,11 +58,13 @@ def main():
 
     # load model
     # TODO: Load basenet
-    net = RSDNet().to(device)
+    basenet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    basenet.fc = nn.Identity()
+
+    net = RSDNet(basenet=basenet).to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))
-
 
     # criterions & optimizer
     smooth_l1_criterion = nn.SmoothL1Loss(reduction='none')

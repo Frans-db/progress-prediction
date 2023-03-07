@@ -6,7 +6,7 @@ import os
 from os.path import join
 from PIL import Image
 
-from utils import load_splitfile
+from .utils import load_splitfile
 
 
 class ImageDataset(Dataset):
