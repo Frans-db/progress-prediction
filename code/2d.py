@@ -21,7 +21,7 @@ implementation of https://arxiv.org/abs/1705.01781
 def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=None):
     frames, labels = batch
     frames = frames.to(device)
-    labels = labels.to(device)
+    labels = labels.float().to(device)
 
     if optimizer:
         optimizer.zero_grad()
