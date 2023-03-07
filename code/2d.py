@@ -51,7 +51,7 @@ def main():
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
 
     # load model
-    net = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1).to(device)
+    net = models.resnet152().to(device)
     net.fc = nn.Sequential(
         nn.Linear(512, 1),
         nn.Sigmoid()
