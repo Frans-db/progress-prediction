@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torchvision.models as models
+import torchvision.transforms as transforms
 from os.path import join
 import logging
 import matplotlib.pyplot as plt
@@ -51,8 +52,12 @@ def main():
     args, dirs, device = setup()
 
     # create datasets
-    train_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], transform=ImglistToTensor(dim=0))
-    test_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=ImglistToTensor(dim=0))
+    transform = ImglistToTensor(dim=0, transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize((224, 224))
+    ]))
+    train_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], transform=transform)
+    test_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=rsd_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=rsd_collate)
 
