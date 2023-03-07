@@ -39,6 +39,7 @@ def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, devic
 
 def main():
     args, dirs, device = setup()
+    logging.info(f'[{args.experiment_name}] starting experiment')
 
     # create datasets
     transform = transforms.Compose([
@@ -59,7 +60,7 @@ def main():
 
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
-        logging.info(f'[{epoch:03d}] saving model {model_path}')
+        logging.info(f'[{args.experiment_name}}] loading model {model_path}')
         net.load_state_dict(torch.load(model_path))
 
     # criterions & optimizer
@@ -69,7 +70,7 @@ def main():
     optimizer = optim.SGD(net.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.decay_lr_every, gamma=args.lr_decay)
 
-    logging.info(f'[{args.experiment_name}] starting experiment')
+    
     for epoch in range(args.epochs):
         train_loss, train_l1_loss, train_l2_loss, train_count = 0.0, 0.0, 0.0, 0
         test_loss, test_l1_loss, test_l2_loss, test_count = 0.0, 0.0, 0.0, 0
