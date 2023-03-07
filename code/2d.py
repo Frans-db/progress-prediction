@@ -65,7 +65,8 @@ def main():
     smooth_l1_criterion = nn.SmoothL1Loss(reduction='none')
     l1_criterion = nn.L1Loss(reduction='none')
     l2_criterion = nn.MSELoss(reduction='none')
-    optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
+    optimizer = optim.SGD(net.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.decay_lr_every, gamma=args.lr_decay)
 
     logging.info(f'[{args.experiment_name}] starting experiment')
     for epoch in range(args.epochs):
@@ -98,7 +99,7 @@ def main():
             test_count += count
 
         logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
-
+        scheduler.step()
 
         if args.eval:
             break # only 1 epoch for evaluation
