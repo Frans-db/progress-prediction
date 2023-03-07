@@ -4,6 +4,7 @@ import pickle
 import os
 from os.path import join
 from PIL import Image
+from typing import List
 
 from .transforms import ImglistToTensor
 from .utils import load_splitfile
@@ -46,7 +47,7 @@ class BoundingBoxDataset(Dataset):
 
     # Helper Methods
 
-    def _load_frames(self, frame_paths: list[str]):
+    def _load_frames(self, frame_paths: List[str]):
         frames = []
         for frame_path in frame_paths:
             frames.append(Image.open(frame_path))
