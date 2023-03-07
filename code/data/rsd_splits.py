@@ -1,10 +1,11 @@
 import os
 import argparse
 import random
+from typing import List
 
-def save(target: str, name: str, index: int, items: list[int]):
+def save(target: str, name: str, index: int, items: List[int]):
     with open(os.path.join(target, f'{name}_{index}.txt'), 'w+') as f:
-        f.writelines('\n'.join([f'video{item:02d}' for item in items]))
+        f.writelines('\n'.join([f'video{(item+1):02d}' for item in items]))
 
 def main():
     parser = argparse.ArgumentParser()
