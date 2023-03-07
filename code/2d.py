@@ -85,7 +85,7 @@ def main():
             logging.info(f'[{epoch:03d} train] avg loss {(train_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
 
             if epoch % args.save_every == 0 and epoch > 0:
-                model_name = f'{epoch:03d}.pth'
+                model_name = f'{epoch:03d}_basenet.pth'
                 model_path = join(dirs['model_directory'], model_name)
                 logging.info(f'[{epoch:03d}] saving model {model_name}')
                 torch.save(net.state_dict(), model_path)
