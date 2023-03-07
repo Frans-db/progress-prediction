@@ -60,7 +60,7 @@ def main():
 
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
-        logging.info(f'[{args.experiment_name}}] loading model {model_path}')
+        logging.info(f'[{args.experiment_name}] loading model {model_path}')
         net.load_state_dict(torch.load(model_path))
 
     # criterions & optimizer
