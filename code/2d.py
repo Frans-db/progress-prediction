@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.transforms as transforms
+import torchvision.models as models
 from torch.utils.data import DataLoader
 from os.path import join
 import logging
@@ -8,7 +10,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from utils import setup
-from datasets import RSDDataset, rsd_collate
+from datasets import ImageDataset
 from datasets.transforms import ImglistToTensor
 from networks import RSDNet
 
@@ -17,51 +19,47 @@ implementation of https://arxiv.org/abs/1705.01781
 """
 
 def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=None):
-    video_names, frames, rsd_values, progress_values, lengths = batch
+    frames, labels = batch
     frames = frames.to(device)
-    rsd_values = rsd_values.to(device)
-    progress_values = progress_values.to(device)
+    labels = labels.to(device)
+
     if optimizer:
         optimizer.zero_grad()
-    rsd_predictions, progress_predictions = network(frames, lengths)
-    # progress is in range (0, 1], but batch is zero-padded
-    # we can use this to fill our loss with 0s for padded values
-    mask = (progress_values != 0).int().to(device)
+    predictions = network(frames)
+    loss = smooth_l1_criterion(predictions.squeeze(), labels)
+    l1_loss = l1_criterion(predictions.squeeze(), labels)
+    l2_loss = l2_criterion(predictions.squeeze(), labels)
 
-    rsd_predictions = rsd_predictions * mask
-    progress_predictions = progress_predictions * mask
-
-    rsd_loss = smooth_l1_criterion(rsd_predictions, rsd_values)
-    progress_loss = smooth_l1_criterion(progress_predictions, progress_values)
-    loss = rsd_loss + progress_loss
-
-    progress_l1_loss = l1_criterion(progress_predictions, progress_values)
-    progress_l2_loss = l2_criterion(progress_predictions, progress_values)
-
-    count = lengths.sum()
     if optimizer:
-        loss = loss.sum() / count
-        loss.backward()
+        avg_loss = loss.sum() / frames.shape[0]
+        avg_loss.backward()
         optimizer.step()
 
-    return rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count
+    return predictions, loss, l1_loss, l2_loss, frames.shape[0]
 
 def main():
     args, dirs, device = setup()
 
     # create datasets
-    train_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], transform=ImglistToTensor(dim=0))
-    test_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=ImglistToTensor(dim=0))
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=rsd_collate)
-    test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=rsd_collate)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize((224, 224))
+    ])
+    train_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], transform=transform)
+    test_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
+    test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
 
     # load model
-    # TODO: Load basenet
-    net = RSDNet().to(device)
+    net = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1).to(device)
+    net.fc = nn.Sequential(
+        nn.Linear(512, 1),
+        nn.Sigmoid()
+    ).to(device)
+
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))
-
 
     # criterions & optimizer
     smooth_l1_criterion = nn.SmoothL1Loss(reduction='none')
@@ -71,21 +69,19 @@ def main():
 
     logging.info(f'[{args.experiment_name}] starting experiment')
     for epoch in range(args.epochs):
-        train_loss, train_rsd_loss, train_progress_loss, train_progress_l1_loss, train_progress_l2_loss, train_count = 0.0, 0.0, 0.0, 0.0, 0.0, 0
-        test_loss, test_rsd_loss, test_progress_loss, test_progress_l1_loss, test_progress_l2_loss, test_count = 0.0, 0.0, 0.0, 0.0, 0.0, 0
+        train_loss, train_l1_loss, train_l2_loss, train_count = 0.0, 0.0, 0.0, 0
+        test_loss, test_l1_loss, test_l2_loss, test_count = 0.0, 0.0, 0.0, 0
 
         if not args.eval:
             net.train()
             for batch in tqdm(train_loader, leave=False):
-                rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
+                predictions, loss, l1_loss, l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
                 train_loss += loss.sum().item()
-                train_rsd_loss += loss.sum().item()
-                train_progress_loss += progress_loss.sum().item()
-                train_progress_l1_loss += progress_l1_loss.sum().item()
-                train_progress_l2_loss += progress_l2_loss.sum().item()
-                train_count += count.item()
+                train_l1_loss += l1_loss.sum().item()
+                train_l2_loss += l2_loss.sum().item()
+                train_count += count
 
-            logging.info(f'[{epoch:03d} train] avg loss {(train_loss / train_count):.4f}, avg rsd loss {(train_rsd_loss / train_count):.4f}, avg progress loss {(train_progress_loss / train_count):.4f}, avg progress l1 loss {(train_progress_l1_loss / train_count):.4f}, avg progress l2 loss {(train_progress_l2_loss / train_count):.4f}')
+            logging.info(f'[{epoch:03d} train] avg loss {(train_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
 
             if epoch % args.save_every == 0 and epoch > 0:
                 model_name = f'{epoch:03d}.pth'
@@ -95,18 +91,13 @@ def main():
 
         net.eval()
         for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
-            do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
-
-            rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device)
-
+            predictions, loss, l1_loss, l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
             test_loss += loss.sum().item()
-            test_rsd_loss += loss.sum().item()
-            test_progress_loss += progress_loss.sum().item()
-            test_progress_l1_loss += progress_l1_loss.sum().item()
-            test_progress_l2_loss += progress_l2_loss.sum().item()
-            test_count += count.item()
+            test_l1_loss += l1_loss.sum().item()
+            test_l2_loss += l2_loss.sum().item()
+            test_count += count
 
-        logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg rsd loss {(test_rsd_loss / test_count):.4f}, avg progress loss {(test_progress_loss / test_count):.4f}, avg progress l1 loss {(test_progress_l1_loss / test_count):.4f}, avg progress l2 loss {(test_progress_l2_loss / test_count):.4f}')
+        logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
 
 
         if args.eval:

@@ -42,8 +42,8 @@ def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, devic
 
     count = lengths.sum()
     if optimizer:
-        loss = loss.sum() / count
-        loss.backward()
+        avg_loss = loss.sum() / count
+        avg_loss.backward()
         optimizer.step()
 
     return rsd_predictions, progress_predictions, loss, rsd_loss, progress_loss, progress_l1_loss, progress_l2_loss, count
