@@ -4,6 +4,7 @@ import pickle
 import os
 from os.path import join
 from PIL import Image
+from tqdm import tqdm
 
 from .transforms import ImglistToTensor
 from .utils import load_splitfile
@@ -27,10 +28,8 @@ class ProgressDataset(Dataset):
         video_name = self.split_names[index]
         num_frames = len(frames)
         progress_values = [(i+1) / num_frames for i in range(num_frames)]
-
         if self.transform:
             frames = self.transform(frames)
-
         return video_name, frames, torch.FloatTensor(progress_values)
 
     def __len__(self) -> int:
@@ -43,7 +42,14 @@ class ProgressDataset(Dataset):
         frame_names = sorted(os.listdir(video_path))
         for frame_name in frame_names:
             frame_path = join(video_path, frame_name)
-            frames.append(Image.open(frame_path))
+            # pillow leaves images open for too long, causing an os error: too many files open
+            # copying the image and closing the original fixes this
+            # https://stackoverflow.com/questions/29234413/too-many-open-files-error-when-opening-and-loading-images-in-pillow
+            # https://github.com/python-pillow/Pillow/issues/1144
+            # https://github.com/python-pillow/Pillow/issues/1237
+            temp_image = Image.open(frame_path)
+            frames.append(temp_image.copy())
+            temp_image.close()
         return frames
 
     # Data Analysis Methods
