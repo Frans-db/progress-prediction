@@ -41,16 +41,16 @@ class ProgressNet(nn.Module):
 
         # spp & linear
         pooled = self.spp(flat_frames)
-        pooled = self.spp_dropout(self.spp_fc(pooled))
+        pooled = self.spp_dropout(torch.relu(self.spp_fc(pooled)))
 
         # roi & linear
         roi = roi_pool(flat_frames, boxes_with_indices, 7)
         roi = torch.flatten(roi, start_dim=1)
-        roi = self.roi_dropout(self.roi_fc(roi))
+        roi = self.roi_dropout(torch.relu(self.roi_fc(roi)))
 
         # linear & reshape
         concatenated = torch.concat((pooled, roi), dim=-1)
-        concatenated = self.fc7_dropout(self.fc7(concatenated))
+        concatenated = self.fc7_dropout(torch.relu(self.fc7(concatenated)))
         concatenated = concatenated.reshape(batch_size, sequence_length, -1)
 
         # packing & lstm
