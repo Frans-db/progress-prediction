@@ -21,7 +21,6 @@ class ProgressNet(nn.Module):
         self.lstm1 = nn.LSTM(64, 64, 1)
         self.lstm2 = nn.LSTM(64, 32, 1)
         self.fc8 = nn.Linear(32, 1)
-        self.fc8_dropout = nn.Dropout(p=p_dropout)
 
         self._init_weights(self.spp_fc)
         self._init_weights(self.roi_fc)
@@ -62,7 +61,7 @@ class ProgressNet(nn.Module):
         # unpacking & linear
         unpacked, unpacked_lengths = pad_packed_sequence(packed, batch_first=True)
         unpacked = unpacked.reshape(batch_size * sequence_length, -1)
-        unpacked = self.fc8_dropout(self.fc8(unpacked))
+        unpacked = torch.sigmoid(self.fc8(unpacked))
         unpacked = unpacked.reshape(batch_size, sequence_length)
 
         return unpacked
