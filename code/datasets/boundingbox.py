@@ -49,7 +49,14 @@ class BoundingBoxDataset(Dataset):
     def _load_frames(self, frame_paths: List[str]):
         frames = []
         for frame_path in frame_paths:
-            frames.append(Image.open(frame_path))
+            # pillow leaves images open for too long, causing an os error: too many files open
+            # copying the image and closing the original fixes this
+            # https://stackoverflow.com/questions/29234413/too-many-open-files-error-when-opening-and-loading-images-in-pillow
+            # https://github.com/python-pillow/Pillow/issues/1144
+            # https://github.com/python-pillow/Pillow/issues/1237
+            temp_image = Image.open(frame_path)
+            frames.append(temp_image.copy())
+            temp_image.close()
         return frames
 
     def _load_tubes(self):
