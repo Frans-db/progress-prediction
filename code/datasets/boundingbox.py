@@ -11,7 +11,7 @@ from .utils import load_splitfile
 
 
 class BoundingBoxDataset(Dataset):
-    def __init__(self, data_root: str, data_type: str, annotation_path: str, splitfile_path: str, frame_name_format_function, transform=None, image_size=(320, 240)):
+    def __init__(self, data_root: str, data_type: str, annotation_path: str, splitfile_path: str, transform=None, image_size=(320, 240)):
         super(BoundingBoxDataset, self).__init__()
         # create paths
         self.data_root = join(data_root, data_type)
@@ -19,7 +19,6 @@ class BoundingBoxDataset(Dataset):
         self.splitfile_path = join(data_root, splitfile_path)
 
         self.transform = transform
-        self.frame_name_format_function = frame_name_format_function
         self.image_size = image_size
         # load split & tubes
         self.split_names = load_splitfile(self.splitfile_path)
@@ -79,7 +78,7 @@ class BoundingBoxDataset(Dataset):
     def _load_tube(self, tube, video_path: str):
         frame_paths = []
         for frame_id in range(tube['sf'], tube['ef']):
-            frame_name = self.frame_name_format_function(frame_id)
+            frame_name = f'{(frame_id+1):05d}.jpg'
             frame_path = join(video_path, frame_name)
             frame_paths.append(frame_path)
 
@@ -127,7 +126,6 @@ def main():
         'rgb-images',
         'splitfiles/pyannot.pkl',
         'splitfiles/testlist01.txt',
-        frame_name_format_function=lambda x: f'{(x+1):05d}.jpg',
         transform=ImglistToTensor(dim=0)
     )
 

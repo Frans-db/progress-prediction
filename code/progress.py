@@ -46,9 +46,8 @@ def main():
     args, dirs, device = setup()
 
     # create datasets
-    name_fn = lambda x: f'{(x+1):05d}.jpg'
-    train_set = BoundingBoxDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['train_splitfile_path'], name_fn, transform=ImglistToTensor(dim=0))
-    test_set = BoundingBoxDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['test_splitfile_path'], name_fn, transform=ImglistToTensor(dim=0))
+    train_set = BoundingBoxDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['train_splitfile_path'], transform=ImglistToTensor(dim=0))
+    test_set = BoundingBoxDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['test_splitfile_path'], transform=ImglistToTensor(dim=0))
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=bounding_box_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
 
