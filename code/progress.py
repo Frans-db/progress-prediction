@@ -27,10 +27,11 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
         optimizer.zero_grad()
     predictions = network(frames, boxes, lengths)
     # progress is in range (0, 1], but batch is zero-padded
-    # we can use this to fill our loss with 0s for padded values
-    predictions.masked_fill_(labels == 0, 0.0)
+    # we can use this to multiply our loss with 0s for padded values
+    mask = (labels != 0).int().to(device)
+    predictions = predictions * mask
 
-    bo_loss = bo_weight(labels, predictions)
+    bo_loss = bo_weight(device, labels, predictions)
     l1_loss = l1_criterion(predictions, labels)
     l2_loss = l2_criterion(predictions, labels)
     count = lengths.sum()
@@ -52,7 +53,7 @@ def main():
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
 
     # load model
-    net = ProgressNet(embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
+    net = ProgressNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))

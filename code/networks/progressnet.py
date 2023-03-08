@@ -6,8 +6,9 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from .layers import SpatialPyramidPooling
 
 class ProgressNet(nn.Module):
-    def __init__(self, embed_size=4069, p_dropout=0, finetune=False):
+    def __init__(self, device, embed_size=4069, p_dropout=0, finetune=False,):
         super(ProgressNet, self).__init__()
+        self.device = device
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)
         self.spp_dropout = nn.Dropout(p=p_dropout)
@@ -35,7 +36,7 @@ class ProgressNet(nn.Module):
 
         flat_frames = frames.reshape(num_samples, C, H, W)
         flat_boxes = boxes.reshape(num_samples, 4)
-        indices = torch.arange(start=0, end=num_samples).reshape(num_samples, 1).cuda()
+        indices = torch.arange(start=0, end=num_samples).reshape(num_samples, 1).to(self.device)
 
         boxes_with_indices = torch.concat((indices, flat_boxes), dim=-1)
 
