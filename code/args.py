@@ -42,6 +42,8 @@ def parse_arguments():
     parser.add_argument('--embed_size', type=int, default=2048)
     parser.add_argument('--num_heads', type=int, default=1)
     parser.add_argument('--model_type', type=str, default='progressnet')
+    # rsdnet
+    parser.add_argument('--basenet_model_name', type=str, default=None)
     # model loading
     parser.add_argument('--model_name', type=str, default=None)
     # eval
