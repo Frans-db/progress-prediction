@@ -46,15 +46,13 @@ def main():
         transforms.ToTensor(),
         transforms.Resize((224, 224))
     ])
-    train_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], transform=transform)
     test_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform)
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
 
     # load model
-    net = models.resnet152().to(device)
+    net = models.resnet18().to(device)
     net.fc = nn.Sequential(
-        nn.Linear(2048, 1),
+        nn.Linear(1024, 1),
         nn.Sigmoid()
     ).to(device)
 
@@ -67,31 +65,8 @@ def main():
     smooth_l1_criterion = nn.SmoothL1Loss(reduction='none')
     l1_criterion = nn.L1Loss(reduction='none')
     l2_criterion = nn.MSELoss(reduction='none')
-    optimizer = optim.SGD(net.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.decay_lr_every, gamma=args.lr_decay)
-
     
     for epoch in range(args.epochs):
-        train_loss, train_l1_loss, train_l2_loss, train_count = 0.0, 0.0, 0.0, 0
-        test_loss, test_l1_loss, test_l2_loss, test_count = 0.0, 0.0, 0.0, 0
-
-        if not args.eval:
-            net.train()
-            for batch in tqdm(train_loader, leave=False):
-                predictions, loss, l1_loss, l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=optimizer)
-                train_loss += loss.sum().item()
-                train_l1_loss += l1_loss.sum().item()
-                train_l2_loss += l2_loss.sum().item()
-                train_count += count
-
-            logging.info(f'[{epoch:03d} train] avg loss {(train_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
-
-            if epoch % args.save_every == 0 and epoch > 0:
-                model_name = f'{epoch:03d}_basenet.pth'
-                model_path = join(dirs['model_directory'], model_name)
-                logging.info(f'[{epoch:03d}] saving model {model_name}')
-                torch.save(net.state_dict(), model_path)
-
         net.eval()
         for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
             predictions, loss, l1_loss, l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device)
@@ -101,7 +76,6 @@ def main():
             test_count += count
 
         logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
-        scheduler.step()
 
         if args.eval:
             break # only 1 epoch for evaluation
