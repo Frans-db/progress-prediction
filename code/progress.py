@@ -26,22 +26,35 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
     if optimizer:
         optimizer.zero_grad()
     predictions = network(frames, boxes, lengths)
+
+    repeated_labels = labels.repeat(network.num_heads, 1, 1)
+    l1_loss = l1_criterion(predictions, repeated_labels)
+    l2_loss = l2_criterion(predictions, repeated_labels)
+
+    wta_l1_loss, wta_indices = torch.min(l1_loss, dim=0)
+    wta_l2_loss = torch.gather(l2_loss, 0, wta_indices.unsqueeze(0))
+    wta_predictions = torch.gather(predictions, 0, wta_indices.unsqueeze(0))
+    wta_bo_loss = bo_weight(device, labels, wta_predictions)
+
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to multiply our loss with 0s for padded values
     mask = (labels != 0).int().to(device)
-    predictions = predictions * mask
-
-    bo_loss = bo_weight(device, labels, predictions)
-    l1_loss = l1_criterion(predictions, labels)
-    l2_loss = l2_criterion(predictions, labels)
+    masked_wta_l1_loss = wta_l1_loss * mask
+    
     count = lengths.sum()
     if optimizer:
-        loss = l1_loss * bo_loss
+        loss = masked_wta_l1_loss * wta_bo_loss
         loss = loss.sum() / count
         loss.backward()
         optimizer.step()
 
-    return predictions, l1_loss, l2_loss, bo_loss, count
+    return {
+        'predictions': predictions,
+        'wta_l1_loss': wta_l1_loss,
+        'wta_l2_loss': wta_l2_loss,
+        'wta_bo_loss': wta_bo_loss,
+        'count': count,
+    }
 
 def main():
     args, dirs, device = setup()
@@ -53,14 +66,14 @@ def main():
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
 
     # load model
-    net = ProgressNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
+    net = ProgressNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance, num_heads=args.num_heads).to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))
 
     # setup network dict for evaluation/testing
     networks = {}
-    loss_dict = {'bo_loss': 0.0, 'l1_loss': 0.0, 'l2_loss': 0.0, 'count': 0}
+    loss_dict = {'l1_loss': 0.0, 'l2_loss': 0.0, 'count': 0}
     networks['network'] = loss_dict.copy()
     networks['network']['net'] = net
     if args.random:
@@ -85,13 +98,13 @@ def main():
         if not args.eval:
             net.train()
             for batch in tqdm(train_loader, leave=False):
-                predictions, l1_loss, l2_loss, bo_weight, count = train(net, batch, l1_criterion, l2_criterion, device, optimizer=optimizer)
-                train_bo_loss += (l1_loss * bo_weight).sum().item()
-                train_l1_loss += l1_loss.sum().item()
-                train_l2_loss += l2_loss.sum().item()
-                train_count += count.item()
+                batch_result = train(net, batch, l1_criterion, l2_criterion, device, optimizer=optimizer)
 
-            logging.info(f'[{epoch:03d} train]        avg bo loss {(train_bo_loss / train_count):.4f}, avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
+                train_l1_loss += batch_result['wta_l1_loss'].sum().item()
+                train_l2_loss += batch_result['wta_l2_loss'].sum().item()
+                train_count += batch_result['count'].item()
+
+            logging.info(f'[{epoch:03d} train] avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
         
             if epoch % args.save_every == 0 and epoch > 0:
                 model_name = f'{epoch:03d}.pth'
@@ -103,11 +116,10 @@ def main():
         for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
             do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
             for model_name in networks:
-                predictions, l1_loss, l2_loss, bo_weight, count = train(networks[model_name]['net'], batch, l1_criterion, l2_criterion, device)
-                networks[model_name]['bo_loss'] += (l1_loss * bo_weight).sum().item()
-                networks[model_name]['l1_loss'] += l1_loss.sum().item()
-                networks[model_name]['l2_loss'] += l2_loss.sum().item()
-                networks[model_name]['count'] += count.item()
+                batch_result = train(networks[model_name]['net'], batch, l1_criterion, l2_criterion, device)
+                networks[model_name]['l1_loss'] += batch_result['wta_l1_loss'].sum().item()
+                networks[model_name]['l2_loss'] += batch_result['wta_l2_loss'].sum().item()
+                networks[model_name]['count'] += batch_result['count'].item()
 
                 if do_figure:
                     plot_predictions = predictions.cpu().detach().squeeze().numpy()
@@ -127,7 +139,7 @@ def main():
                 plt.clf()
 
         for model_name in networks:
-            logging.info(f'[{epoch:03d} test {model_name}] avg bo loss {(networks[model_name]["bo_loss"] / networks[model_name]["count"]):.4f}, avg l1 loss {(networks[model_name]["l1_loss"] / networks[model_name]["count"]):.4f}, avg l2 loss {(networks[model_name]["l2_loss"] / networks[model_name]["count"]):.4f}')
+            logging.info(f'[{epoch:03d} test {model_name}] avg l1 loss {(networks[model_name]["l1_loss"] / networks[model_name]["count"]):.4f}, avg l2 loss {(networks[model_name]["l2_loss"] / networks[model_name]["count"]):.4f}')
         
         if args.eval:
             break # only 1 epoch for evaluation
