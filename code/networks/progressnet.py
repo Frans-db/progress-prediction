@@ -44,7 +44,7 @@ class ProgressNet(nn.Module):
         flat_boxes = boxes.reshape(num_samples, 4)
         indices = torch.arange(start=0, end=num_samples).reshape(num_samples, 1).to(self.device)
 
-        boxes_with_indices = torch.concat((indices, flat_boxes), dim=-1)
+        boxes_with_indices = torch.cat((indices, flat_boxes), dim=-1)
 
         # spp & linear
         pooled = self.spp(flat_frames)
@@ -56,7 +56,7 @@ class ProgressNet(nn.Module):
         roi = self.roi_dropout(torch.relu(self.roi_fc(roi)))
 
         # linear & reshape
-        concatenated = torch.concat((pooled, roi), dim=-1)
+        concatenated = torch.cat((pooled, roi), dim=-1)
         concatenated = self.fc7_dropout(torch.relu(self.fc7(concatenated)))
         concatenated = concatenated.reshape(batch_size, sequence_length, -1)
 
