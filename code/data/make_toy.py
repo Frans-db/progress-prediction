@@ -670,9 +670,9 @@ if __name__ == "__main__":
         train=False,
         targets=[
             (1, "horizontal"),
-            (3, "inv_diagonal"),
+            # (3, "inv_diagonal"),
             (5, "inv-horizontal"),
-            (7, "diagonal"),
+            # (7, "diagonal"),
             (9, "vertical"),
         ],
         file_name=args.name,

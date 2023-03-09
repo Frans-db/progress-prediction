@@ -7,7 +7,7 @@ import logging
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from utils import get_device, set_seeds, create_directory, setup
+from utils import get_device, set_seeds, create_directory, setup, get_toy_labels
 from datasets import BoundingBoxDataset, bounding_box_collate
 from datasets.transforms import ImglistToTensor
 from networks import ProgressNet, LSTMRelativeNet
@@ -113,6 +113,7 @@ def main():
                 torch.save(net.state_dict(), model_path)
 
         net.eval()
+        colors = ['r', 'g', 'b', 'c', 'm']
         for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
             do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
             for model_name in networks:
@@ -122,8 +123,9 @@ def main():
                 networks[model_name]['count'] += batch_result['count'].item()
 
                 if do_figure:
-                    plot_predictions = predictions.cpu().detach().squeeze().numpy()
-                    plt.plot(plot_predictions, label=model_name)
+                    for i,prediction in enumerate(batch_result['predictions']):
+                        plot_prediction = prediction.cpu().detach().squeeze().numpy()
+                        plt.plot(plot_prediction, label=f'{model_name}_head_{i+1}')
 
             if do_figure:
                 video_names, frames, boxes, labels, lengths = batch
@@ -133,6 +135,10 @@ def main():
                 plt.xlabel('Frame')
                 plt.ylabel('Percentag (%)')
                 plt.legend(loc='best')
+                if 'toy' in args.dataset:
+                    action_labels = get_toy_labels(dirs['dataset_directory'], video_names[0])
+                    for j, label in enumerate(action_labels):
+                        plt.axvspan(j-0.5, j+0.5, facecolor=colors[label], alpha=0.2, zorder=-1)
                 plot_name = f'figure_{batch_index}.png'
                 plot_path = join(dirs['figures_directory'], plot_name)
                 plt.savefig(plot_path)

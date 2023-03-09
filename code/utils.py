@@ -64,3 +64,10 @@ def set_seeds(seed: int):
 def create_directory(directory: str):
     if not os.path.isdir(directory):
         os.mkdir(directory)
+
+def get_toy_labels(root: str, video_name: str):
+    path = os.path.join(root, 'labels', video_name)
+    with open(path, 'r') as f:
+        data = f.readlines()
+        data = [int(line.strip()) for line in data]
+    return data
