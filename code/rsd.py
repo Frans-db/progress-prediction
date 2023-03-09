@@ -87,9 +87,9 @@ def main():
         nn.Sigmoid()
     ).to(device)
     # load basenet weights
-    # basenet_model_path = join(dirs['model_directory'], args.basenet_model_name)
-    # logging.info(f'[{args.experiment_name}] loading basenet model {basenet_model_path}')
-    # basenet.load_state_dict(torch.load(basenet_model_path))
+    basenet_model_path = join(dirs['model_directory'], args.basenet_model_name)
+    logging.info(f'[{args.experiment_name}] loading basenet model {basenet_model_path}')
+    basenet.load_state_dict(torch.load(basenet_model_path))
     # change last layer to identity to extract frame representation
     basenet.fc = nn.Identity()
 
