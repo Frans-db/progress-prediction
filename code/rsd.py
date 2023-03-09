@@ -80,7 +80,7 @@ def main():
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=rsd_collate)
 
     # create resnet basenet
-    basenet = models.resnet18()
+    basenet = models.resnet152()
     # set basenet fc to match 2d trained one
     basenet.fc = nn.Sequential(
         nn.Linear(2048, 1),
