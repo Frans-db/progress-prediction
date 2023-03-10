@@ -8,6 +8,7 @@ from os.path import join
 import logging
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import os
 
 from utils import setup
 from datasets import ImageDataset
@@ -47,12 +48,11 @@ def main():
         transforms.Resize((224, 224))
     ])
     test_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform)
-    test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
 
     # load model
     net = models.resnet18().to(device)
     net.fc = nn.Sequential(
-        nn.Linear(1024, 1),
+        nn.Linear(512, 1),
         nn.Sigmoid()
     ).to(device)
 
@@ -61,24 +61,38 @@ def main():
         logging.info(f'[{args.experiment_name}] loading model {model_path}')
         net.load_state_dict(torch.load(model_path))
 
+    net.fc = nn.Identity()
+
     # criterions & optimizer
     smooth_l1_criterion = nn.SmoothL1Loss(reduction='none')
     l1_criterion = nn.L1Loss(reduction='none')
     l2_criterion = nn.MSELoss(reduction='none')
     
-    for epoch in range(args.epochs):
-        net.eval()
-        for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
-            predictions, loss, l1_loss, l2_loss, count = train(net, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device)
-            test_loss += loss.sum().item()
-            test_l1_loss += l1_loss.sum().item()
-            test_l2_loss += l2_loss.sum().item()
-            test_count += count
+    video_names = sorted(os.listdir(os.path.join(dirs['dataset_directory'], args.data_type)))
+    embedding_directory = os.path.join(dirs['dataset_directory'], args.embedding_directory)
+    os.mkdir(embedding_directory)
 
-        logging.info(f'[{epoch:03d} test] avg loss {(test_loss / test_count):.4f}, avg l1 loss {(test_l1_loss / test_count):.4f}, avg l2 loss {(test_l2_loss / test_count):.4f}')
+    for video_name in tqdm(video_names):
+        video_embedding_path = os.path.join(embedding_directory, f'{video_name}.txt')
 
-        if args.eval:
-            break # only 1 epoch for evaluation
+        test_set.frame_paths, test_set.progress = test_set._get_data([video_name])
+        test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
+
+        activations = []
+        for batch_index, batch in enumerate(test_loader):
+            frames, labels = batch
+            frames = frames.to(device)
+            predictions = net(frames)
+
+            activations.append(predictions)
+        concatenated = torch.cat(activations)
+        concatenated = concatenated.detach().cpu().tolist()
+        text_rows = []
+        for row in concatenated:
+            text_rows.append(' '.join(map(str, row)))
+        with open(video_embedding_path, 'w+') as f:
+            f.write('\n'.join(text_rows))
+
 
 
 if __name__ == '__main__':

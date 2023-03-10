@@ -44,6 +44,7 @@ def parse_arguments():
     parser.add_argument('--model_type', type=str, default='progressnet')
     # rsdnet
     parser.add_argument('--basenet_model_name', type=str, default=None)
+    parser.add_argument('--embedding_directory', type=str, default=None)
     # model loading
     parser.add_argument('--model_name', type=str, default=None)
     # eval
