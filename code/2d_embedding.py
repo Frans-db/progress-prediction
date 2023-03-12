@@ -50,7 +50,7 @@ def main():
     test_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform)
 
     # load model
-    net = models.resnet18().to(device)
+    net = models.resnet152().to(device)
     net.fc = nn.Sequential(
         nn.Linear(512, 1),
         nn.Sigmoid()
