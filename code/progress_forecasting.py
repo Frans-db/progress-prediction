@@ -32,16 +32,16 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
     if optimizer:
         optimizer.zero_grad()
 
-    predictions = network(frames, tube, lengths)
+    progress_predictions, forecasted_embeddings, future_progress_predictions = network(frames, tube, lengths)
 
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to multiply our loss with 0s for padded values
     mask = (progress_values != 0).int().to(device)
-    predictions = predictions * mask
+    progress_predictions = progress_predictions * mask
 
-    bo_loss = bo_weight(device, progress_values, predictions)
-    l1_loss = l1_criterion(predictions, progress_values)
-    l2_loss = l2_criterion(predictions, progress_values)
+    bo_loss = bo_weight(device, progress_values, progress_predictions)
+    l1_loss = l1_criterion(progress_predictions, progress_values)
+    l2_loss = l2_criterion(progress_predictions, progress_values)
     count = lengths.sum()
     if optimizer:
         loss = l1_loss * bo_loss
@@ -50,7 +50,7 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
         optimizer.step()
 
     return {
-        'predictions': predictions,
+        'predictions': progress_predictions,
         'l1_loss': l1_loss,
         'l2_loss': l2_loss,
         'bo_loss': bo_loss,

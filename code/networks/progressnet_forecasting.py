@@ -86,10 +86,10 @@ class RNNHead(nn.Module):
 class ForecastingHead(nn.Module):
     def __init__(self):
         super(ForecastingHead, self).__init__()
-        self.fc1 = nn.Linear(64, 256)
-        self.fc2 = nn.Linear(256, 1024)
-        self.fc3 = nn.Linear(1024, 256)
-        self.fc4 = nn.Linear(256, 64)
+        self.fc1 = nn.Linear(32, 64)
+        self.fc2 = nn.Linear(64, 256)
+        self.fc3 = nn.Linear(256, 64)
+        self.fc4 = nn.Linear(64, 32)
 
     def forward(self, x):
         batch_size, sequence_length, _ = x.shape
@@ -132,12 +132,11 @@ class ProgressForecastingNet(nn.Module):
         embeddings = self.embedding(frames, boxes)
         rnn_embeddings = self.rnn(embeddings, lengths)
 
-        # forecasted_embeddings = self.forecasting(embeddings)
+        forecasted_embeddings = self.forecasting(rnn_embeddings)
         progress_predictions = self.progress(rnn_embeddings)
+        future_progress_predictions = self.progress(forecasted_embeddings)
 
-        # print(self.progress.lstm1)
-
-        return progress_predictions
+        return progress_predictions, forecasted_embeddings, future_progress_predictions
 
     def finetune(self):
         for name, param in self.named_parameters():
