@@ -31,10 +31,16 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
     l1_loss = l1_criterion(predictions, repeated_labels)
     l2_loss = l2_criterion(predictions, repeated_labels)
 
-    wta_l1_loss, wta_indices = torch.min(l1_loss, dim=0)
-    wta_l2_loss = torch.gather(l2_loss, 0, wta_indices.unsqueeze(0))
-    wta_predictions = torch.gather(predictions, 0, wta_indices.unsqueeze(0))
+    total_l1_loss = torch.sum(l1_loss, dim=-1)
+    _, wta_index = torch.min(total_l1_loss, dim=0)
+    wta_l1_loss = l1_loss[wta_index[0]]
+    wta_predictions = predictions[wta_index[0]].unsqueeze(dim=0)
+
+    # wta_l1_loss, wta_indices = torch.min(l1_loss, dim=0)
+    wta_l2_loss = torch.FloatTensor([1, 2])
+    # wta_predictions = torch.gather(predictions, 0, wta_indices.unsqueeze(0))
     wta_bo_loss = bo_weight(device, labels, wta_predictions)
+
 
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to multiply our loss with 0s for padded values
