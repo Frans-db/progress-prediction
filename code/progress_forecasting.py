@@ -33,6 +33,8 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
         optimizer.zero_grad()
 
     predictions = network(frames, tube, lengths)
+    print(predictions)
+    exit(0)
 
     repeated_labels = labels.repeat(network.num_heads, 1, 1)
     l1_loss = l1_criterion(predictions, repeated_labels)
@@ -79,7 +81,7 @@ def main():
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=future_bounding_box_collate)
 
     # load model
-    net = ProgressForecastingNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance, num_heads=args.num_heads).to(device)
+    net = ProgressForecastingNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))

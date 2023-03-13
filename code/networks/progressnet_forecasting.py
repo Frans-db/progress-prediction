@@ -6,10 +6,9 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from .layers import SpatialPyramidPooling
 
 class ProgressForecastingNet(nn.Module):
-    def __init__(self, device, embed_size=4069, p_dropout=0, num_heads: int = 1):
+    def __init__(self, device, embed_size=4069, p_dropout=0):
         super(ProgressForecastingNet, self).__init__()
         self.device = device
-        self.num_heads = num_heads
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)
         self.spp_dropout = nn.Dropout(p=p_dropout)
@@ -23,16 +22,12 @@ class ProgressForecastingNet(nn.Module):
         self.lstm1 = nn.LSTM(64, 64, 1)
         self.lstm2 = nn.LSTM(64, 32, 1)
 
-        heads = []
-        for _ in range(self.num_heads):
-            fc8 = nn.Linear(32, 1)
-            self._init_weights(fc8)
-            heads.append(fc8)
-        self.heads = nn.ModuleList(heads)
+        self.fc8 = nn.Linear(32, 1)
 
         self._init_weights(self.spp_fc)
         self._init_weights(self.roi_fc)
         self._init_weights(self.fc7)
+        self._init_weights(self.fc8)
         self._init_weights(self.lstm1)
         self._init_weights(self.lstm2)
 
@@ -70,14 +65,10 @@ class ProgressForecastingNet(nn.Module):
         unpacked = unpacked.reshape(batch_size * sequence_length, -1)
 
         # progress heads
-        outputs = []
-        for head in self.heads:
-            output = torch.sigmoid(head(unpacked))
-            output = output.reshape(batch_size, sequence_length)
-            outputs.append(output)
+        prediction = torch.sigmoid(self.fc8(unpacked))
+        prediction = prediction.reshape(batch_size, sequence_length)
 
-        # stack & return
-        return torch.stack(outputs)
+        return prediction
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
