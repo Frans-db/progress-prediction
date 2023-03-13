@@ -5,10 +5,10 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from .layers import SpatialPyramidPooling
 
-class ProgressNetEmbedding(nn.Module):
-    def __init__(self, device, embed_size=4069, p_dropout=0):
-        super(ProgressNetEmbedding, self).__init__()
 
+class EmbeddingHead(nn.Module):
+    def __init__(self, device, embed_size=2048, p_dropout=0):
+        super(EmbeddingHead, self).__init__()
         self.device = device
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)
@@ -30,7 +30,8 @@ class ProgressNetEmbedding(nn.Module):
 
         flat_frames = frames.reshape(num_samples, C, H, W)
         flat_boxes = boxes.reshape(num_samples, 4)
-        indices = torch.arange(start=0, end=num_samples).reshape(num_samples, 1).to(self.device)
+        indices = torch.arange(start=0, end=num_samples).reshape(
+            num_samples, 1).to(self.device)
 
         boxes_with_indices = torch.cat((indices, flat_boxes), dim=-1)
 
@@ -61,13 +62,26 @@ class ProgressNetEmbedding(nn.Module):
             nn.init.uniform_(m.bias_hh_l0, a=0, b=0)
 
 
-class ProgressForecastingNet(nn.Module):
-    def __init__(self, device, embed_size=4069, p_dropout=0):
-        super(ProgressForecastingNet, self).__init__()
-        self.device = device
-        
-        self.embedding = ProgressNetEmbedding(device, embed_size=embed_size, p_dropout=p_dropout)
+class ForecastingHead(nn.Module):
+    def __init__(self, embed_size=2048):
+        super(ForecastingHead, self).__init__()
+        self.embed_size = embed_size
+        # go from 64 to embed size (2048)
+        self.fc1 = nn.Linear(64, 768)
+        self.fc2 = nn.Linear(768, 1472)
+        self.fc3 = nn.Linear(1472, self.embed_size)
 
+    def forward(self, x):
+        batch_size, sequence_length, _ = x.shape
+        x = x.reshape(batch_size * sequence_length, -1)
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = torch.relu(self.fc3(x))
+        return x.reshape(batch_size, sequence_length, -1)
+
+class ProgressHead(nn.Module):
+    def __init__(self):
+        super(ProgressHead, self).__init__()
         self.lstm1 = nn.LSTM(64, 64, 1)
         self.lstm2 = nn.LSTM(64, 32, 1)
         self.fc8 = nn.Linear(32, 1)
@@ -76,26 +90,24 @@ class ProgressForecastingNet(nn.Module):
         self._init_weights(self.lstm2)
         self._init_weights(self.fc8)
 
-
-    def forward(self, frames, boxes, lengths):
-        batch_size, sequence_length, C, H, W = frames.shape
-
-        concatenated = self.embedding(frames, boxes)
+    def forward(self, concatenated, lengths):
+        batch_size, sequence_length, _ = concatenated.shape
 
         # packing & lstm
-        packed = pack_padded_sequence(concatenated, lengths, batch_first=True, enforce_sorted=False)
-        packed, _ = self.lstm1(packed)
-        packed, _ = self.lstm2(packed)
+        packed = pack_padded_sequence(
+            concatenated, lengths, batch_first=True, enforce_sorted=False)
+        packed, lstm1_memory = self.lstm1(packed)
+        packed, lstm2_memory = self.lstm2(packed)
 
         # unpacking
         unpacked, unpacked_lengths = pad_packed_sequence(packed, batch_first=True)
         unpacked = unpacked.reshape(batch_size * sequence_length, -1)
 
         # progress heads
-        prediction = torch.sigmoid(self.fc8(unpacked))
-        prediction = prediction.reshape(batch_size, sequence_length)
+        predictions = torch.sigmoid(self.fc8(unpacked))
+        predictions = predictions.reshape(batch_size, sequence_length)
 
-        return prediction
+        return predictions
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -106,6 +118,28 @@ class ProgressForecastingNet(nn.Module):
             nn.init.xavier_uniform_(m.weight_ih_l0)
             nn.init.uniform_(m.bias_ih_l0, a=0, b=0)
             nn.init.uniform_(m.bias_hh_l0, a=0, b=0)
+
+
+class ProgressForecastingNet(nn.Module):
+    def __init__(self, device, embed_size=2048, p_dropout=0):
+        super(ProgressForecastingNet, self).__init__()
+        self.device = device
+
+        self.embedding = EmbeddingHead(device, embed_size=embed_size, p_dropout=p_dropout)
+        self.forecasting = ForecastingHead(embed_size=embed_size)
+        self.progress = ProgressHead()
+
+    def forward(self, frames, boxes, lengths):
+        batch_size, sequence_length, C, H, W = frames.shape
+
+        embeddings = self.embedding(frames, boxes)
+
+        # forecasted_embeddings = self.forecasting(embeddings)
+        progress_predictions = self.progress(embeddings, lengths)
+
+        # print(self.progress.lstm1)
+
+        return progress_predictions
 
     def finetune(self):
         for name, param in self.named_parameters():
