@@ -33,8 +33,30 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
         optimizer.zero_grad()
 
     predictions = network(frames, tube, lengths)
-    print(predictions)
-    exit(0)
+
+    # progress is in range (0, 1], but batch is zero-padded
+    # we can use this to multiply our loss with 0s for padded values
+    mask = (progress_values != 0).int().to(device)
+    predictions = predictions * mask
+
+    bo_loss = bo_weight(device, progress_values, predictions)
+    l1_loss = l1_criterion(predictions, progress_values)
+    l2_loss = l2_criterion(predictions, progress_values)
+    count = lengths.sum()
+    if optimizer:
+        loss = l1_loss * bo_loss
+        loss = loss.sum() / count
+        loss.backward()
+        optimizer.step()
+
+    return {
+        'predictions': predictions,
+        'l1_loss': l1_loss,
+        'l2_loss': l2_loss,
+        'bo_loss': bo_loss,
+        'count': count
+    }
+
 
     repeated_labels = labels.repeat(network.num_heads, 1, 1)
     l1_loss = l1_criterion(predictions, repeated_labels)
@@ -115,8 +137,8 @@ def main():
             for batch in tqdm(train_loader, leave=False):
                 batch_result = train(net, batch, l1_criterion, l2_criterion, device, optimizer=optimizer)
 
-                train_l1_loss += batch_result['wta_l1_loss'].sum().item()
-                train_l2_loss += batch_result['wta_l2_loss'].sum().item()
+                train_l1_loss += batch_result['l1_loss'].sum().item()
+                train_l2_loss += batch_result['l2_loss'].sum().item()
                 train_count += batch_result['count'].item()
 
             logging.info(f'[{epoch:03d} train] avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
@@ -133,8 +155,8 @@ def main():
             do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
             for model_name in networks:
                 batch_result = train(networks[model_name]['net'], batch, l1_criterion, l2_criterion, device)
-                networks[model_name]['l1_loss'] += batch_result['wta_l1_loss'].sum().item()
-                networks[model_name]['l2_loss'] += batch_result['wta_l2_loss'].sum().item()
+                networks[model_name]['l1_loss'] += batch_result['l1_loss'].sum().item()
+                networks[model_name]['l2_loss'] += batch_result['l2_loss'].sum().item()
                 networks[model_name]['count'] += batch_result['count'].item()
 
                 if do_figure:
