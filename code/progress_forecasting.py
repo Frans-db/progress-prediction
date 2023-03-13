@@ -25,9 +25,9 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
     tube = tube.to(device)
     progress_values = progress_values.to(device)
 
-    future_frames.to(device)
-    future_tube.to(device)
-    future_progress_values.to(device)
+    # future_frames.to(device)
+    # future_tube.to(device)
+    # future_progress_values.to(device)
 
     if optimizer:
         optimizer.zero_grad()

@@ -5,6 +5,16 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from .layers import SpatialPyramidPooling
 
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight)
+        nn.init.uniform_(m.bias, a=0, b=0)
+    elif isinstance(m, nn.LSTM):
+        nn.init.xavier_uniform_(m.weight_hh_l0)
+        nn.init.xavier_uniform_(m.weight_ih_l0)
+        nn.init.uniform_(m.bias_ih_l0, a=0, b=0)
+        nn.init.uniform_(m.bias_hh_l0, a=0, b=0)
+
 
 class EmbeddingHead(nn.Module):
     def __init__(self, device, embed_size=2048, p_dropout=0):
@@ -20,9 +30,9 @@ class EmbeddingHead(nn.Module):
         self.fc7 = nn.Linear(embed_size*2, 64)
         self.fc7_dropout = nn.Dropout(p=p_dropout)
 
-        self._init_weights(self.spp_fc)
-        self._init_weights(self.roi_fc)
-        self._init_weights(self.fc7)
+        init_weights(self.spp_fc)
+        init_weights(self.roi_fc)
+        init_weights(self.fc7)
 
     def forward(self, frames, boxes):
         batch_size, sequence_length, C, H, W = frames.shape
@@ -51,25 +61,35 @@ class EmbeddingHead(nn.Module):
 
         return concatenated
 
-    def _init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            nn.init.xavier_uniform_(m.weight)
-            nn.init.uniform_(m.bias, a=0, b=0)
-        elif isinstance(m, nn.LSTM):
-            nn.init.xavier_uniform_(m.weight_hh_l0)
-            nn.init.xavier_uniform_(m.weight_ih_l0)
-            nn.init.uniform_(m.bias_ih_l0, a=0, b=0)
-            nn.init.uniform_(m.bias_hh_l0, a=0, b=0)
 
+class RNNHead(nn.Module):
+    def __init__(self):
+        super(RNNHead, self).__init__()
+        self.lstm1 = nn.LSTM(64, 64, 1)
+        self.lstm2 = nn.LSTM(64, 32, 1)
+        init_weights(self.lstm1)
+        init_weights(self.lstm2)
+
+    def forward(self, embedding, lengths):
+        batch_size, sequence_length, _ = embedding.shape
+
+        # packing & lstm
+        packed = pack_padded_sequence(embedding, lengths, batch_first=True, enforce_sorted=False)
+        packed, lstm1_memory = self.lstm1(packed)
+        packed, lstm2_memory = self.lstm2(packed)
+        
+        # unpacking
+        unpacked, unpacked_lengths = pad_packed_sequence(packed, batch_first=True)
+
+        return unpacked
 
 class ForecastingHead(nn.Module):
-    def __init__(self, embed_size=2048):
+    def __init__(self):
         super(ForecastingHead, self).__init__()
-        self.embed_size = embed_size
-        # go from 64 to embed size (2048)
-        self.fc1 = nn.Linear(64, 768)
-        self.fc2 = nn.Linear(768, 1472)
-        self.fc3 = nn.Linear(1472, self.embed_size)
+        self.fc1 = nn.Linear(64, 256)
+        self.fc2 = nn.Linear(256, 1024)
+        self.fc3 = nn.Linear(1024, 256)
+        self.fc4 = nn.Linear(256, 64)
 
     def forward(self, x):
         batch_size, sequence_length, _ = x.shape
@@ -77,47 +97,23 @@ class ForecastingHead(nn.Module):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         x = torch.relu(self.fc3(x))
+        x = torch.relu(self.fc4(x))
         return x.reshape(batch_size, sequence_length, -1)
 
 class ProgressHead(nn.Module):
     def __init__(self):
         super(ProgressHead, self).__init__()
-        self.lstm1 = nn.LSTM(64, 64, 1)
-        self.lstm2 = nn.LSTM(64, 32, 1)
         self.fc8 = nn.Linear(32, 1)
+        init_weights(self.fc8)
 
-        self._init_weights(self.lstm1)
-        self._init_weights(self.lstm2)
-        self._init_weights(self.fc8)
-
-    def forward(self, concatenated, lengths):
+    def forward(self, concatenated):
         batch_size, sequence_length, _ = concatenated.shape
 
-        # packing & lstm
-        packed = pack_padded_sequence(
-            concatenated, lengths, batch_first=True, enforce_sorted=False)
-        packed, lstm1_memory = self.lstm1(packed)
-        packed, lstm2_memory = self.lstm2(packed)
-
-        # unpacking
-        unpacked, unpacked_lengths = pad_packed_sequence(packed, batch_first=True)
-        unpacked = unpacked.reshape(batch_size * sequence_length, -1)
-
-        # progress heads
-        predictions = torch.sigmoid(self.fc8(unpacked))
+        concatenated = concatenated.reshape(batch_size*sequence_length, -1)
+        predictions = torch.sigmoid(self.fc8(concatenated))
         predictions = predictions.reshape(batch_size, sequence_length)
 
         return predictions
-
-    def _init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            nn.init.xavier_uniform_(m.weight)
-            nn.init.uniform_(m.bias, a=0, b=0)
-        elif isinstance(m, nn.LSTM):
-            nn.init.xavier_uniform_(m.weight_hh_l0)
-            nn.init.xavier_uniform_(m.weight_ih_l0)
-            nn.init.uniform_(m.bias_ih_l0, a=0, b=0)
-            nn.init.uniform_(m.bias_hh_l0, a=0, b=0)
 
 
 class ProgressForecastingNet(nn.Module):
@@ -126,16 +122,18 @@ class ProgressForecastingNet(nn.Module):
         self.device = device
 
         self.embedding = EmbeddingHead(device, embed_size=embed_size, p_dropout=p_dropout)
-        self.forecasting = ForecastingHead(embed_size=embed_size)
+        self.rnn = RNNHead()
+        self.forecasting = ForecastingHead()
         self.progress = ProgressHead()
 
     def forward(self, frames, boxes, lengths):
         batch_size, sequence_length, C, H, W = frames.shape
 
         embeddings = self.embedding(frames, boxes)
+        rnn_embeddings = self.rnn(embeddings, lengths)
 
         # forecasted_embeddings = self.forecasting(embeddings)
-        progress_predictions = self.progress(embeddings, lengths)
+        progress_predictions = self.progress(rnn_embeddings)
 
         # print(self.progress.lstm1)
 
