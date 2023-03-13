@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from utils import get_device, set_seeds, create_directory, setup, get_toy_labels
-from datasets import BoundingBoxForecastingDataset, bounding_box_collate
+from datasets import BoundingBoxForecastingDataset, future_bounding_box_collate
 from datasets.transforms import ImglistToTensor
 from networks import ProgressForecastingNet
 from networks import RandomNet, StaticNet, RelativeNet
@@ -19,13 +19,20 @@ implementation of https://arxiv.org/abs/1705.01781
 """
 
 def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
-    video_names, frames, boxes, labels, lengths = batch
+    video_name, frames, tube, progress_values, future_frames, future_tube, future_progress_values, lengths = batch
+
     frames = frames.to(device)
-    boxes = boxes.to(device)
-    labels = labels.to(device)
+    tube = tube.to(device)
+    progress_values = progress_values.to(device)
+
+    future_frames.to(device)
+    future_tube.to(device)
+    future_progress_values.to(device)
+
     if optimizer:
         optimizer.zero_grad()
-    predictions = network(frames, boxes, lengths)
+
+    predictions = network(frames, tube, lengths)
 
     repeated_labels = labels.repeat(network.num_heads, 1, 1)
     l1_loss = l1_criterion(predictions, repeated_labels)
@@ -68,8 +75,8 @@ def main():
     # create datasets
     train_set = BoundingBoxForecastingDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['train_splitfile_path'], 5, transform=ImglistToTensor(dim=0))
     test_set = BoundingBoxForecastingDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['test_splitfile_path'], 5, transform=ImglistToTensor(dim=0))
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=bounding_box_collate)
-    test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=bounding_box_collate)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=future_bounding_box_collate)
+    test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=future_bounding_box_collate)
 
     # load model
     net = ProgressForecastingNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance, num_heads=args.num_heads).to(device)

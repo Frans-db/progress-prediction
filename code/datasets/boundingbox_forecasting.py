@@ -35,14 +35,19 @@ class BoundingBoxForecastingDataset(Dataset):
         tube = self.tubes[index]
 
         num_frames = len(frames)
-        progress_values = [(i+1) / num_frames for i in range(num_frames)]
+        progress_values = torch.FloatTensor([(i+1) / num_frames for i in range(num_frames)])
 
         if self.transform:
             frames = self.transform(frames)
-        print(frames.shape)
-        exit(0)
+        
+        future_frames = torch.zeros_like(frames)
+        future_frames[:-self.delta_t, :, :, :] = frames[self.delta_t:, :, :, :]
+        future_progress_values = torch.ones_like(progress_values)
+        future_progress_values[:-self.delta_t] = progress_values[self.delta_t:]
+        future_tube = torch.zeros_like(tube)
+        future_tube[:-self.delta_t, :] = tube[self.delta_t:, :]
 
-        return video_name, frames, tube, torch.FloatTensor(progress_values)
+        return video_name, frames, tube, progress_values, future_frames, future_tube, future_progress_values
 
     def __len__(self) -> int:
         return len(self.tubes)
