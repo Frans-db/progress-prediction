@@ -50,9 +50,9 @@ def main():
     test_set = ImageDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform)
 
     # load model
-    net = models.resnet152().to(device)
+    net = models.resnet18().to(device)
     net.fc = nn.Sequential(
-        nn.Linear(2048, 1),
+        nn.Linear(512, 1),
         nn.Sigmoid()
     ).to(device)
 
@@ -84,9 +84,9 @@ def main():
             frames = frames.to(device)
             predictions = net(frames)
 
-            activations.append(predictions)
+            activations.append(predictions.detach().cpu())
         concatenated = torch.cat(activations)
-        concatenated = concatenated.detach().cpu().tolist()
+        concatenated = concatenated.tolist()
         text_rows = []
         for row in concatenated:
             text_rows.append(' '.join(map(str, row)))
