@@ -12,12 +12,12 @@ class RSDDataset(ProgressDataset):
     # Dunder Methods
 
     def __getitem__(self, index):
-        video_name, frames, progress_values = super().__getitem__(index)
+        video_name, data, progress_values = super().__getitem__(index)
 
-        total_time = len(frames) / self.fps
+        total_time = len(data) / self.fps
         rsd_values = [total_time - p * total_time for p in progress_values]
 
-        return video_name, frames, torch.FloatTensor(rsd_values), progress_values
+        return video_name, data, torch.FloatTensor(rsd_values), progress_values
 
     # Data Analysis Methods
 

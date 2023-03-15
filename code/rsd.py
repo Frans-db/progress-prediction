@@ -70,30 +70,12 @@ def main():
     args, dirs, device = setup()
 
     # create datasets
-    transform = ImglistToTensor(dim=0, transform=transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize((224, 224))
-    ]))
-    train_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], transform=transform, mode='minutes')
-    test_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], transform=transform, mode='minutes')
+    train_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['train_splitfile_path'], mode='minutes')
+    test_set = RSDDataset(dirs['dataset_directory'], args.data_type, dirs['test_splitfile_path'], mode='minutes')
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=rsd_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=rsd_collate)
 
-    # create resnet basenet
-    basenet = models.resnet152()
-    # set basenet fc to match 2d trained one
-    basenet.fc = nn.Sequential(
-        nn.Linear(2048, 1),
-        nn.Sigmoid()
-    ).to(device)
-    # load basenet weights
-    basenet_model_path = join(dirs['model_directory'], args.basenet_model_name)
-    logging.info(f'[{args.experiment_name}] loading basenet model {basenet_model_path}')
-    basenet.load_state_dict(torch.load(basenet_model_path))
-    # change last layer to identity to extract frame representation
-    basenet.fc = nn.Identity()
-
-    net = RSDNet(basenet=basenet, p_dropout=args.dropout_chance).to(device)
+    net = RSDNet(p_dropout=args.dropout_chance).to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))
