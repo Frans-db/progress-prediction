@@ -36,11 +36,11 @@ def progress_collate(batch):
 
 
 def rsd_collate(batch):
-    video_names, frames, rsd_labels, progress_labels = zip(*batch)
-    lengths = torch.Tensor([sample.shape[0] for sample in frames])
+    video_names, data, rsd_labels, progress_labels = zip(*batch)
+    lengths = torch.Tensor([sample.shape[0] for sample in data])
 
-    padded_frames = pad_sequence(frames, batch_first=True)
+    padded_data = pad_sequence(data, batch_first=True)
     padded_rsd_labels = pad_sequence(rsd_labels, batch_first=True)
     padded_progress_labels = pad_sequence(progress_labels, batch_first=True)
 
-    return video_names, padded_frames, padded_rsd_labels, padded_progress_labels, lengths
+    return video_names, padded_data, padded_rsd_labels, padded_progress_labels, lengths

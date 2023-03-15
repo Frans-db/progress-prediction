@@ -18,21 +18,21 @@ class ProgressDataset(Dataset):
         self.splitfile_path = join(data_root, splitfile_path)
         # load split
         self.split_names = load_splitfile(self.splitfile_path)
+        self.data = [self._load_data(join(self.data_root, f'{video_name}.txt')) for video_name in self.split_names]
+
         self.transform = transform
 
     # Dunder Methods
 
     def __getitem__(self, index):
         video_name = self.split_names[index]
-
-        data_path = join(self.data_root, f'{video_name}.txt')
-        data = self._load_data(data_path)
+        data = self.data[index]
         num_frames = len(data)
 
         progress_values = [(i+1) / num_frames for i in range(num_frames)]
         if self.transform:
             data = self.transform(data)
-            
+             
         return video_name, data, torch.FloatTensor(progress_values)
 
     def __len__(self) -> int:
@@ -41,9 +41,11 @@ class ProgressDataset(Dataset):
     # Helper Methods
 
     def _load_data(self, data_path: str):
+        data = []
         with open(data_path, 'r') as f:
-            print(f.read())
-        exit(0)
+            for row in f.readlines():
+                data.append(list(map(float, row.split(' '))))
+        return torch.FloatTensor(data)
 
     def _load_frames(self, video_path: str):
         frames = []

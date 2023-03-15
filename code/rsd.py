@@ -19,17 +19,17 @@ implementation of https://arxiv.org/abs/1705.01781
 """
 
 def train(network, batch, smooth_l1_criterion, l1_criterion, l2_criterion, device, optimizer=None, train=True):
-    video_names, frames, rsd_values, progress_values, lengths = batch
-    frames = frames.to(device)
-    rsd_values = rsd_values.to(device)
+    video_names, data, rsd_values, progress_values, lengths = batch
+    data = data.to(device)
+    rsd_values = rsd_values.to(device) / 5
+
     progress_values = progress_values.to(device)
     if optimizer:
         optimizer.zero_grad()
-    rsd_predictions, progress_predictions = network(frames, lengths)
+    rsd_predictions, progress_predictions = network(data, torch.flip(rsd_values, (-1, )), lengths)
 
-    if train:
-        rsd_values = rsd_values / 5
-    else:
+    if not train:
+        rsd_values = rsd_values * 5
         rsd_predictions = rsd_predictions * 5
     # progress is in range (0, 1], but batch is zero-padded
     # we can use this to fill our loss with 0s for padded values

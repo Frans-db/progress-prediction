@@ -15,6 +15,8 @@ class RSDDataset(ProgressDataset):
         video_name, data, progress_values = super().__getitem__(index)
 
         total_time = len(data) / self.fps
+        if self.mode == 'minutes':
+            total_time /= 60
         rsd_values = [total_time - p * total_time for p in progress_values]
 
         return video_name, data, torch.FloatTensor(rsd_values), progress_values
