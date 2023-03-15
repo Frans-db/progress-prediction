@@ -14,7 +14,7 @@ class RSDDataset(ProgressDataset):
     def __getitem__(self, index):
         video_name, data, progress_values = super().__getitem__(index)
 
-        total_time = len(data) / self.fps
+        total_time = len(data)
         if self.mode == 'minutes':
             total_time /= 60
         rsd_values = [total_time - p * total_time for p in progress_values]
@@ -24,13 +24,13 @@ class RSDDataset(ProgressDataset):
     # Data Analysis Methods
 
     def get_max_video_length(self):
-        length = self.get_max_video_frame_length() / self.fps
+        length = self.get_max_video_frame_length()
         if self.mode == 'minutes':
             length /= 60
         return length
 
     def get_average_video_length(self):
-        length = self.get_average_video_frame_length() / self.fps
+        length = self.get_average_video_frame_length()
         if self.mode == 'minutes':
             length /= 60
         return length
