@@ -117,9 +117,10 @@ class ProgressHead(nn.Module):
 
 
 class ProgressForecastingNet(nn.Module):
-    def __init__(self, device, embed_size=2048, p_dropout=0):
+    def __init__(self, device, delta_t: int, embed_size=2048, p_dropout=0):
         super(ProgressForecastingNet, self).__init__()
         self.device = device
+        self.delta_t = delta_t
 
         self.embedding = EmbeddingHead(device, embed_size=embed_size, p_dropout=p_dropout)
         self.rnn = RNNHead()
@@ -136,7 +137,7 @@ class ProgressForecastingNet(nn.Module):
         progress_predictions = self.progress(rnn_embeddings)
         future_progress_predictions = self.progress(forecasted_embeddings)
 
-        return progress_predictions, forecasted_embeddings, future_progress_predictions
+        return rnn_embeddings, progress_predictions, forecasted_embeddings, future_progress_predictions
 
     def finetune(self):
         for name, param in self.named_parameters():

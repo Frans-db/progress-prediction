@@ -52,5 +52,9 @@ def parse_arguments():
     parser.add_argument('--random', action='store_true')
     parser.add_argument('--static', action='store_true')
     parser.add_argument('--relative', action='store_true')
+    # forecasting
+    parser.add_argument('--delta_t', type=int, default=10)
+    parser.add_argument('--future_weight', type=float, default=1.0)
+    parser.add_argument('--reconstruction_weight', type=float, default=1.0)
 
     return parser.parse_args()

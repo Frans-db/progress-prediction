@@ -18,7 +18,7 @@ from losses import bo_weight
 implementation of https://arxiv.org/abs/1705.01781
 """
 
-def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
+def train(network, batch, l1_criterion, l2_criterion, device, future_weight, reconstruction_weight, optimizer=None):
     video_name, frames, tube, progress_values, future_frames, future_tube, future_progress_values, lengths = batch
 
     frames = frames.to(device)
@@ -27,90 +27,71 @@ def train(network, batch, l1_criterion, l2_criterion, device, optimizer=None):
 
     # future_frames.to(device)
     # future_tube.to(device)
-    # future_progress_values.to(device)
+    future_progress_values = future_progress_values.to(device)
 
     if optimizer:
         optimizer.zero_grad()
 
-    progress_predictions, forecasted_embeddings, future_progress_predictions = network(frames, tube, lengths)
+    embeddings, progress_predictions, forecasted_embeddings, forecasted_progress_predictions = network(frames, tube, lengths)
 
-    # progress is in range (0, 1], but batch is zero-padded
-    # we can use this to multiply our loss with 0s for padded values
-    mask = (progress_values != 0).int().to(device)
-    progress_predictions = progress_predictions * mask
+    # TODO: Removed mask for now, testing only with batch size = 1
+    # # progress is in range (0, 1], but batch is zero-padded
+    # # we can use this to multiply our loss with 0s for padded values
+    # mask = (progress_values != 0).int().to(device)
+    # progress_predictions = progress_predictions * mask
 
-    bo_loss = bo_weight(device, progress_values, progress_predictions)
-    l1_loss = l1_criterion(progress_predictions, progress_values)
-    l2_loss = l2_criterion(progress_predictions, progress_values)
+    gt_embeddings = torch.zeros_like(embeddings).to(device)
+    gt_embeddings[:, :-network.delta_t, :] = embeddings[:, network.delta_t:, :]
+
+    bo_progress_loss = bo_weight(device, progress_values, progress_predictions)
+    future_bo_progress_loss = bo_weight(device, future_progress_values, forecasted_progress_predictions)
+    l1_progress_loss = l1_criterion(progress_predictions, progress_values)
+    l2_progress_loss = l2_criterion(progress_predictions, progress_values)
+    future_l1_progress_loss = l1_criterion(forecasted_progress_predictions, future_progress_values)
+    future_l2_progress_loss = l2_criterion(forecasted_progress_predictions, future_progress_values)
+    l2_reconstruction_loss = l2_criterion(forecasted_embeddings, embeddings)
     count = lengths.sum()
+
     if optimizer:
-        loss = l1_loss * bo_loss
-        loss = loss.sum() / count
+        progress_loss = l1_progress_loss * bo_progress_loss
+        progress_loss = progress_loss.sum() / count
+        future_progress_loss = future_l1_progress_loss * future_bo_progress_loss
+        future_progress_loss = future_progress_loss.sum() / count
+        reconstruction_loss = l2_reconstruction_loss.sum() / count
+
+        loss = progress_loss + future_weight * future_progress_loss + reconstruction_weight * reconstruction_loss
         loss.backward()
         optimizer.step()
 
     return {
         'predictions': progress_predictions,
-        'l1_loss': l1_loss,
-        'l2_loss': l2_loss,
-        'bo_loss': bo_loss,
+        'forecasted_predictions': forecasted_progress_predictions,
+        'l1_progress_loss': l1_progress_loss,
+        'l2_progress_loss': l2_progress_loss,
+        'bo_progress_loss': bo_progress_loss,
+        'l2_reconstruction_loss': l2_reconstruction_loss,
         'count': count
     }
 
-
-    repeated_labels = labels.repeat(network.num_heads, 1, 1)
-    l1_loss = l1_criterion(predictions, repeated_labels)
-    l2_loss = l2_criterion(predictions, repeated_labels)
-
-    total_l1_loss = torch.sum(l1_loss, dim=-1)
-    _, wta_index = torch.min(total_l1_loss, dim=0)
-    wta_l1_loss = l1_loss[wta_index[0]]
-    wta_predictions = predictions[wta_index[0]].unsqueeze(dim=0)
-
-    # wta_l1_loss, wta_indices = torch.min(l1_loss, dim=0)
-    wta_l2_loss = torch.FloatTensor([1, 2])
-    # wta_predictions = torch.gather(predictions, 0, wta_indices.unsqueeze(0))
-    wta_bo_loss = bo_weight(device, labels, wta_predictions)
-
-
-    # progress is in range (0, 1], but batch is zero-padded
-    # we can use this to multiply our loss with 0s for padded values
-    mask = (labels != 0).int().to(device)
-    masked_wta_l1_loss = wta_l1_loss * mask
-    
-    count = lengths.sum()
-    if optimizer:
-        loss = masked_wta_l1_loss * wta_bo_loss
-        loss = loss.sum() / count
-        loss.backward()
-        optimizer.step()
-
-    return {
-        'predictions': predictions,
-        'wta_l1_loss': wta_l1_loss,
-        'wta_l2_loss': wta_l2_loss,
-        'wta_bo_loss': wta_bo_loss,
-        'count': count,
-    }
 
 def main():
     args, dirs, device = setup()
 
     # create datasets
-    train_set = BoundingBoxForecastingDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['train_splitfile_path'], 5, transform=ImglistToTensor(dim=0))
-    test_set = BoundingBoxForecastingDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['test_splitfile_path'], 5, transform=ImglistToTensor(dim=0))
+    train_set = BoundingBoxForecastingDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['train_splitfile_path'], args.delta_t, transform=ImglistToTensor(dim=0))
+    test_set = BoundingBoxForecastingDataset(dirs['dataset_directory'], args.data_type, dirs['annotation_path'], dirs['test_splitfile_path'], args.delta_t, transform=ImglistToTensor(dim=0))
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, collate_fn=future_bounding_box_collate)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, collate_fn=future_bounding_box_collate)
 
     # load model
-    net = ProgressForecastingNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance).to(device)
+    net = ProgressForecastingNet(device, embed_size=args.embed_size, p_dropout=args.dropout_chance, delta_t=args.delta_t).to(device)
     if args.model_name:
         model_path = join(dirs['model_directory'], args.model_name)
         net.load_state_dict(torch.load(model_path))
 
     # setup network dict for evaluation/testing
     networks = {}
-    loss_dict = {'l1_loss': 0.0, 'l2_loss': 0.0, 'count': 0}
+    loss_dict = {'l1_progress_loss': 0.0, 'l2_progress_loss': 0.0, 'l2_reconstruction_loss': 0.0, 'count': 0}
     networks['network'] = loss_dict.copy()
     networks['network']['net'] = net
     if args.random:
@@ -130,18 +111,19 @@ def main():
 
     logging.info(f'[{args.experiment_name}] starting experiment')
     for epoch in range(args.epochs):
-        train_bo_loss, train_l1_loss, train_l2_loss, train_count = 0.0, 0.0, 0.0, 0
+        train_bo_loss, train_l1_loss, train_l2_loss, train_reconstruction_loss, train_count = 0.0, 0.0, 0.0, 0.0, 0
 
         if not args.eval:
             net.train()
             for batch in tqdm(train_loader, leave=False):
-                batch_result = train(net, batch, l1_criterion, l2_criterion, device, optimizer=optimizer)
+                batch_result = train(net, batch, l1_criterion, l2_criterion, device, args.future_weight, args.reconstruction_weight, optimizer=optimizer)
 
-                train_l1_loss += batch_result['l1_loss'].sum().item()
-                train_l2_loss += batch_result['l2_loss'].sum().item()
+                train_l1_loss += batch_result['l1_progress_loss'].sum().item()
+                train_l2_loss += batch_result['l2_progress_loss'].sum().item()
+                train_reconstruction_loss += batch_result['l2_reconstruction_loss'].sum().item()
                 train_count += batch_result['count'].item()
 
-            logging.info(f'[{epoch:03d} train] avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}')
+            logging.info(f'[{epoch:03d} train] avg l1 loss {(train_l1_loss / train_count):.4f}, avg l2 loss {(train_l2_loss / train_count):.4f}, avg reconstruction loss {(train_reconstruction_loss / train_count):.4f}')
         
             if epoch % args.save_every == 0 and epoch > 0:
                 model_name = f'{epoch:03d}.pth'
@@ -154,19 +136,23 @@ def main():
         for batch_index, batch in tqdm(enumerate(test_loader), leave=False, total=len(test_loader)):
             do_figure = args.figures and args.batch_size == 1 and batch_index % args.figure_every == 0
             for model_name in networks:
-                batch_result = train(networks[model_name]['net'], batch, l1_criterion, l2_criterion, device)
-                networks[model_name]['l1_loss'] += batch_result['l1_loss'].sum().item()
-                networks[model_name]['l2_loss'] += batch_result['l2_loss'].sum().item()
+                batch_result = train(networks[model_name]['net'], batch, l1_criterion, l2_criterion, device, args.future_weight, args.reconstruction_weight)
+                networks[model_name]['l1_progress_loss'] += batch_result['l1_progress_loss'].sum().item()
+                networks[model_name]['l2_progress_loss'] += batch_result['l2_progress_loss'].sum().item()
+                networks[model_name]['l2_reconstruction_loss'] += batch_result['l2_reconstruction_loss'].sum().item()
                 networks[model_name]['count'] += batch_result['count'].item()
 
                 if do_figure:
-                    for i,prediction in enumerate(batch_result['predictions']):
-                        plot_prediction = prediction.cpu().detach().squeeze().numpy()
-                        plt.plot(plot_prediction, label=f'{model_name}_head_{i+1}')
+                    predictions = batch_result['predictions'].cpu().detach().squeeze().tolist()
+                    forecasted_predictions = batch_result['forecasted_predictions'].cpu().detach().squeeze().tolist()
+
+                    xs = [i for i,_ in enumerate(predictions)]
+                    plt.plot(xs, predictions, label='predicted progress')
+                    plt.plot([x+net.delta_t for x in xs], forecasted_predictions, label='forecasted progress')
 
             if do_figure:
-                video_names, frames, boxes, labels, lengths = batch
-                plot_labels = labels.cpu().detach().squeeze().numpy()
+                video_names, frames, tube, progress_values, future_frames, future_tube, future_progress_values, lengths = batch
+                plot_labels = progress_values.cpu().detach().squeeze().numpy()
                 plt.plot(plot_labels, label='ground truth')
                 plt.title('Progress Predictions')
                 plt.xlabel('Frame')
@@ -182,7 +168,7 @@ def main():
                 plt.clf()
 
         for model_name in networks:
-            logging.info(f'[{epoch:03d} test {model_name}] avg l1 loss {(networks[model_name]["l1_loss"] / networks[model_name]["count"]):.4f}, avg l2 loss {(networks[model_name]["l2_loss"] / networks[model_name]["count"]):.4f}')
+            logging.info(f'[{epoch:03d} test {model_name}] avg l1 loss {(networks[model_name]["l1_progress_loss"] / networks[model_name]["count"]):.4f}, avg l2 loss {(networks[model_name]["l2_progress_loss"] / networks[model_name]["count"]):.4f}, avg reconstruction loss {(networks[model_name]["l2_reconstruction_loss"] / networks[model_name]["count"]):.4f}')
         
         if args.eval:
             break # only 1 epoch for evaluation
