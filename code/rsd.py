@@ -137,11 +137,11 @@ def main():
                 continue
             log_string += f' {key} {(test_results[key] / test_results["count"]):.3f},'
         logging.info(log_string)
-        scheduler.step()
-
 
         if args.eval:
             break # only 1 epoch for evaluation
+        else:
+            scheduler.step()
 
 
 if __name__ == '__main__':
