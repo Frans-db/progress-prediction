@@ -49,7 +49,7 @@ parser.add_argument(
     action='store_true'
 )
 parser.add_argument(
-    "--new_path", type=str, default="/home/frans/Datasets/toy", help="New dataset path ..."
+    "--new_path", type=str, default="/home/frans/Datasets/toy_drop", help="New dataset path ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
