@@ -49,7 +49,7 @@ parser.add_argument(
     action='store_true'
 )
 parser.add_argument(
-    "--new_path", type=str, default="/home/frans/Datasets/toy_drop", help="New dataset path ..."
+    "--dataset", type=str, default="toy", help="New dataset name ..."
 )
 parser.add_argument(
     "--noise_var", type=float, default=1, help="Noise variance to trajectory in pixels"
@@ -143,20 +143,20 @@ def create_activity_mnist(
     print("Created data: (", videos[0].shape,
           ",", labels[0].shape, ") x ", len(videos))
 
-    os.mkdir(f'{args.new_path}')
-    os.mkdir(f'{args.new_path}/rgb-images')
-    os.mkdir(f'{args.new_path}/labels')
-    os.mkdir(f'{args.new_path}/experiments')
-    os.mkdir(f'{args.new_path}/splitfiles')
+    os.mkdir(f'{args.path}{args.dataset}')
+    os.mkdir(f'{args.path}{args.dataset}/rgb-images')
+    os.mkdir(f'{args.path}{args.dataset}/labels')
+    os.mkdir(f'{args.path}{args.dataset}/experiments')
+    os.mkdir(f'{args.path}{args.dataset}/splitfiles')
 
     video_names = [f'{video_id:05d}\n' for video_id in range(len(videos))]
     random.shuffle(video_names)
-    with open(os.path.join(args.new_path, 'splitfiles', 'trainlist01.txt'), 'w+') as f:
+    with open(os.path.join(args.path, args.dataset, 'splitfiles', 'trainlist01.txt'), 'w+') as f:
         f.writelines(sorted(video_names[:int(0.9 * len(videos))]))
-    with open(os.path.join(args.new_path, 'splitfiles', 'testlist01.txt'), 'w+') as f:
+    with open(os.path.join(args.path, args.dataset, 'splitfiles', 'testlist01.txt'), 'w+') as f:
         f.writelines(sorted(video_names[int(0.9 * len(videos)):]))
 
-    with open(os.path.join(args.new_path, 'splitfiles/pyannot.pkl'), 'wb+') as f:
+    with open(os.path.join(args.path, args.dataset, 'splitfiles/pyannot.pkl'), 'wb+') as f:
         pickle.dump(database, f)
 
     label_translations = []
@@ -168,14 +168,14 @@ def create_activity_mnist(
                 label_translations.append(label)
             translated_labels.append(str(label_translations.index(label)))
 
-        with open(f'{args.new_path}/labels/{video_id:05d}', 'w+') as f:
+        with open(f'{args.path}{args.dataset}/labels/{video_id:05d}', 'w+') as f:
             f.write('\n'.join(translated_labels))
 
-        os.mkdir(f'{args.new_path}/rgb-images/{video_id:05d}')
+        os.mkdir(f'{args.path}{args.dataset}/rgb-images/{video_id:05d}')
         for frame_id, frame in enumerate(video):
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
-            frame_name = f'{args.new_path}/rgb-images/{video_id:05d}/{(frame_id+1):05d}.jpg'
+            frame_name = f'{args.path}{args.dataset}/rgb-images/{video_id:05d}/{(frame_id+1):05d}.jpg'
             image.save(frame_name)
 
     # with open(args.new_path + file_name + ".pkl", "wb+") as f:
@@ -670,9 +670,9 @@ if __name__ == "__main__":
         train=False,
         targets=[
             (1, "horizontal"),
-            # (3, "inv_diagonal"),
+            (3, "inv_diagonal"),
             (5, "inv-horizontal"),
-            # (7, "diagonal"),
+            (7, "diagonal"),
             (9, "vertical"),
         ],
         file_name=args.name,

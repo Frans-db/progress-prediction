@@ -89,13 +89,13 @@ class UnrolledProgressNet(nn.Module):
         forecasted_embedded = forecasted_embedded.reshape(B, S, -1)
 
         # lstm
-        hidden1 = (torch.zeros(1, 64, device=device), torch.zeros(1, 64, device=device))
-        hidden2 = (torch.zeros(1, 32, device=device), torch.zeros(1, 32, device=device))
+        hidden1 = (torch.zeros(1, B, 64, device=device), torch.zeros(1, B, 64, device=device))
+        hidden2 = (torch.zeros(1, B, 32, device=device), torch.zeros(1, B, 32, device=device))
         progress = torch.zeros(B, S, 32, device=device)
         forecasted_progress = torch.zeros(B, S, 32, device=device)
         for i in range(S):
-            item = embedded[:, i, :]
-            forecasted_item = forecasted_embedded[:, i, :]
+            item = embedded[:, i, :].unsqueeze(dim=1)
+            forecasted_item = forecasted_embedded[:, i, :].unsqueeze(dim=1)
 
             item, hidden1 = self.lstm1(item, hidden1)
             item, hidden2 = self.lstm2(item, hidden2)
@@ -103,8 +103,8 @@ class UnrolledProgressNet(nn.Module):
             forecasted_item, _ = self.lstm1(forecasted_item, hidden1)
             forecasted_item, _ = self.lstm2(forecasted_item, hidden2)
 
-            progress[0, i] = item.squeeze()
-            forecasted_progress[0, i] = forecasted_item.squeeze()
+            progress[:, i] = item.squeeze()
+            forecasted_progress[:, i] = forecasted_item.squeeze()
 
         # progress
         progress = progress.reshape(num_samples, -1)
