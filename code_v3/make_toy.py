@@ -110,31 +110,37 @@ def create_activity_mnist(
         for _, target in dataset.class_to_idx.items()
     }
 
-    subset_list = []
-    min_len = math.inf
-    for (targ, motion) in targets:
-        subset_list.append((motion, targ, subsets[targ]))  # for every sub-task
-        min_len = len(subsets[targ]) if len(
-            subsets[targ]) < min_len else min_len
-
-    for i in range(len(subset_list)):
-        print("#images for class ", i, ": ", len(subset_list[i][2]))
+    print(((args.min_segment+args.max_segment)/2)*((args.min_speed+args.max_speed)/2))
 
     videos = []
     labels = []
     database = {}
-    for idx in range(0, min_len):  # for every video
-        # Define the activities
-        new_subset_list = randomly_permute_drop_repeat_tasks(subset_list)
 
-        # Pick a global speed scaling factor
-        video_speed = (
-            args.min_speed + (args.max_speed -
-                              args.min_speed) * random.random()
-        )
+    for target in targets:
+        subset_list = []
+        min_len = math.inf
+        for (targ, motion) in target:
+            subset_list.append((motion, targ, subsets[targ]))  # for every sub-task
+            min_len = len(subsets[targ]) if len(
+                subsets[targ]) < min_len else min_len
 
-        make_data(videos, labels, database, idx, new_subset_list, video_speed)
-    assert len(videos) == len(labels)
+        for i in range(len(subset_list)):
+            print("#images for class ", i, ": ", len(subset_list[i][2]))
+
+        
+        idx_offset = len(videos)
+        for idx in range(0, min_len):  # for every video
+            # Define the activities
+            new_subset_list = randomly_permute_drop_repeat_tasks(subset_list)
+
+            # Pick a global speed scaling factor
+            video_speed = (
+                args.min_speed + (args.max_speed -
+                                args.min_speed) * random.random()
+            )
+
+            make_data(videos, labels, database, idx + idx_offset, new_subset_list, video_speed)
+        assert len(videos) == len(labels)
 
     if args.add_bg:
         videos = add_background(videos)
@@ -388,7 +394,7 @@ def make_data(
     # Loop over list of activities
     for (motion, targ, subset) in subset_list:
         # Read the pill image associated with this video activity
-        (pil_image, _) = subset.__getitem__(idx)
+        (pil_image, _) = subset.__getitem__(idx % len(subset))
         pil_image = pil_image.resize(
             (int(pil_image.size[0] * 0.5), int(pil_image.size[1] * 0.5)),
             Image.BILINEAR,
@@ -668,12 +674,15 @@ if __name__ == "__main__":
     # check_rootfolders(args.new_path, "frames-" + args.name)
     create_activity_mnist(
         train=False,
-        targets=[
-            (1, "horizontal"),
-            (3, "inv_diagonal"),
-            (5, "inv-horizontal"),
-            (7, "diagonal"),
-            (9, "vertical"),
+        targets = [
+            [(1, "horizontal"),
+             (3, "inv_diagonal"),
+             (5, "inv-horizontal"),
+             (7, "diagonal"),
+             (9, "vertical")],
+            # [(3, "horizontal"),
+            #  (5, "inv-horizontal"),
+            #  (9, "vertical")],
         ],
         file_name=args.name,
     )

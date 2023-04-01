@@ -3,9 +3,8 @@ from torch.utils.data import Dataset
 from PIL import Image
 import os
 
-class ProgressDataset(Dataset):
+class UCFDataset(Dataset):
     def __init__(self, root: str, data_type: str, split_path: str, transform=None, sample_transform=None) -> None:
-        super(ProgressDataset, self).__init__()
         self.root = root
         self.data_root = os.path.join(root, data_type)
         self.split_files = self._load_split(os.path.join(root, split_path))

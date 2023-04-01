@@ -29,22 +29,25 @@ def get_device():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--no_wandb', action='store_true')
+    parser.add_argument('--seed', type=int, default=42, help='Experiment seed')
+    # wandb
+    parser.add_argument('--no_wandb', action='store_true', help='Disable wandb')
+    parser.add_argument('--group', type=str, default='default', help='Used to group charts together in wandb')
     # plots
-    parser.add_argument('--plots', action='store_true')
-    parser.add_argument('--plot_every', type=int, default=25)
+    parser.add_argument('--plots', action='store_true', help='Enable plots')
+    parser.add_argument('--plot_every', type=int, default=25, help='How often to plot')
     # data
-    parser.add_argument('--dataset', type=str, default='toy')
-    parser.add_argument('--augmentations', nargs='+', default='')
+    parser.add_argument('--dataset', type=str, default='toy', help='Which dataset to use')
     # forecasting
-    parser.add_argument('--forecast', action='store_true')
-    parser.add_argument('--delta_t', type=int, default=10)
+    parser.add_argument('--forecast', action='store_true', help='Eanble forecasting')
+    parser.add_argument('--delta_t', type=int, default=10, help='Number of timesteps in the future to forecast')
     # training
-    parser.add_argument('--batch_size', type=int, default=1)
-    parser.add_argument('--lr', type=float, default=3e-3)
-    parser.add_argument('--iterations', type=int, default=1001)
-    parser.add_argument('--test_every', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
+    parser.add_argument('--lr', type=float, default=3e-3, help='Learning rate')
+    parser.add_argument('--iterations', type=int, default=1001, help='Number of iterations')
+    parser.add_argument('--test_every', type=int, default=100, help='On which iterations to test')
+    parser.add_argument('--augmentations', nargs='+', default='', help='List of augmentations')
+    parser.add_argument('--p_dropout', type=float, default=0.5, help='Dropout chance of progressnet')
 
 
     return parser.parse_args()
@@ -65,7 +68,7 @@ def train(network, batch, l1_criterion, l2_criterion, args, device, optimizer=No
     forecasted_progress = torch.ones_like(progress)
     forecasted_progress[:, :-args.delta_t] = progress[:, args.delta_t:]
     # forward pass
-    predictions, forecasted_predictions = network(frames.to(device))
+    predictions, forecasted_predictions, embeddings, forecasted_embeddings = network(frames.to(device))
     # calculate adj. predictions
     B, S = forecasted_predictions.shape
     indices = torch.arange(1, S+1).repeat(B, 1)
@@ -81,6 +84,7 @@ def train(network, batch, l1_criterion, l2_criterion, args, device, optimizer=No
     forecasted_progress = forecasted_progress.to(device)
     l1_forecast_loss = l1_criterion(forecasted_predictions, forecasted_progress.to(device))
     l2_forecast_loss = l2_criterion(forecasted_predictions, forecasted_progress.to(device))
+    l2_embedding_loss = l2_criterion(embeddings[:, args.delta_t:, :], forecasted_embeddings[:, :-args.delta_t, :])
     # optimizer
     if optimizer:
         optimizer.zero_grad()
@@ -103,6 +107,7 @@ def train(network, batch, l1_criterion, l2_criterion, args, device, optimizer=No
         'l2_loss': l2_loss.item(),
         'l2_adjusted_loss': l2_adjusted_loss.item(),
         'l2_forecast_loss': l2_forecast_loss.item(),
+        'l2_embedding_loss': l2_embedding_loss.item(),
         'count': lengths.sum().item()
     }
 
@@ -114,6 +119,7 @@ def get_empty_results() -> dict:
         'l2_loss': 0.0,
         'l2_adjusted_loss': 0.0,
         'l2_forecast_loss': 0.0,
+        'l2_embedding_loss': 0.0,
         'count': 0
     }
 
@@ -126,10 +132,15 @@ def wandb_log(results: dict, iteration: int, prefix: str) -> None:
     wandb.log({
         f'{prefix}_l1_loss': results['l1_loss'] / results['count'],
         f'{prefix}_l2_loss': results['l2_loss'] / results['count'],
+
         f'{prefix}_l1_forecast_loss': results['l1_forecast_loss'] / results['count'],
         f'{prefix}_l2_forecast_loss': results['l2_forecast_loss'] / results['count'],
+
         f'{prefix}_l1_adjusted_loss': results['l1_adjusted_loss'] / results['count'],
         f'{prefix}_l2_adjusted_loss': results['l2_adjusted_loss'] / results['count'],
+
+        f'{prefix}_l2_embedding_loss': results['l2_embedding_loss'] / results['count'],
+    
         'iteration': iteration,
     })
 
@@ -154,6 +165,8 @@ def main():
                 'lr': args.lr,
                 'iterations': args.iterations,
                 'test_every': args.test_every,
+                'p_dropout': args.p_dropout,
+                'group': args.group,
             }
         )
 
@@ -164,12 +177,12 @@ def main():
         transforms.ToTensor()
     ])
     sample_transform = get_sample_transform(args.augmentations)
-    trainset = ProgressDataset(root, data_type, 'splitfiles/trainlist01.txt', transform=transform)
+    trainset = ProgressDataset(root, data_type, 'splitfiles/trainlist01.txt', transform=transform, sample_transform=sample_transform)
     testset = ProgressDataset(root, data_type, 'splitfiles/testlist01.txt', transform=transform)
     trainloader = DataLoader(trainset, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
     testloader = DataLoader(testset, batch_size=args.batch_size, num_workers=2, shuffle=False, collate_fn=collate_fn)
 
-    progressnet = UnrolledProgressNet(p_dropout=0.5).to(device)
+    progressnet = UnrolledProgressNet(p_dropout=args.p_dropout).to(device)
     progressnet.apply(ProgressNet.init_weights)
 
     optimizer = optim.Adam(progressnet.parameters(), lr=args.lr)

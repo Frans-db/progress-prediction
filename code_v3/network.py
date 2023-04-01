@@ -115,4 +115,4 @@ class UnrolledProgressNet(nn.Module):
         forecasted_progress = torch.sigmoid(self.fc8(forecasted_progress))
         forecasted_progress = forecasted_progress.reshape(B, S)
 
-        return progress, forecasted_progress
+        return progress, forecasted_progress, embedded, forecasted_embedded
