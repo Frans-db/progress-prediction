@@ -12,7 +12,7 @@ import random
 import numpy as np
 
 from progress_dataset import ProgressDataset
-from network import ProgressNet
+from network import ProgressNet, PooledProgressNet, init_weights
 from augmentations import Subsection, Subsample, Removal
 
 def collate_fn(batch):
@@ -36,6 +36,8 @@ def parse_args():
     # plots
     parser.add_argument('--plots', action='store_true', help='Enable plots')
     parser.add_argument('--plot_every', type=int, default=25, help='How often to plot')
+    # network
+    parser.add_argument('--network', type=str, default='progressnet', help='Network to use: progressnet / pooled_progressnet')
     # data
     parser.add_argument('--dataset', type=str, default='toy', help='Which dataset to use')
     # forecasting
@@ -159,6 +161,7 @@ def main():
             project='mscfransdeboer',
             config={
                 'seed': args.seed,
+                'network': args.network,
                 'dataset': args.dataset,
                 'augmentations': args.augmentations,
                 'losses': args.losses,
@@ -184,8 +187,11 @@ def main():
     trainloader = DataLoader(trainset, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
     testloader = DataLoader(testset, batch_size=args.batch_size, num_workers=2, shuffle=False, collate_fn=collate_fn)
 
-    progressnet = UnrolledProgressNet(p_dropout=args.p_dropout).to(device)
-    progressnet.apply(ProgressNet.init_weights)
+    if args.network == 'progressnet':
+        progressnet = ProgressNet()(p_dropout=args.p_dropout).to(device)
+    elif args.network == 'pooled_progressnet':
+        progressnet = PooledProgressNet()(p_dropout=args.p_dropout).to(device)
+    progressnet.apply(init_weights)
 
     optimizer = optim.Adam(progressnet.parameters(), lr=args.lr)
     l1_criterion = nn.L1Loss(reduction='sum')
