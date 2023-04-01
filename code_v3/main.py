@@ -12,7 +12,7 @@ import random
 import numpy as np
 
 from progress_dataset import ProgressDataset
-from network import ProgressNet, UnrolledProgressNet
+from network import ProgressNet
 from augmentations import Subsection, Subsample, Removal
 
 def collate_fn(batch):
@@ -39,15 +39,15 @@ def parse_args():
     # data
     parser.add_argument('--dataset', type=str, default='toy', help='Which dataset to use')
     # forecasting
-    parser.add_argument('--forecast', action='store_true', help='Eanble forecasting')
     parser.add_argument('--delta_t', type=int, default=10, help='Number of timesteps in the future to forecast')
     # training
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--lr', type=float, default=3e-3, help='Learning rate')
     parser.add_argument('--iterations', type=int, default=1001, help='Number of iterations')
     parser.add_argument('--test_every', type=int, default=100, help='On which iterations to test')
-    parser.add_argument('--augmentations', nargs='+', default='', help='List of augmentations')
+    parser.add_argument('--augmentations', nargs='+', default='', help='List of augmentations: subsection, subsample, removal')
     parser.add_argument('--p_dropout', type=float, default=0.5, help='Dropout chance of progressnet')
+    parser.add_argument('--losses', nargs='+', default='progress', help='List of extra losses: forecast, embedding')
 
 
     return parser.parse_args()
@@ -88,10 +88,12 @@ def train(network, batch, l1_criterion, l2_criterion, args, device, optimizer=No
     # optimizer
     if optimizer:
         optimizer.zero_grad()
-        if args.forecast:
-            (l2_loss + l2_forecast_loss).backward()
-        else:
-            l2_loss.backward()
+        loss = l2_loss
+        if 'forecast' in args.losses:
+            loss += l2_forecast_loss
+        if 'embedding' in args.losses:
+            loss += l2_embedding_loss
+        loss.backward()
         optimizer.step()
 
     return {
@@ -159,7 +161,7 @@ def main():
                 'seed': args.seed,
                 'dataset': args.dataset,
                 'augmentations': args.augmentations,
-                'forecast': args.forecast,
+                'losses': args.losses,
                 'delta_t': args.delta_t,
                 'batch_size': args.batch_size,
                 'lr': args.lr,
