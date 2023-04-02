@@ -17,7 +17,7 @@ class ProgressDataset(Dataset):
             labels = [int(line) for line in f.readlines()]
         return labels
 
-    def __getitem__(self, index: int) -> tuple[torch.FloatTensor, torch.FloatTensor]:
+    def __getitem__(self, index: int):
         video_name = self.split_files[index]
         video_dir = os.path.join(self.data_root, video_name)
 
