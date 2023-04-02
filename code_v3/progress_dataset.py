@@ -12,7 +12,7 @@ class ProgressDataset(Dataset):
         self.transform = transform
         self.sample_transform = sample_transform
 
-    def get_action_labels(self, video_name: str) -> list[int]:
+    def get_action_labels(self, video_name: str):
         with open(os.path.join(self.root, 'labels', video_name), 'r') as f:
             labels = [int(line) for line in f.readlines()]
         return labels
@@ -41,7 +41,7 @@ class ProgressDataset(Dataset):
     def __len__(self) -> int:
         return len(self.split_files)
 
-    def _load_split(self, split_path: str) -> list[str]:
+    def _load_split(self, split_path: str):
         with open(split_path, 'r') as f:
             lines = f.readlines()
         return [line.strip() for line in lines]

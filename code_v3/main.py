@@ -55,7 +55,7 @@ def parse_args():
 
     return parser.parse_args()
 
-def get_sample_transform(augmentations: list[str]):
+def get_sample_transform(augmentations):
     sample_transform_list = []
     if 'subsection' in augmentations:
         sample_transform_list.append(Subsection())
