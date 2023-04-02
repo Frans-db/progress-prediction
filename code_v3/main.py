@@ -12,7 +12,7 @@ import random
 import numpy as np
 
 from progress_dataset import ProgressDataset
-from network import ProgressNet, PooledProgressNet, init_weights
+from network import ProgressNet, PooledProgressNet, RNNProgressNet, init_weights
 from augmentations import Subsection, Subsample, Removal
 
 def collate_fn(batch):
@@ -36,6 +36,7 @@ def parse_args():
     # plots
     parser.add_argument('--plots', action='store_true', help='Enable plots')
     parser.add_argument('--plot_every', type=int, default=25, help='How often to plot')
+    parser.add_argument('--plot_directory', type=str, default='plots')
     # network
     parser.add_argument('--network', type=str, default='progressnet', help='Network to use: progressnet / pooled_progressnet')
     # data
@@ -45,7 +46,7 @@ def parse_args():
     # training
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--lr', type=float, default=3e-3, help='Learning rate')
-    parser.add_argument('--iterations', type=int, default=1001, help='Number of iterations')
+    parser.add_argument('--iterations', type=int, default=1000, help='Number of iterations')
     parser.add_argument('--test_every', type=int, default=100, help='On which iterations to test')
     parser.add_argument('--augmentations', nargs='+', default='', help='List of augmentations: subsection, subsample, removal')
     parser.add_argument('--p_dropout', type=float, default=0.5, help='Dropout chance of progressnet')
@@ -90,12 +91,13 @@ def train(network, batch, l1_criterion, l2_criterion, args, device, optimizer=No
     # optimizer
     if optimizer:
         optimizer.zero_grad()
-        loss = l2_loss
+        loss = l2_loss.clone()
         if 'forecast' in args.losses:
             loss += l2_forecast_loss
         if 'embedding' in args.losses:
             loss += l2_embedding_loss
         loss.backward()
+
         optimizer.step()
 
     return {
@@ -175,6 +177,9 @@ def main():
             }
         )
 
+    if args.plots:
+        os.mkdir(f'./plots/{args.plot_directory}')
+
     root = f'/home/frans/Datasets/{args.dataset}'
     data_type = 'rgb-images'
 
@@ -188,9 +193,12 @@ def main():
     testloader = DataLoader(testset, batch_size=args.batch_size, num_workers=2, shuffle=False, collate_fn=collate_fn)
 
     if args.network == 'progressnet':
-        progressnet = ProgressNet()(p_dropout=args.p_dropout).to(device)
+        progressnet = ProgressNet(p_dropout=args.p_dropout).to(device)
     elif args.network == 'pooled_progressnet':
-        progressnet = PooledProgressNet()(p_dropout=args.p_dropout).to(device)
+        progressnet = PooledProgressNet(p_dropout=args.p_dropout).to(device)
+    elif args.network == 'rnn_progressnet':
+        progressnet = RNNProgressNet(p_dropout=args.p_dropout).to(device)
+
     progressnet.apply(init_weights)
 
     optimizer = optim.Adam(progressnet.parameters(), lr=args.lr)
@@ -200,7 +208,8 @@ def main():
     iteration = 0
     train_results = get_empty_results()
     test_results = get_empty_results()
-    while iteration < args.iterations:
+    done = False
+    while not done:
         # train iteration
         for batch in trainloader:
             batch_result = train(progressnet, batch, l1_criterion, l2_criterion, args, device, optimizer=optimizer)
@@ -235,7 +244,8 @@ def main():
                             plt.legend(loc='best')
                             plt.xlabel('Frame')
                             plt.ylabel('Progress (%)')
-                            plt.savefig(f'./plots/{iteration}_{i}.png')
+                            plt.title(f'{args.dataset} - {video_name}')
+                            plt.savefig(f'./plots/{args.plot_directory}/{iteration}_{i}.png')
                             plt.clf()
 
                 if not args.no_wandb:
@@ -244,60 +254,12 @@ def main():
                 train_results = get_empty_results()
                 test_results = get_empty_results()
             
-            # update & log to wandb
             iteration += 1
+            if iteration > args.iterations:
+                done = True
+                break
 
-    # for epoch in range(args.epochs):
-    #     train_loss, train_forecast_loss, train_count = 0.0, 0.0, 0
-    #     test_loss, test_forecast_loss, test_count = 0.0, 0.0, 0
-    #     network.train()
-    #     for video_names, frames, progress, lengths in trainloader:
-    #         predictions, forecasted_predictions = network(frames.to(device))
+    wandb.finish()
 
-    #         forecasted_progress = torch.ones_like(progress)
-    #         forecasted_progress[:, :-DELTA_T] = progress[:, DELTA_T:]
-
-    #         loss = l2_criterion(predictions, progress.to(device))
-    #         forecast_loss = l2_criterion(forecasted_predictions, forecasted_progress.to(device))
-
-    #         optimizer.zero_grad()
-    #         (loss + forecast_loss).backward()
-    #         optimizer.step()
-
-    #         train_loss += loss.item()
-    #         train_forecast_loss += forecast_loss.item()
-    #         train_count += lengths.sum().item()
-
-
-    #     os.mkdir(f'./plots/{epoch}')
-    #     network.eval()
-    #     for i, (video_names, frames, progress, lengths) in enumerate(testloader):
-    #         predictions, forecasted_predictions = network(frames.to(device))
-    #         forecasted_progress = torch.ones_like(progress)
-    #         forecasted_progress[:, :-DELTA_T] = progress[:, DELTA_T:]
-
-    #         loss = l2_criterion(predictions, progress.to(device))
-    #         forecast_loss = l2_criterion(forecasted_predictions, forecasted_progress.to(device))
-
-    #         test_loss += loss.item()
-    #         test_forecast_loss += forecast_loss.item()
-    #         test_count += lengths.sum().item()
-
-    #         if i % 10 == 0:
-                # action_labels = testset.get_action_labels(video_names[0])
-                # for j, label in enumerate(action_labels):
-                #     plt.axvspan(j-0.5, j+0.5, facecolor=['r', 'g', 'b', 'c', 'm', 'y'][label], alpha=0.2, zorder=-1)
-    #             plt.plot(predictions.detach().cpu().squeeze(), label='predicted progress')
-    #             forecasted_predictions = forecasted_predictions.detach().cpu().squeeze().tolist()
-    #             plt.plot([i+DELTA_T for i,_ in enumerate(forecasted_predictions)], forecasted_predictions, label='forecasted progress')
-    #             plt.plot(progress.detach().cpu().squeeze(), label='progress')
-
-    #             plt.legend(loc='best')
-    #             plt.title(f'Sample {video_names[0]} - Δt={DELTA_T}')
-    #             plt.savefig(f'./plots/{epoch}/sample_{i}.png')
-    #             plt.clf()
-
-    #     print(f'[{epoch:03d} train] l2 loss {(train_loss / train_count):.4f} forecast loss  {(train_forecast_loss / train_count):.4f}')
-    #     print(f'[{epoch:03d} test]  l2 loss {(test_loss / test_count):.4f} forecast loss  {(test_forecast_loss / train_count):.4f}')
 if __name__ == '__main__':
     main()

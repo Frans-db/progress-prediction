@@ -321,7 +321,7 @@ def get_motion(
     elif motion == "diagonal":
         x = x + math.sqrt(step * step) * f
         y = y + math.sqrt(step * step) * f
-    elif motion == "inv_diagonal":
+    elif motion == "inv-diagonal":
         x = x - math.sqrt(step * step) * f
         y = y + math.sqrt(step * step) * f
 
@@ -369,7 +369,7 @@ def get_color(image, motion, f, frames):
         color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
         rgb_image = rgb_image / 255.0 * color
 
-    elif motion == "inv_diagonal":
+    elif motion == "inv-diagonal":
         colorS = np.array([153.0, 153.0, 255.0])
         colorE = np.array([153.0, 204.0, 0.0])
         color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
@@ -676,13 +676,14 @@ if __name__ == "__main__":
         train=False,
         targets = [
             [(1, "horizontal"),
-             (3, "inv_diagonal"),
+             (3, "inv-diagonal"),
              (5, "inv-horizontal"),
              (7, "diagonal"),
              (9, "vertical")],
-            # [(3, "horizontal"),
-            #  (5, "inv-horizontal"),
-            #  (9, "vertical")],
+
+            [(1, "horizontal"),
+             (2, "inv-horizontal"),
+             (4, "inv-diagonal")],
         ],
         file_name=args.name,
     )
