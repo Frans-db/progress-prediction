@@ -679,7 +679,8 @@ if __name__ == "__main__":
              (3, "inv-diagonal"),
              (5, "inv-horizontal"),
              (7, "diagonal"),
-             (9, "vertical")],
+             (9, "vertical")
+             (6, "inv-horizontal")],
 
             [(1, "horizontal"),
              (2, "inv-horizontal"),
