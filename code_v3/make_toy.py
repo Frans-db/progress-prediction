@@ -119,13 +119,13 @@ def create_activity_mnist(
     for target in targets:
         subset_list = []
         min_len = math.inf
-        for (targ, motion) in target:
-            subset_list.append((motion, targ, subsets[targ]))  # for every sub-task
+        for (targ, motion, colours) in target:
+            subset_list.append((motion, colours, targ, subsets[targ]))  # for every sub-task
             min_len = len(subsets[targ]) if len(
                 subsets[targ]) < min_len else min_len
 
         for i in range(len(subset_list)):
-            print("#images for class ", i, ": ", len(subset_list[i][2]))
+            print("#images for class ", i, ": ", len(subset_list[i][3]))
 
         
         idx_offset = len(videos)
@@ -343,37 +343,30 @@ def get_motion(
     return x, y
 
 
-def get_color(image, motion, f, frames):
-    rgb_image = np.stack([image, image, image], axis=2)
+def get_color(motion):
     if motion == "horizontal":
         colorS = np.array([255.0, 0.0, 255.0])
         colorE = np.array([255.0, 255.0, 0.0])
-        color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
-        rgb_image = rgb_image / 255.0 * color
-
     elif motion == "inv-horizontal":
         colorS = np.array([0.0, 0.0, 255.0])
         colorE = np.array([255.0, 0.0, 0.0])
-        color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
-        rgb_image = rgb_image / 255.0 * color
-
     elif motion == "vertical":
         colorS = np.array([0.0, 255.0, 255.0])
         colorE = np.array([0.0, 255.0, 0.0])
-        color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
-        rgb_image = rgb_image / 255.0 * color
-
     elif motion == "diagonal":
         colorS = np.array([255.0, 102.0, 0.0])
         colorE = np.array([204.0, 153.0, 255.0])
-        color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
-        rgb_image = rgb_image / 255.0 * color
-
     elif motion == "inv-diagonal":
         colorS = np.array([153.0, 153.0, 255.0])
         colorE = np.array([153.0, 204.0, 0.0])
-        color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
-        rgb_image = rgb_image / 255.0 * color
+
+    return colorS, colorE
+
+def apply_color(image, colours, f, frames):
+    rgb_image = np.stack([image, image, image], axis=2)
+    colorS, colorE = colours
+    color = (colorE * (f + 1) / frames) + (colorS * (1 - (f + 1) / frames))
+    rgb_image = rgb_image / 255.0 * color
 
     return rgb_image / 255.0
 
@@ -392,7 +385,7 @@ def make_data(
     numf = 0
 
     # Loop over list of activities
-    for (motion, targ, subset) in subset_list:
+    for (motion, colours, targ, subset) in subset_list:
         # Read the pill image associated with this video activity
         (pil_image, _) = subset.__getitem__(idx % len(subset))
         pil_image = pil_image.resize(
@@ -458,7 +451,7 @@ def make_data(
                 video_speed,
             )
 
-            rgb_image = get_color(image, motion, f, frames)
+            rgb_image = apply_color(image, colours, f, frames)
             # print(motion, start_x," : ",(start_x + image.shape[0])," ",start_y," : ",(start_y + image.shape[1])," ",videos[idx].shape)
             boxes.append([start_x, start_y, image.shape[1], image.shape[0]])
             videos[idx][
@@ -675,16 +668,16 @@ if __name__ == "__main__":
     create_activity_mnist(
         train=False,
         targets = [
-            [(1, "horizontal"),
-             (3, "inv-diagonal"),
-             (5, "inv-horizontal"),
-             (7, "diagonal"),
-             (9, "vertical")
-             (6, "inv-horizontal")],
+            [(1, "horizontal", get_color('horizontal')),
+             (3, "inv-diagonal", get_color('inv-diagonal')),
+             (5, "inv-horizontal", get_color('inv-horizontal')),
+             (7, "diagonal", get_color('diagonal')),
+             (9, "vertical", get_color('vertical')),
+             (6, "inv-horizontal", get_color('inv-horizontal'))],
 
-            [(1, "horizontal"),
-             (2, "inv-horizontal"),
-             (4, "inv-diagonal")],
+            [(1, "horizontal", get_color('horizontal')),
+             (2, "inv-horizontal", get_color('inv-horizontal')),
+             (4, "inv-diagonal", get_color('inv-diagonal'))],
         ],
         file_name=args.name,
     )
