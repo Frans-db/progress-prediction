@@ -148,7 +148,8 @@ def wandb_log(results: dict, iteration: int, prefix: str) -> None:
         f'{prefix}_l2_adjusted_loss': results['l2_adjusted_loss'] / results['count'],
 
         f'{prefix}_l2_embedding_loss': results['l2_embedding_loss'] / results['count'],
-    
+
+        'count': results['count'],
         'iteration': iteration,
     })
 
