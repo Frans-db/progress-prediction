@@ -15,6 +15,8 @@ from progress_dataset import ProgressDataset
 from network import ProgressNet, PooledProgressNet, RNNProgressNet, init_weights
 from augmentations import Subsection, Subsample, Removal
 
+COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'orange', 'lime', 'darkblue']
+
 def collate_fn(batch):
     video_names, frames, progress = zip(*batch)
     lengths = torch.Tensor([sample.shape[0] for sample in frames])
@@ -240,7 +242,7 @@ def main():
                             plt.plot(forecasted_indices, forecasted_predictions, label='forecasted predictions')
                             action_labels = testset.get_action_labels(video_name)
                             for j, label in enumerate(action_labels):
-                                plt.axvspan(j-0.5, j+0.5, facecolor=['r', 'g', 'b', 'c', 'm', 'y'][label], alpha=0.2, zorder=-1)
+                                plt.axvspan(j-0.5, j+0.5, facecolor=COLORS[label], alpha=0.2, zorder=-1)
                             plt.legend(loc='best')
                             plt.xlabel('Frame')
                             plt.ylabel('Progress (%)')
