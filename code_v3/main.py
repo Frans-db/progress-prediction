@@ -12,10 +12,14 @@ import random
 import numpy as np
 
 from progress_dataset import ProgressDataset
-from network import ProgressNet, PooledProgressNet, RNNProgressNet, init_weights
+from ucf_dataset import UCFDataset
+# from networks import ProgressNet, PooledProgressNet, RNNProgressNet, init_weights
+# from networks import SimpleProgressNet, SpatialProgressNet, WeirdProgressNet, WeirderProgressNet
+from networks import init_weights
+from networks import TinyProgressNet, OracleProgressNet, TinyLSTMNet
 from augmentations import Subsection, Subsample, Removal
 
-COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'orange', 'lime', 'darkblue']
+COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'orange', 'lime', 'darkblue']
 
 def collate_fn(batch):
     video_names, frames, progress = zip(*batch)
@@ -153,6 +157,28 @@ def wandb_log(results: dict, iteration: int, prefix: str) -> None:
         'iteration': iteration,
     })
 
+def get_network(args) -> nn.Module:
+    # if args.network == 'progressnet':
+    #     progressnet = ProgressNet(p_dropout=args.p_dropout)
+    # elif args.network == 'pooled_progressnet':
+    #     progressnet = PooledProgressNet(p_dropout=args.p_dropout)
+    # elif args.network == 'rnn_progressnet':
+    #     progressnet = RNNProgressNet(p_dropout=args.p_dropout)
+    # elif args.network == 'simple_progressnet':
+    #     progressnet = SimpleProgressNet(p_dropout=args.p_dropout)
+    # elif args.network == 'spatial_progressnet':
+    #     progressnet = SpatialProgressNet(p_dropout=args.p_dropout)
+    # elif args.network == 'weird_progressnet':
+    #     progressnet = WeirdProgressNet(p_dropout=args.p_dropout, delta_t=args.delta_t)
+    # elif args.network == 'weirder_progressnet':
+    #     progressnet = WeirderProgressNet(p_dropout=args.p_dropout, delta_t=args.delta_t)
+    if args.network == 'tiny_progressnet':
+        return TinyProgressNet()
+    elif args.network == 'oracle_progressnet':
+        return OracleProgressNet(delta_t=args.delta_t)
+
+    raise Exception(f'Network {args.network} does not exist')
+
 def main():
     device = get_device()
     args = parse_args()
@@ -190,18 +216,16 @@ def main():
         transforms.ToTensor()
     ])
     sample_transform = get_sample_transform(args.augmentations)
-    trainset = ProgressDataset(root, data_type, 'splitfiles/trainlist01.txt', transform=transform, sample_transform=sample_transform)
-    testset = ProgressDataset(root, data_type, 'splitfiles/testlist01.txt', transform=transform)
+    if args.dataset == 'ucf24':
+        trainset = UCFDataset(root, data_type, 'splitfiles/trainlist01.txt', 'splitfiles/pyannot.pkl', transform=transform, sample_transform=sample_transform)
+        testset = UCFDataset(root, data_type, 'splitfiles/testlist01.txt', 'splitfiles/pyannot.pkl', transform=transform, sample_transform=sample_transform)
+    else:
+        trainset = ProgressDataset(root, data_type, 'splitfiles/trainlist01.txt', transform=transform, sample_transform=sample_transform)
+        testset = ProgressDataset(root, data_type, 'splitfiles/testlist01.txt', transform=transform)
     trainloader = DataLoader(trainset, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
     testloader = DataLoader(testset, batch_size=args.batch_size, num_workers=2, shuffle=False, collate_fn=collate_fn)
 
-    if args.network == 'progressnet':
-        progressnet = ProgressNet(p_dropout=args.p_dropout).to(device)
-    elif args.network == 'pooled_progressnet':
-        progressnet = PooledProgressNet(p_dropout=args.p_dropout).to(device)
-    elif args.network == 'rnn_progressnet':
-        progressnet = RNNProgressNet(p_dropout=args.p_dropout).to(device)
-
+    progressnet = get_network(args).to(device)
     progressnet.apply(init_weights)
 
     optimizer = optim.Adam(progressnet.parameters(), lr=args.lr)
@@ -239,11 +263,13 @@ def main():
                             forecasted_indices = range(args.delta_t, S + args.delta_t)
                             plt.plot(indices, progress, label='progress')
                             plt.plot(indices, predictions, label='predicted progress')
-                            plt.plot(indices, adj_predictions, label='adjusted progress')
                             plt.plot(forecasted_indices, forecasted_predictions, label='forecasted predictions')
-                            action_labels = testset.get_action_labels(video_name)
-                            for j, label in enumerate(action_labels):
-                                plt.axvspan(j-0.5, j+0.5, facecolor=COLORS[label], alpha=0.2, zorder=-1)
+                            plt.plot(indices, adj_predictions, label='adjusted progress')
+                            
+                            if 'toy' in args.dataset:
+                                action_labels = testset.get_action_labels(video_name)
+                                for j, label in enumerate(action_labels):
+                                    plt.axvspan(j-0.5, j+0.5, facecolor=COLORS[label], alpha=0.2, zorder=-1)
                             plt.legend(loc='best')
                             plt.xlabel('Frame')
                             plt.ylabel('Progress (%)')

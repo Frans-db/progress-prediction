@@ -10,9 +10,8 @@ device = get_device()
 
 
 class ProgressNet(nn.Module):
-    def __init__(self, embed_size: int = 4096, p_dropout: float = 0, num_heads: int = 1) -> int:
+    def __init__(self, embed_size: int = 4096, p_dropout: float = 0.5) -> int:
         super(ProgressNet, self).__init__()
-        self.num_heads = num_heads
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)
         self.spp_dropout = nn.Dropout(p=p_dropout)
@@ -70,9 +69,8 @@ class ProgressNet(nn.Module):
         return progress, forecasted_progress, embedded, forecasted_embedded
 
 class PooledProgressNet(nn.Module):
-    def __init__(self, embed_size: int = 4096, p_dropout: float = 0, num_heads: int = 1) -> int:
+    def __init__(self, embed_size: int = 4096, p_dropout: float = 0.5) -> int:
         super(PooledProgressNet, self).__init__()
-        self.num_heads = num_heads
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)
         self.spp_dropout = nn.Dropout(p=p_dropout)
@@ -139,7 +137,6 @@ class PooledProgressNet(nn.Module):
 class RNNProgressNet(nn.Module):
     def __init__(self, embed_size: int = 4096, p_dropout: float = 0, num_heads: int = 1) -> int:
         super(RNNProgressNet, self).__init__()
-        self.num_heads = num_heads
         self.spp = SpatialPyramidPooling([4, 3, 2, 1])
         self.spp_fc = nn.Linear(90, embed_size)
         self.spp_dropout = nn.Dropout(p=p_dropout)
@@ -204,13 +201,3 @@ class RNNProgressNet(nn.Module):
         forecasted_progress = forecasted_progress.reshape(B, S)
 
         return progress, forecasted_progress, pooled.reshape(B, S, -1), forecasted_pooled.reshape(B, S, -1)
-
-def init_weights(m: nn.Module) -> None:
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        nn.init.uniform_(m.bias, a=0, b=0)
-    elif isinstance(m, nn.LSTM):
-        nn.init.xavier_uniform_(m.weight_hh_l0)
-        nn.init.xavier_uniform_(m.weight_ih_l0)
-        nn.init.uniform_(m.bias_ih_l0, a=0, b=0)
-        nn.init.uniform_(m.bias_hh_l0, a=0, b=0)

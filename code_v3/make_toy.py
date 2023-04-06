@@ -15,6 +15,7 @@ import pickle
 from mycolorpy import colorlist as mcp
 import os
 import sys
+from tqdm import tqdm
 
 # sys.path.append("../../")
 # from util.utils import (
@@ -129,7 +130,7 @@ def create_activity_mnist(
 
         
         idx_offset = len(videos)
-        for idx in range(0, min_len):  # for every video
+        for idx in tqdm(range(0, min_len)):  # for every video
             # Define the activities
             new_subset_list = randomly_permute_drop_repeat_tasks(subset_list)
 
@@ -166,7 +167,7 @@ def create_activity_mnist(
         pickle.dump(database, f)
 
     label_translations = []
-    for video_id, (video, labels) in enumerate(zip(videos, labels)):
+    for video_id, (video, labels) in tqdm(enumerate(zip(videos, labels))):
         translated_labels = []
         for label in labels:
             label = int(label)
@@ -659,26 +660,36 @@ def read_activity_mnist(name="activity_mnist_small"):
     # Get data statistics
     data_stats(videos, labels)
 
-
 # ------------------------------------------------------------------------------------
 if __name__ == "__main__":
+    targets = []
+    prev_target = None
+
+    digits = list(range(10))
+    actions = ['horizontal', 'inv-horizontal', 'vertical', 'diagonal', 'inv-diagonal']
+    for i in range(100):
+        subaction = (random.choice(digits), random.choice(actions), get_color(random.choice(actions)))
+        if subaction is prev_target:
+            continue
+        prev_target = subaction
+        targets.append(subaction)
+    print(len(targets))
 
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
     create_activity_mnist(
         train=False,
-        targets = [
-            [(1, "horizontal", get_color('horizontal')),
-             (3, "inv-diagonal", get_color('inv-diagonal')),
-             (5, "inv-horizontal", get_color('inv-horizontal')),
-             (7, "diagonal", get_color('diagonal')),
-             (9, "vertical", get_color('vertical')),
-             (6, "inv-horizontal", get_color('inv-horizontal'))],
-
-            [(1, "horizontal", get_color('horizontal')),
-             (2, "inv-horizontal", get_color('inv-horizontal')),
-             (4, "inv-diagonal", get_color('inv-diagonal'))],
-        ],
+        targets=[targets],
+        # targets = [
+        #     [(1, "horizontal", get_color('horizontal')),
+        #      (2, "diagonal", get_color('inv-diagonal')),
+        #     #  (3, "inv-diagonal", get_color('inv-diagonal')),
+        #     #  (5, "inv-horizontal", get_color('inv-horizontal')),
+        #     #  (7, "diagonal", get_color('diagonal')),
+        #     #  (9, "vertical", get_color('vertical')),
+        #     #  (6, "inv-horizontal", get_color('inv-horizontal'))
+        #      ],
+        # ],
         file_name=args.name,
     )
     # read_activity_mnist(name=args.name)
