@@ -17,6 +17,7 @@ from ucf_dataset import UCFDataset
 # from networks import SimpleProgressNet, SpatialProgressNet, WeirdProgressNet, WeirderProgressNet
 from networks import init_weights
 from networks import TinyProgressNet, OracleProgressNet, TinyLSTMNet
+from networks import SeparateSingleLSTM, SeparateDoubleLSTM
 from augmentations import Subsection, Subsample, Removal
 
 COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'orange', 'lime', 'darkblue']
@@ -176,7 +177,11 @@ def get_network(args) -> nn.Module:
         return TinyProgressNet()
     elif args.network == 'oracle_progressnet':
         return OracleProgressNet(delta_t=args.delta_t)
-
+    elif args.network == 'separate_single_lstm':
+        return SeparateSingleLSTM()
+    elif args.network == 'separate_double_lstm':
+        return SeparateDoubleLSTM()
+        
     raise Exception(f'Network {args.network} does not exist')
 
 def main():

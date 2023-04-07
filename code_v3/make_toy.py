@@ -3,6 +3,7 @@
 import argparse
 import matplotlib.pyplot as plt
 import torchvision
+import torchvision.transforms as transforms
 import torch
 from torch.utils.data import Subset, DataLoader
 from typing import List, Union, Tuple, Any
@@ -16,6 +17,8 @@ from mycolorpy import colorlist as mcp
 import os
 import sys
 from tqdm import tqdm
+
+from pyramid_pooling import SpatialPyramidPooling
 
 # sys.path.append("../../")
 # from util.utils import (
@@ -42,7 +45,7 @@ parser.add_argument(
 parser.add_argument(
     "--bg_path",
     type=str,
-    default="./data/EPIC-KITCHENS/train/P01/rgb_frames/",
+    default="/home/frans/Datasets/EPIC-KITCHENS/train/P01/rgb_frames/",
     help="Frames to use for bg",
 )
 parser.add_argument(
@@ -152,10 +155,20 @@ def create_activity_mnist(
 
     os.mkdir(f'{args.path}{args.dataset}')
     os.mkdir(f'{args.path}{args.dataset}/rgb-images')
+    os.mkdir(f'{args.path}{args.dataset}/pooled')
+    os.mkdir(f'{args.path}{args.dataset}/pooled/small')
+    os.mkdir(f'{args.path}{args.dataset}/pooled/medium')
+    os.mkdir(f'{args.path}{args.dataset}/pooled/large')
     os.mkdir(f'{args.path}{args.dataset}/labels')
     os.mkdir(f'{args.path}{args.dataset}/experiments')
     os.mkdir(f'{args.path}{args.dataset}/splitfiles')
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    transform = transforms.ToTensor()
+    small_pool = SpatialPyramidPooling([1, 2]).to(device)
+    medium_pool = SpatialPyramidPooling([1, 2, 3]).to(device)
+    large_pool = SpatialPyramidPooling([1, 2, 4]).to(device)
+    
     video_names = [f'{video_id:05d}\n' for video_id in range(len(videos))]
     random.shuffle(video_names)
     with open(os.path.join(args.path, args.dataset, 'splitfiles', 'trainlist01.txt'), 'w+') as f:
@@ -167,7 +180,7 @@ def create_activity_mnist(
         pickle.dump(database, f)
 
     label_translations = []
-    for video_id, (video, labels) in tqdm(enumerate(zip(videos, labels))):
+    for video_id, (video, labels) in tqdm(enumerate(zip(videos, labels)), total=len(videos)):
         translated_labels = []
         for label in labels:
             label = int(label)
@@ -185,11 +198,18 @@ def create_activity_mnist(
             frame_name = f'{args.path}{args.dataset}/rgb-images/{video_id:05d}/{(frame_id+1):05d}.jpg'
             image.save(frame_name)
 
-    # with open(args.new_path + file_name + ".pkl", "wb+") as f:
-    #     pickle.dump((videos, labels), f)
+            transformed = transform(image).unsqueeze(dim=0).to(device)
+            save_pool(transformed, small_pool, f'{args.path}{args.dataset}/pooled/small/{video_id:05d}.txt')
+            save_pool(transformed, medium_pool, f'{args.path}{args.dataset}/pooled/medium/{video_id:05d}.txt')
+            save_pool(transformed, large_pool, f'{args.path}{args.dataset}/pooled/large/{video_id:05d}.txt')
 
-    # See some examples
-    # view_videos(videos, labels)
+def save_pool(image, pool, path):
+    pooled = pool(image).reshape(-1).tolist()
+    pooled = map(str, pooled)
+    text = '\n'.join(pooled)
+    with open(path, 'w+') as f:
+        f.write(text)
+
 
 
 def add_background(videos):
@@ -665,31 +685,28 @@ if __name__ == "__main__":
     targets = []
     prev_target = None
 
-    digits = list(range(10))
-    actions = ['horizontal', 'inv-horizontal', 'vertical', 'diagonal', 'inv-diagonal']
-    for i in range(100):
-        subaction = (random.choice(digits), random.choice(actions), get_color(random.choice(actions)))
-        if subaction is prev_target:
-            continue
-        prev_target = subaction
-        targets.append(subaction)
-    print(len(targets))
+    # digits = list(range(10))
+    # actions = ['horizontal', 'inv-horizontal', 'vertical', 'diagonal', 'inv-diagonal']
+    # for i in range(100):
+    #     subaction = (random.choice(digits), random.choice(actions), get_color(random.choice(actions)))
+    #     if subaction is prev_target:
+    #         continue
+    #     prev_target = subaction
+    #     targets.append(subaction)
+    # print(len(targets))
 
     # check_rootfolders(args.path, "raw")
     # check_rootfolders(args.new_path, "frames-" + args.name)
     create_activity_mnist(
         train=False,
-        targets=[targets],
-        # targets = [
-        #     [(1, "horizontal", get_color('horizontal')),
-        #      (2, "diagonal", get_color('inv-diagonal')),
-        #     #  (3, "inv-diagonal", get_color('inv-diagonal')),
-        #     #  (5, "inv-horizontal", get_color('inv-horizontal')),
-        #     #  (7, "diagonal", get_color('diagonal')),
-        #     #  (9, "vertical", get_color('vertical')),
-        #     #  (6, "inv-horizontal", get_color('inv-horizontal'))
-        #      ],
-        # ],
+        targets = [
+            [(1, "horizontal", get_color('horizontal')),
+             (3, "inv-diagonal", get_color('inv-diagonal')),
+             (5, "inv-horizontal", get_color('inv-horizontal')),
+             (7, "diagonal", get_color('diagonal')),
+             (9, "vertical", get_color('vertical')),
+             ],
+        ],
         file_name=args.name,
     )
     # read_activity_mnist(name=args.name)
