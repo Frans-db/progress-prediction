@@ -9,6 +9,7 @@ import numpy as np
 import os
 
 from datasets import ProgressDataset
+from networks import SequentialLSTM
 
 
 def get_device(device: str) -> torch.device:
@@ -32,10 +33,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     # experiment
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--network', type=str, default='sequential_lstm')
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--data_root', type=str,
                         default='/home/frans/Datasets/')
+    # network
+    parser.add_argument('--network', type=str, default='sequential_lstm')
+    parser.add_argument('--data_embedding_size', type=int, default=15)
+    parser.add_argument('--forecasting_hidden_size', type=int, default=7)
+    parser.add_argument('--lstm_hidden_size', type=int, default=1)
     # wandb config
     parser.add_argument('--no_wandb', action='store_true',
                         help='Disable Weights & Biases')
@@ -56,8 +61,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def get_network(network: str) -> nn.Module:
-    return None
+def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
+    if args.network == 'sequential_lstm':
+        return SequentialLSTM(
+            args.data_embedding_size, 
+            args.forecasting_hidden_size, 
+            args.lstm_hidden_size,
+            device
+        )
 
 
 def init(args: argparse.Namespace) -> None:
@@ -83,6 +94,12 @@ def init(args: argparse.Namespace) -> None:
             }
         )
 
+
+def main() -> None:
+    args = parse_args()
+    device = get_device(args.device)
+    init(args)
+
     train_root = os.path.join(args.data_root, args.train_set)
     test_root = os.path.join(args.data_root, args.test_set)
     # TODO: Sample transform
@@ -95,14 +112,10 @@ def init(args: argparse.Namespace) -> None:
     testloader = DataLoader(testset, batch_size=1,
                             num_workers=4, shuffle=False)
 
-    progressnet = get_network(args.network).to(device)
+    progressnet = get_network(args, device).to(device)
     progressnet.apply(init_weights)
 
-
-def main() -> None:
-    args = parse_args()
-    device = get_device(args.device)
-    init(args)
+    print(progressnet)
 
 
 if __name__ == '__main__':
