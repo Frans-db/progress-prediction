@@ -9,10 +9,11 @@ import torchvision.transforms as transforms
 import random
 import numpy as np
 import os
+from typing import List
 
 from datasets import ProgressDataset
 from networks import SequentialLSTM
-
+from augmentations import Subsection, Subsample, Removal
 
 # util functions
 
@@ -95,18 +96,29 @@ def init(args: argparse.Namespace) -> None:
 
     if not args.no_wandb:
         wandb.init(
-            project='mscfransdeboer',
+            project='mscfransdeboer_v2',
             config={
+                # experiment
                 'seed': args.seed,
+                # network
                 'network': args.network,
-                'group': args.wandb_group,
+                'data_embedding_size': args.data_embedding_size,
+                'forecasting_hidden_size': args.forecasting_hidden_size,
+                'lstm_hidden_size': args.lstm_hidden_size,
+                # wandb config
+                'wandb_group': args.wandb_group,
+                # datasets
                 'train_set': args.train_set,
                 'test_set': args.test_set,
                 'data_type': args.data_type,
+                # training
                 'iterations': args.iterations,
                 'learning_rate': args.learning_rate,
                 'losses': args.losses,
                 'augmentations': args.augmentations,
+                # testing
+                'test_every': args.test_every,
+                # forecasting
                 'delta_t': args.delta_t,
             }
         )
@@ -194,23 +206,29 @@ def train(batch, network, args, device, optimizer=None):
         'count': lengths.sum().item()
     }
 
+def get_sample_augmentations(augmentations: List[str]) -> object:
+    augmentation_list = []
+    # Subsection, Subsample, Removal
+    if 'subsection' in augmentations:
+        augmentation_list.append(Subsection())
+    if 'subsample' in augmentations:
+        augmentation_list.append(Subsample())
+    if 'removal' in augmentations:
+        augmentation_list.append(Removal())
+    return transforms.Compose(augmentation_list)
 
 def main() -> None:
     args = parse_args()
     device = get_device(args.device)
     init(args)
 
+    sample_augmentations = get_sample_augmentations(args.augmentations)
     train_root = os.path.join(args.data_root, args.train_set)
     test_root = os.path.join(args.data_root, args.test_set)
-    # TODO: Sample transform
-    trainset = ProgressDataset(
-        train_root, args.data_type, 'splitfiles/trainlist01.txt')
-    testset = ProgressDataset(
-        test_root, args.data_type, 'splitfiles/testlist01.txt')
-    trainloader = DataLoader(trainset, batch_size=1,
-                             num_workers=4, shuffle=True, collate_fn=collate_fn)
-    testloader = DataLoader(testset, batch_size=1,
-                            num_workers=4, shuffle=False, collate_fn=collate_fn)
+    trainset = ProgressDataset(train_root, args.data_type, 'splitfiles/trainlist01.txt', sample_augmentations=sample_augmentations)
+    testset = ProgressDataset(test_root, args.data_type, 'splitfiles/testlist01.txt', sample_augmentations=sample_augmentations)
+    trainloader = DataLoader(trainset, batch_size=1, num_workers=4, shuffle=True, collate_fn=collate_fn)
+    testloader = DataLoader(testset, batch_size=1, num_workers=4, shuffle=False, collate_fn=collate_fn)
 
     progressnet = get_network(args, device).to(device)
     progressnet.apply(init_weights)

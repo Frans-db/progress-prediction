@@ -5,12 +5,14 @@ from typing import Tuple, List
 
 
 class ProgressDataset(Dataset):
-    def __init__(self, root: str, data_type: str, split_file: str) -> None:
+    def __init__(self, root: str, data_type: str, split_file: str, sample_augmentations = None) -> None:
         super(ProgressDataset, self).__init__()
         self.root = root
         self.data_root = os.path.join(self.root, data_type)
         self.files = self._load_split_file(os.path.join(self.root, split_file))
         self.data = self._load_files(self.files)
+
+        self.sample_augmentations = sample_augmentations
 
     @property
     def embedding_size(self) -> int:
@@ -23,7 +25,11 @@ class ProgressDataset(Dataset):
         data = self.data[idx]
         progress = torch.arange(1, data.shape[0] + 1) / data.shape[0]
 
-        return self.files[idx], data, progress
+        indices = torch.arange(0, data.shape[0], 1)
+        if self.sample_augmentations:
+            indices = self.sample_augmentations(indices)
+
+        return self.files[idx], data[indices], progress[indices]
 
     def _load_split_file(self, path: str) -> List[str]:
         with open(path, 'r') as f:
