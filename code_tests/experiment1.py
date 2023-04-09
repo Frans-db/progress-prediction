@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import argparse
 
+"""
+Using just LSTM memory to predict progress. 
+Network input is all ones
+"""
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 epochs = 10_000
 
@@ -27,11 +32,10 @@ def main():
     args = parse_args()
 
     outputs = torch.arange(1, args.num_steps + 1) / args.num_steps
-    inputs = outputs.clone()
+    inputs = torch.ones_like(outputs)
 
     inputs = inputs.unsqueeze(dim=1).to(device)
     outputs = outputs.unsqueeze(dim=1).to(device)
-
     network = Network().to(device)
 
     criterion = nn.MSELoss()

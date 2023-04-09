@@ -1,0 +1,1 @@
+python make_data.py --dataset toy

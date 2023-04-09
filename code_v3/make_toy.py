@@ -192,6 +192,9 @@ def create_activity_mnist(
             f.write('\n'.join(translated_labels))
 
         os.mkdir(f'{args.path}{args.dataset}/rgb-images/{video_id:05d}')
+        pooled_small = []
+        pooled_medium = []
+        pooled_large = []
         for frame_id, frame in enumerate(video):
             # Save the frame
             image = Image.fromarray(np.uint8(frame * 255)).convert('RGB')
@@ -199,9 +202,15 @@ def create_activity_mnist(
             image.save(frame_name)
 
             transformed = transform(image).unsqueeze(dim=0).to(device)
-            save_pool(transformed, small_pool, f'{args.path}{args.dataset}/pooled/small/{video_id:05d}.txt')
-            save_pool(transformed, medium_pool, f'{args.path}{args.dataset}/pooled/medium/{video_id:05d}.txt')
-            save_pool(transformed, large_pool, f'{args.path}{args.dataset}/pooled/large/{video_id:05d}.txt')
+            pooled_small.append(' '.join(map(str, small_pool(transformed).reshape(-1).tolist())))
+            pooled_medium.append(' '.join(map(str, medium_pool(transformed).reshape(-1).tolist())))
+            pooled_large.append(' '.join(map(str, large_pool(transformed).reshape(-1).tolist())))
+        with open(f'{args.path}{args.dataset}/pooled/small/{video_id:05d}.txt', 'w+') as f:
+            f.write('\n'.join(pooled_small))
+        with open(f'{args.path}{args.dataset}/pooled/medium/{video_id:05d}.txt', 'w+') as f:
+            f.write('\n'.join(pooled_medium))
+        with open(f'{args.path}{args.dataset}/pooled/large/{video_id:05d}.txt', 'w+') as f:
+            f.write('\n'.join(pooled_large))
 
 def save_pool(image, pool, path):
     pooled = pool(image).reshape(-1).tolist()
