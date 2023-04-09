@@ -62,6 +62,7 @@ def parse_args() -> argparse.Namespace:
                         help='Disable Weights & Biases')
     parser.add_argument('--wandb_group', type=str, default='default',
                         help='Uses to group together results in Weights & Biases')
+    parser.add_argument('--wandb_tags', nargs='+', default='')
     # datasets
     parser.add_argument('--train_set', type=str, default='toy')
     parser.add_argument('--test_set', type=str, default='toy')
@@ -97,6 +98,7 @@ def init(args: argparse.Namespace) -> None:
     if not args.no_wandb:
         wandb.init(
             project='mscfransdeboer_v2',
+            tags=args.wandb_tags,
             config={
                 # experiment
                 'seed': args.seed,
@@ -166,19 +168,15 @@ def train(batch, network, args, device, optimizer=None):
     embeddings = embeddings.to(device)
     progress = progress.to(device)
     forecasted_progress = torch.ones_like(progress, device=device)
-    forecasted_progress[:, :-args.delta_t] = progress[:, args.delta_t]
+    forecasted_progress[:, :-args.delta_t] = progress[:, args.delta_t:]
     # forward pass
-    predictions, forecasted_predictions, forecasted_embeddings = network(
-        embeddings)
+    predictions, forecasted_predictions, forecasted_embeddings = network(embeddings)
     # loss calculations
     l1_loss = l1_criterion(predictions, progress)
     l2_loss = l2_criterion(predictions, progress)
-    l1_forecast_loss = l1_criterion(
-        forecasted_predictions, forecasted_progress)
-    l2_forecast_loss = l2_criterion(
-        forecasted_predictions, forecasted_progress)
-    l2_embedding_loss = l2_criterion(
-        forecasted_embeddings[:, :-args.delta_t, :], embeddings[:, args.delta_t:, :])
+    l1_forecast_loss = l1_criterion(forecasted_predictions, forecasted_progress)
+    l2_forecast_loss = l2_criterion(forecasted_predictions, forecasted_progress)
+    l2_embedding_loss = l2_criterion(forecasted_embeddings[:, :-args.delta_t, :], embeddings[:, args.delta_t:, :])
     # optimizer
     if optimizer:
         optimizer.zero_grad()
@@ -226,9 +224,9 @@ def main() -> None:
     train_root = os.path.join(args.data_root, args.train_set)
     test_root = os.path.join(args.data_root, args.test_set)
     trainset = ProgressDataset(train_root, args.data_type, 'splitfiles/trainlist01.txt', sample_augmentations=sample_augmentations)
-    testset = ProgressDataset(test_root, args.data_type, 'splitfiles/testlist01.txt', sample_augmentations=sample_augmentations)
-    trainloader = DataLoader(trainset, batch_size=1, num_workers=4, shuffle=True, collate_fn=collate_fn)
-    testloader = DataLoader(testset, batch_size=1, num_workers=4, shuffle=False, collate_fn=collate_fn)
+    testset = ProgressDataset(test_root, args.data_type, 'splitfiles/testlist01.txt')
+    trainloader = DataLoader(trainset, batch_size=1, num_workers=0, shuffle=True, collate_fn=collate_fn)
+    testloader = DataLoader(testset, batch_size=1, num_workers=0, shuffle=False, collate_fn=collate_fn)
 
     progressnet = get_network(args, device).to(device)
     progressnet.apply(init_weights)
@@ -242,8 +240,7 @@ def main() -> None:
     while not done:
         for batch in trainloader:
             # train step
-            batch_result = train(batch, progressnet, args,
-                                 device, optimizer=optimizer)
+            batch_result = train(batch, progressnet, args, device, optimizer=optimizer)
             if not args.no_wandb:
                 wandb_log(batch_result, iteration, 'train')
             update_result(train_result, batch_result)

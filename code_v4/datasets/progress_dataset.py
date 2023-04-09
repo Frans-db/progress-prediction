@@ -25,7 +25,7 @@ class ProgressDataset(Dataset):
         data = self.data[idx]
         progress = torch.arange(1, data.shape[0] + 1) / data.shape[0]
 
-        indices = torch.arange(0, data.shape[0], 1)
+        indices = list(range(data.shape[0]))
         if self.sample_augmentations:
             indices = self.sample_augmentations(indices)
 
