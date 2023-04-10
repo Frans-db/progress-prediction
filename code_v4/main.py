@@ -10,10 +10,13 @@ import random
 import numpy as np
 import os
 from typing import List
+import matplotlib.pyplot as plt
 
 from datasets import ProgressDataset
-from networks import SequentialLSTM
+from networks import SequentialLSTM, ParallelLSTM
 from augmentations import Subsection, Subsample, Removal
+
+COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'orange', 'lime', 'darkblue']
 
 # util functions
 
@@ -76,6 +79,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--test_every', type=int, default=100)
     # forecasting
     parser.add_argument('--delta_t', type=int, default=10)
+    # plots
+    parser.add_argument('--plots', action='store_true')
+    parser.add_argument('--plot_every', type=int, default=25)
+    parser.add_argument('--plot_directory', type=str, default='plots')
 
     return parser.parse_args()
 
@@ -83,6 +90,13 @@ def parse_args() -> argparse.Namespace:
 def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
     if args.network == 'sequential_lstm':
         return SequentialLSTM(
+            args.data_embedding_size,
+            args.forecasting_hidden_size,
+            args.lstm_hidden_size,
+            device
+        )
+    elif args.network == 'parallel_lstm':
+        return ParallelLSTM(
             args.data_embedding_size,
             args.forecasting_hidden_size,
             args.lstm_hidden_size,
@@ -220,6 +234,9 @@ def main() -> None:
     device = get_device(args.device)
     init(args)
 
+    if args.plots and not os.path.isdir(f'./plots/{args.plot_directory}'):
+        os.mkdir(f'./plots/{args.plot_directory}')
+
     sample_augmentations = get_sample_augmentations(args.augmentations)
     train_root = os.path.join(args.data_root, args.train_set)
     test_root = os.path.join(args.data_root, args.test_set)
@@ -247,9 +264,35 @@ def main() -> None:
 
             # test iteration
             if iteration % args.test_every == 0:
-                for batch in testloader:
+                for batch_index, batch in enumerate(testloader):
                     batch_result = train(batch, progressnet, args, device)
                     update_result(test_result, batch_result)
+
+                    if args.plots and batch_index % args.plot_every == 0:
+                        iterator = zip(
+                            batch_result['video_names'],
+                            batch_result['progress'], 
+                            batch_result['predictions'],
+                            batch_result['forecasted_predictions']
+                        )
+                        for video_name, progress, predictions, forecasted_predictions in iterator:
+                            S = predictions.shape[0]
+                            indices = range(S)
+                            forecasted_indices = range(args.delta_t, S + args.delta_t)
+                            plt.plot(indices, progress, label='progress')
+                            plt.plot(indices, predictions, label='predicted progress')
+                            plt.plot(forecasted_indices, forecasted_predictions, label='forecasted predictions')
+                            
+                            if 'toy' in args.test_set:
+                                action_labels = testset.get_action_labels(video_name)
+                                for j, label in enumerate(action_labels):
+                                    plt.axvspan(j-0.5, j+0.5, facecolor=COLORS[label], alpha=0.2, zorder=-1)
+                            plt.legend(loc='best')
+                            plt.xlabel('Frame')
+                            plt.ylabel('Progress (%)')
+                            plt.title(f'{args.test_set} - {video_name}')
+                            plt.savefig(f'./plots/{args.plot_directory}/{iteration}_{batch_index}.png')
+                            plt.clf()
 
                 if not args.no_wandb:
                     wandb_log(test_result, iteration, 'test')

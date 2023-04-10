@@ -356,7 +356,7 @@ def get_motion(
         y = y + math.sqrt(step * step) * f
 
     # If the motion exceeds the image, circulate
-    """
+    # """
     if motion.startswith("inv"):
         x = int(x)
         if x <= 0:
@@ -365,11 +365,11 @@ def get_motion(
     else:
         x = max(0, int(x)) % shape[1]
         y = max(0, int(y)) % shape[0]
-    """
+    # """
 
     # clip at min-max
-    x = min(max(0, int(x)), shape[1])
-    y = min(max(0, int(y)), shape[0])
+    # x = min(max(0, int(x)), shape[1])
+    # y = min(max(0, int(y)), shape[0])
     return x, y
 
 
@@ -710,6 +710,8 @@ if __name__ == "__main__":
         train=False,
         targets = [
             [(1, "horizontal", get_color('horizontal')),
+             (7, "diagonal", get_color('diagonal')),
+             (9, "vertical", get_color('vertical')),
              (3, "inv-diagonal", get_color('inv-diagonal')),
              (5, "inv-horizontal", get_color('inv-horizontal')),
              (7, "diagonal", get_color('diagonal')),
