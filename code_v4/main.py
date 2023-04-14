@@ -11,14 +11,17 @@ import numpy as np
 import os
 from typing import List
 import matplotlib.pyplot as plt
+import json
+import math
 
 from datasets import ProgressDataset
-from networks import SequentialLSTM, ParallelLSTM
+from networks import SequentialLSTM, ParallelLSTM, ProgressNet, StaticNet, AverageNet, ProgressNet2D
 from augmentations import Subsection, Subsample, Removal
 
 COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'orange', 'lime', 'darkblue']
 
 # util functions
+
 
 def get_device(device: str) -> torch.device:
     if torch.cuda.is_available() and device == 'cuda':
@@ -48,6 +51,7 @@ def collate_fn(batch):
 
 # init functions
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     # experiment
@@ -55,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--data_root', type=str,
                         default='/home/frans/Datasets/')
+    parser.add_argument('--experiment_name', type=str, required=True)
     # network
     parser.add_argument('--network', type=str, default='sequential_lstm')
     parser.add_argument('--data_embedding_size', type=int, default=15)
@@ -69,7 +74,9 @@ def parse_args() -> argparse.Namespace:
     # datasets
     parser.add_argument('--train_set', type=str, default='toy')
     parser.add_argument('--test_set', type=str, default='toy')
-    parser.add_argument('--data_type', type=str, default='pooled/small')
+    parser.add_argument('--train_split', type=str, default='trainlist01.txt')
+    parser.add_argument('--test_split', type=str, default='testlist01.txt')
+    parser.add_argument('--data_type', type=str, default='features/small')
     # training
     parser.add_argument('--iterations', type=int, default=1_500)
     parser.add_argument('--learning_rate', type=float, default=3e-3)
@@ -102,6 +109,20 @@ def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
             args.lstm_hidden_size,
             device
         )
+    elif args.network == 'progressnet':
+        return ProgressNet(
+            args.data_embedding_size,
+            device
+        )
+    elif args.network == 'progressnet2d':
+        return ProgressNet2D(
+            args.data_embedding_size,
+            device
+        )
+    elif args.network == 'staticnet':
+        return StaticNet(0.5, device)
+    elif args.network == 'averagenet':
+        return AverageNet(0.5, device)
 
 
 def init(args: argparse.Namespace) -> None:
@@ -109,37 +130,48 @@ def init(args: argparse.Namespace) -> None:
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
+    config = {
+        # experiment
+        'seed': args.seed,
+        'experiment_name': args.experiment_name,
+        # network
+        'network': args.network,
+        'data_embedding_size': args.data_embedding_size,
+        'forecasting_hidden_size': args.forecasting_hidden_size,
+        'lstm_hidden_size': args.lstm_hidden_size,
+        # wandb config
+        'wandb_group': args.wandb_group,
+        # datasets
+        'train_set': args.train_set,
+        'test_set': args.test_set,
+        'train_split': args.train_split,
+        'test_split': args.test_split,
+        'data_type': args.data_type,
+        # training
+        'iterations': args.iterations,
+        'learning_rate': args.learning_rate,
+        'losses': args.losses,
+        'augmentations': args.augmentations,
+        # testing
+        'test_every': args.test_every,
+        # forecasting
+        'delta_t': args.delta_t,
+    }
+
+    os.mkdir(f'./experiments/{args.experiment_name}')
+    os.mkdir(f'./experiments/{args.experiment_name}/results')
+    with open(f'./experiments/{args.experiment_name}/config.json', 'w+') as f:
+        json.dump(config, f)
+
     if not args.no_wandb:
         wandb.init(
             project='mscfransdeboer_v2',
             tags=args.wandb_tags,
-            config={
-                # experiment
-                'seed': args.seed,
-                # network
-                'network': args.network,
-                'data_embedding_size': args.data_embedding_size,
-                'forecasting_hidden_size': args.forecasting_hidden_size,
-                'lstm_hidden_size': args.lstm_hidden_size,
-                # wandb config
-                'wandb_group': args.wandb_group,
-                # datasets
-                'train_set': args.train_set,
-                'test_set': args.test_set,
-                'data_type': args.data_type,
-                # training
-                'iterations': args.iterations,
-                'learning_rate': args.learning_rate,
-                'losses': args.losses,
-                'augmentations': args.augmentations,
-                # testing
-                'test_every': args.test_every,
-                # forecasting
-                'delta_t': args.delta_t,
-            }
+            config=config
         )
 
 # wandb functions
+
 
 def get_empty_result() -> dict:
     return {
@@ -173,6 +205,13 @@ def wandb_log(result: dict, iteration: int, prefix: str) -> None:
     })
 
 
+def bo_weight(device, p, p_hat):
+    m = torch.full(p.shape, 0.5).to(device)
+    r = torch.full(p.shape, 0.5 * math.sqrt(2)).to(device)
+
+    weight = ((p - m) / r).square() + ((p_hat - m) / r).square()
+    return torch.clamp(weight, max=1)
+
 def train(batch, network, args, device, optimizer=None):
     # criterions
     l1_criterion = nn.L1Loss(reduction='sum')
@@ -184,13 +223,17 @@ def train(batch, network, args, device, optimizer=None):
     forecasted_progress = torch.ones_like(progress, device=device)
     forecasted_progress[:, :-args.delta_t] = progress[:, args.delta_t:]
     # forward pass
-    predictions, forecasted_predictions, forecasted_embeddings = network(embeddings)
+    predictions, forecasted_predictions, forecasted_embeddings = network(
+        embeddings)
     # loss calculations
     l1_loss = l1_criterion(predictions, progress)
     l2_loss = l2_criterion(predictions, progress)
-    l1_forecast_loss = l1_criterion(forecasted_predictions, forecasted_progress)
-    l2_forecast_loss = l2_criterion(forecasted_predictions, forecasted_progress)
-    l2_embedding_loss = l2_criterion(forecasted_embeddings[:, :-args.delta_t, :], embeddings[:, args.delta_t:, :])
+    l1_forecast_loss = l1_criterion(
+        forecasted_predictions, forecasted_progress)
+    l2_forecast_loss = l2_criterion(
+        forecasted_predictions, forecasted_progress)
+    l2_embedding_loss = l2_criterion(
+        forecasted_embeddings[:, :-args.delta_t, :], embeddings[:, args.delta_t:, :])
     # optimizer
     if optimizer:
         optimizer.zero_grad()
@@ -218,6 +261,7 @@ def train(batch, network, args, device, optimizer=None):
         'count': lengths.sum().item()
     }
 
+
 def get_sample_augmentations(augmentations: List[str]) -> object:
     augmentation_list = []
     # Subsection, Subsample, Removal
@@ -229,26 +273,33 @@ def get_sample_augmentations(augmentations: List[str]) -> object:
         augmentation_list.append(Removal())
     return transforms.Compose(augmentation_list)
 
+
 def main() -> None:
     args = parse_args()
     device = get_device(args.device)
     init(args)
 
-    if args.plots and not os.path.isdir(f'./plots/{args.plot_directory}'):
-        os.mkdir(f'./plots/{args.plot_directory}')
-
     sample_augmentations = get_sample_augmentations(args.augmentations)
     train_root = os.path.join(args.data_root, args.train_set)
     test_root = os.path.join(args.data_root, args.test_set)
-    trainset = ProgressDataset(train_root, args.data_type, 'splitfiles/trainlist01.txt', sample_augmentations=sample_augmentations)
-    testset = ProgressDataset(test_root, args.data_type, 'splitfiles/testlist01.txt')
-    trainloader = DataLoader(trainset, batch_size=1, num_workers=0, shuffle=True, collate_fn=collate_fn)
-    testloader = DataLoader(testset, batch_size=1, num_workers=0, shuffle=False, collate_fn=collate_fn)
+    trainset = ProgressDataset(
+        train_root, args.data_type, f'splitfiles/{args.train_split}', sample_augmentations=sample_augmentations)
+    testset = ProgressDataset(
+        test_root, args.data_type, f'splitfiles/{args.test_split}')
+    trainloader = DataLoader(trainset, batch_size=1,
+                             num_workers=0, shuffle=True, collate_fn=collate_fn)
+    testloader = DataLoader(testset, batch_size=1,
+                            num_workers=0, shuffle=False, collate_fn=collate_fn)
 
     progressnet = get_network(args, device).to(device)
-    progressnet.apply(init_weights)
+    if args.network == 'averagenet':
+        progressnet.value = trainset.average_length
+    elif args.network != 'staticnet':
+        progressnet.apply(init_weights)
 
     optimizer = optim.Adam(progressnet.parameters(), lr=args.learning_rate)
+    scheduler = optim.lr_scheduler.StepLR(
+        optimizer, step_size=5000, gamma=1/2)
 
     iteration = 0
     train_result = get_empty_result()
@@ -257,42 +308,40 @@ def main() -> None:
     while not done:
         for batch in trainloader:
             # train step
-            batch_result = train(batch, progressnet, args, device, optimizer=optimizer)
+            batch_result = train(batch, progressnet, args,
+                                 device, optimizer=optimizer)
             if not args.no_wandb:
                 wandb_log(batch_result, iteration, 'train')
             update_result(train_result, batch_result)
 
             # test iteration
             if iteration % args.test_every == 0:
+                test_json = {
+                    'average_result': {},
+                    'all_results': []
+                }
                 for batch_index, batch in enumerate(testloader):
                     batch_result = train(batch, progressnet, args, device)
                     update_result(test_result, batch_result)
 
-                    if args.plots and batch_index % args.plot_every == 0:
-                        iterator = zip(
-                            batch_result['video_names'],
-                            batch_result['progress'], 
-                            batch_result['predictions'],
-                            batch_result['forecasted_predictions']
-                        )
-                        for video_name, progress, predictions, forecasted_predictions in iterator:
-                            S = predictions.shape[0]
-                            indices = range(S)
-                            forecasted_indices = range(args.delta_t, S + args.delta_t)
-                            plt.plot(indices, progress, label='progress')
-                            plt.plot(indices, predictions, label='predicted progress')
-                            plt.plot(forecasted_indices, forecasted_predictions, label='forecasted predictions')
-                            
-                            if 'toy' in args.test_set:
-                                action_labels = testset.get_action_labels(video_name)
-                                for j, label in enumerate(action_labels):
-                                    plt.axvspan(j-0.5, j+0.5, facecolor=COLORS[label], alpha=0.2, zorder=-1)
-                            plt.legend(loc='best')
-                            plt.xlabel('Frame')
-                            plt.ylabel('Progress (%)')
-                            plt.title(f'{args.test_set} - {video_name}')
-                            plt.savefig(f'./plots/{args.plot_directory}/{iteration}_{batch_index}.png')
-                            plt.clf()
+                    video_names, embeddings, progress, lengths = batch
+                    
+                    test_json['all_results'].append({
+                        'video_name': video_names[0],
+                        'progress': progress[0].tolist(),
+                        'predicted_progress': batch_result['predictions'][0].tolist(),
+                        'l2_loss': batch_result['l2_loss'],
+                        'l1_loss': batch_result['l1_loss'],
+                        'count': batch_result['count'],
+                    })
+                test_json['average_result'] = {
+                    'l2_loss': test_result['l2_loss'],
+                    'l1_loss': test_result['l1_loss'],
+                    'count': test_result['count'],
+                }
+                with open(f'./experiments/{args.experiment_name}/results/iteration_{iteration}.json', 'w+') as f:
+                    json.dump(test_json, f)
+
 
                 if not args.no_wandb:
                     wandb_log(test_result, iteration, 'test')
@@ -302,6 +351,7 @@ def main() -> None:
 
             # update iteration & check if done
             iteration += 1
+            scheduler.step()
             if iteration > args.iterations:
                 done = True
                 break

@@ -13,7 +13,7 @@ import numpy as np
 
 from progress_dataset import ProgressDataset
 from ucf_dataset import UCFDataset
-# from networks import ProgressNet, PooledProgressNet, RNNProgressNet, init_weights
+from networks import ProgressNet, PooledProgressNet, RNNProgressNet, init_weights
 # from networks import SimpleProgressNet, SpatialProgressNet, WeirdProgressNet, WeirderProgressNet
 from networks import init_weights
 from networks import TinyProgressNet, OracleProgressNet, TinyLSTMNet
@@ -159,8 +159,8 @@ def wandb_log(results: dict, iteration: int, prefix: str) -> None:
     })
 
 def get_network(args) -> nn.Module:
-    # if args.network == 'progressnet':
-    #     progressnet = ProgressNet(p_dropout=args.p_dropout)
+    if args.network == 'progressnet':
+        return ProgressNet(p_dropout=args.p_dropout)
     # elif args.network == 'pooled_progressnet':
     #     progressnet = PooledProgressNet(p_dropout=args.p_dropout)
     # elif args.network == 'rnn_progressnet':
@@ -173,7 +173,7 @@ def get_network(args) -> nn.Module:
     #     progressnet = WeirdProgressNet(p_dropout=args.p_dropout, delta_t=args.delta_t)
     # elif args.network == 'weirder_progressnet':
     #     progressnet = WeirderProgressNet(p_dropout=args.p_dropout, delta_t=args.delta_t)
-    if args.network == 'tiny_progressnet':
+    elif args.network == 'tiny_progressnet':
         return TinyProgressNet()
     elif args.network == 'oracle_progressnet':
         return OracleProgressNet(delta_t=args.delta_t)
@@ -234,6 +234,7 @@ def main():
     progressnet.apply(init_weights)
 
     optimizer = optim.Adam(progressnet.parameters(), lr=args.lr)
+    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=2500, gamma=1/2)
     l1_criterion = nn.L1Loss(reduction='sum')
     l2_criterion = nn.MSELoss(reduction='sum')
 
@@ -289,6 +290,7 @@ def main():
                 test_results = get_empty_results()
             
             iteration += 1
+            # scheduler.step()
             if iteration > args.iterations:
                 done = True
                 break

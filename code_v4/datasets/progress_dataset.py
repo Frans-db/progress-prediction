@@ -2,7 +2,7 @@ import os
 import torch
 from torch.utils.data import Dataset
 from typing import Tuple, List
-
+from tqdm import tqdm
 
 class ProgressDataset(Dataset):
     def __init__(self, root: str, data_type: str, split_file: str, sample_augmentations = None) -> None:
@@ -17,6 +17,18 @@ class ProgressDataset(Dataset):
     @property
     def embedding_size(self) -> int:
         return self.data[0].shape[-1]
+
+    @property
+    def lengths(self) -> List[int]:
+        lengths = []
+        for sample in self.data:
+            lengths.append(sample.shape[0])
+        return lengths
+
+    @property
+    def average_length(self) -> float:
+        lengths = self.lengths
+        return sum(lengths) / len(lengths)
 
     def __len__(self) -> int:
         return len(self.data)
@@ -38,8 +50,10 @@ class ProgressDataset(Dataset):
 
     def _load_files(self, files: List[str]) -> List[torch.FloatTensor]:
         data = []
-        for filename in files:
-            path = f'{os.path.join(self.data_root, filename)}.txt'
+        for filename in tqdm(files):
+            path = f'{os.path.join(self.data_root, filename)}'
+            if not path.endswith('.txt'):
+                path = path + '.txt'
             with open(path, 'r') as f:
                 lines = f.readlines()
                 video_data = []

@@ -710,8 +710,6 @@ if __name__ == "__main__":
         train=False,
         targets = [
             [(1, "horizontal", get_color('horizontal')),
-             (7, "diagonal", get_color('diagonal')),
-             (9, "vertical", get_color('vertical')),
              (3, "inv-diagonal", get_color('inv-diagonal')),
              (5, "inv-horizontal", get_color('inv-horizontal')),
              (7, "diagonal", get_color('diagonal')),

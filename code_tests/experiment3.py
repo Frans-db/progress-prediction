@@ -102,7 +102,7 @@ def main():
                 'iteration': iteration,
                 'train_loss': (loss / S).item()
             })
-            ((loss) / S).backward()
+            ((loss + forecasted_loss) / S).backward()
             optimizer.step()
 
             train_loss += loss.item()

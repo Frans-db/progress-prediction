@@ -2,7 +2,7 @@ import random
 
 
 class Subsection:
-    def __init__(self, p: float = 0.5):
+    def __init__(self, p: float = .5):
         self.p = p
 
     def __call__(self, names):

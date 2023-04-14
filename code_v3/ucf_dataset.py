@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 from PIL import Image
 import os
 import pickle
+from typing import List
 
 class UCFDataset(Dataset):
     def __init__(self, root: str, data_type: str, split_path: str, annotation_path: str, transform=None, sample_transform=None, image_size = (320, 240)) -> None:
@@ -17,7 +18,15 @@ class UCFDataset(Dataset):
         self.split_files = self._load_split(os.path.join(root, split_path))
         self.video_names, self.frame_paths, self.tubes = self._load_tubes(os.path.join(root, annotation_path))
     
+    @property
+    def lengths(self) -> List[int]:
+        return [len(paths) for paths in self.frame_paths]
 
+    @property
+    def average_length(self) -> float:
+        lengths = self.lengths
+        return sum(lengths) / len(lengths)
+    
     def __getitem__(self, index: int) -> tuple[torch.FloatTensor, torch.FloatTensor]:
         frame_paths = self.frame_paths[index]
         video_name = self.video_names[index]
