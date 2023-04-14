@@ -7,6 +7,7 @@ import json
 import os
 
 from utils import parse_args, get_device
+from datasets import get_datasets
 
 def init(args: argparse.Namespace) -> None:
     random.seed(args.seed)
@@ -55,6 +56,7 @@ def main() -> None:
     device = get_device(args.device)
     init(args)
 
+    train_set, test_set = get_datasets(args)
     # get train & test set (function)
         # get (data) augmentations
         # get sample augmentations

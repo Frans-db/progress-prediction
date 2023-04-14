@@ -1,3 +1,5 @@
+from .get_datasets import get_datasets
+
 # datasets
 # ucf24 (action tubes from a pkl database)
     # sequences

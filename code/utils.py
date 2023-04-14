@@ -18,11 +18,11 @@ def parse_args() -> argparse.Namespace:
     # network
     parser.add_argument('--network', type=str, choices=networks)
     # dataset
-    parser.add_argument('--train_set', type=str)
-    parser.add_argument('--test_set', type=str)
-    parser.add_argument('--train_split', type=str)
-    parser.add_argument('--test_split', type=str)
-    parser.add_argument('--data_type', type=str)
+    parser.add_argument('--train_set', type=str, default='breakfast')
+    parser.add_argument('--test_set', type=str, default='breakfast')
+    parser.add_argument('--train_split', type=str, default='train_s1.txt')
+    parser.add_argument('--test_split', type=str, default='test_s1.txt')
+    parser.add_argument('--data_type', type=str, default='features/dense_trajectories')
     parser.add_argument('--data_mode', type=str, default='sequential', choices=['sequential', 'individual'])
     parser.add_argument('--data_modifier', type=str, default=None, choices=['random', 'ones', 'indices'])
     # training
