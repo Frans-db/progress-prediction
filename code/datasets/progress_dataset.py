@@ -3,6 +3,7 @@ from typing import List
 
 from torch.utils.data import Dataset
 
+
 class ProgressBaseDataset(Dataset):
     def __init__(self, root: str, data_type: str, split_file: str) -> None:
         super(Dataset, self).__init__()
@@ -17,6 +18,7 @@ class ProgressBaseDataset(Dataset):
         with open(path, 'r') as f:
             data = f.readlines()
         return [row.strip() for row in data]
+
 
 class ProgressDataset(ProgressBaseDataset):
     def __init__(self, root: str, data_type: str, split_file: str) -> None:
@@ -38,5 +40,8 @@ class ProgressDataset(ProgressBaseDataset):
 #     def __init__(self, root, data_type, split_file):
 #         pass
 
+
 if __name__ == '__main__':
-    dataset = ProgressDataset('/home/frans/Datasets/breakfast', 'features/dense_trajectories', 'train_s1.txt')
+    dataset = ProgressDataset(
+        '/home/frans/Datasets/breakfast', 'features/dense_trajectories', 'train_s1.txt'
+    )

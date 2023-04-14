@@ -9,6 +9,7 @@ import os
 from utils import parse_args, get_device
 from datasets import get_datasets
 
+
 def init(args: argparse.Namespace) -> None:
     random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -45,11 +46,14 @@ def init(args: argparse.Namespace) -> None:
             config=config
         )
     if args.experiment_name:
-        experiment_root = os.path.join(args.data_root, 'experiments', args.experiment_name)
+        experiment_root = os.path.join(
+            args.data_root, 'experiments', args.experiment_name
+        )
         os.mkdir(experiment_root)
         os.mkdir(os.path.join(experiment_root, 'results'))
         with open(os.path.join(experiment_root, 'config.json'), 'w+') as f:
             json.dump(config, f)
+
 
 def main() -> None:
     args = parse_args()
@@ -58,15 +62,16 @@ def main() -> None:
 
     train_set, test_set = get_datasets(args)
     # get train & test set (function)
-        # get (data) augmentations
-        # get sample augmentations
+    # get (data) augmentations
+    # get sample augmentations
     # get network (function)
-        # init network
-            # for parameters: xavier / random
-            # for static: depending on train set 
+    # init network
+    # for parameters: xavier / random
+    # for static: depending on train set
     # get optimizer & scheduler
 
     # training
+
 
 if __name__ == '__main__':
     main()
