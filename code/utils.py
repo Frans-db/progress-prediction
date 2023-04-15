@@ -19,28 +19,31 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--wandb_group', type=str, default=None)
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
-    parser.add_argument('--network', type=str, default='progressnet', choices=networks)
+    parser.add_argument('--network', type=str, default='progressnet_features', choices=networks)
     parser.add_argument('--embedding_size', type=int, default=64)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.0)
     # dataset
     parser.add_argument('--train_set', type=str, default='breakfast')
     parser.add_argument('--test_set', type=str, default='breakfast')
-    parser.add_argument('--train_split', type=str, default='test_s1_small.txt')
-    parser.add_argument('--test_split', type=str, default='test_s1_small.txt')
+    parser.add_argument('--train_split', type=str, default='train_s1.txt')
+    parser.add_argument('--test_split', type=str, default='test_s1.txt')
     parser.add_argument('--data_type', type=str, default='features/dense_trajectories')
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
     parser.add_argument('--bounding_boxes', action='store_true')
     # training
-    parser.add_argument('--iterations', type=int, default=1500)
-    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--iterations', type=int, default=25000)
+    parser.add_argument('--loss', type=str, default='l2', choices=['l1', 'l2'])
+    parser.add_argument('--average_loss', action='store_true')
+    parser.add_argument('--bo', action='store_true')
+    parser.add_argument('--lr', type=float, default=3e-3)
     # TODO (maybe?): Adam betas, weight_decay
-    parser.add_argument('--lr_decay_every', type=int, default=500)
+    parser.add_argument('--lr_decay_every', type=int, default=5000)
     parser.add_argument('--lr_decay', type=float, default=1/2)
     parser.add_argument('--subsection_chance', type=float, default=0.0)
     parser.add_argument('--subsample_chance', type=float, default=0.0)
     # testing
-    parser.add_argument('--test_every', type=int, default=250)
+    parser.add_argument('--test_every', type=int, default=1000)
 
     return parser.parse_args()
 

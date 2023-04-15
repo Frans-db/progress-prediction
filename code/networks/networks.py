@@ -21,7 +21,7 @@ class ProgressNet(nn.Module):
         self.fc8 = nn.Linear(32, 1)
 
     def forward(self, frames: torch.FloatTensor) -> torch.FloatTensor:
-        B, S, C, H, W = x.shape
+        B, S, C, H, W = frames.shape
         num_samples = B * S
 
         flat_frames = frames.reshape(num_samples, C, H, W)
@@ -43,6 +43,7 @@ class ProgressNet(nn.Module):
         progress = rnn.reshape(num_samples, -1)
         progress = self.fc8(progress)
         progress = torch.sigmoid(progress)
+        progress = progress.reshape(B, S)
 
         return progress
 
@@ -99,15 +100,15 @@ class ProgressNetBoundingBoxes(nn.Module):
         self.fc8 = nn.Linear(32, 1)
 
     def forward(self, frames: torch.FloatTensor, boxes: torch.FloatTensor) -> torch.FloatTensor:
-        B, S, C, H, W = x.shape
+        B, S, C, H, W = frames.shape
         num_samples = B * S
 
         flat_frames = frames.reshape(num_samples, C, H, W)
         flat_boxes = boxes.reshape(num_samples, 4)
-        box_indices = otrch.arange(start=0, end=num_samples).reshape(
+        box_indices = torch.arange(start=0, end=num_samples).reshape(
             num_samples, 1).to(self.device)
 
-        boxes_with_indices = torch.cat((indices, flat_boxes), dim=-1)
+        boxes_with_indices = torch.cat((box_indices, flat_boxes), dim=-1)
 
         pooled = self.spp(flat_frames)
         pooled = self.spp_fc(pooled)
@@ -133,5 +134,6 @@ class ProgressNetBoundingBoxes(nn.Module):
         progress = rnn.reshape(num_samples, -1)
         progress = self.fc8(progress)
         progress = torch.sigmoid(progress)
+        progress = progress.reshape(B, S)
 
         return progress

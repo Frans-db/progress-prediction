@@ -28,4 +28,4 @@ def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
 
     if args.initialisation == 'xavier':
         network.apply(init_weights)
-    return network
+    return network.to(device)

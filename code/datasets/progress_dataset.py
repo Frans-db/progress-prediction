@@ -77,7 +77,7 @@ class ProgressVideoDataset(BaseDataset):
         return paths, progress
 
     def __len__(self) -> int:
-        return len(self.data)
+        return len(self.paths)
 
     def __getitem__(self, index: int) -> Tuple[str, torch.FloatTensor, torch.FloatTensor]:
         video_name = self.split_names[index]
