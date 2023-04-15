@@ -2,7 +2,7 @@ import os
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset
+from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset, ProgressCategoryDataset
 from .boundingbox_dataset import BoundingBoxDataset
 from .augmentations import Indices, Ones, Randoms
 from .augmentations import Subsection, Subsample
@@ -26,7 +26,7 @@ def get_datasets(args):
     test_set = get_dataset(args, args.test_set, args.test_split, transform=test_transform)
 
     train_loader = DataLoader(train_set, batch_size=1,
-                              num_workers=4, shuffle=True)
+                              num_workers=0, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=1,
                              num_workers=4, shuffle=False)
 
@@ -40,6 +40,8 @@ def get_dataset(args, dataset: str, split_file: str, transform=None):
         return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
     elif 'rgb-images' in args.data_type:
         return ProgressVideoDataset(root, args.data_type, split_file, transform=transform)
+    elif args.category_directory is not None:
+        return ProgressCategoryDataset(root, args.data_type, args.category_directory, args.num_categories, split_file, transform=transform)
     else:
         return ProgressFeatureDataset(root, args.data_type, split_file, transform=transform)
 

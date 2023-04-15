@@ -5,7 +5,7 @@ import random
 import numpy as np
 
 def parse_args() -> argparse.Namespace:
-    networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes']
+    networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 'progressnet_categories']
 
     parser = argparse.ArgumentParser()
     # experiment
@@ -15,6 +15,7 @@ def parse_args() -> argparse.Namespace:
     # wandb
     parser.add_argument('--wandb_disable', action='store_true')
     parser.add_argument('--wandb_project', type=str, default='mscfransdeboer')
+    parser.add_argument('--wandb_name', type=str, default=None)
     parser.add_argument('--wandb_group', type=str, default=None)
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
@@ -28,10 +29,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--train_split', type=str, default='train_s1.txt')
     parser.add_argument('--test_split', type=str, default='test_s1.txt')
     parser.add_argument('--data_type', type=str, default='features/dense_trajectories')
+    parser.add_argument('--category_directory', type=str, default=None)
+    parser.add_argument('--num_categories', type=int, default=48)
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
     # bf 2113.340410958904
     # ucf24 173.42794759825327
-    parser.add_argument('--data_modifier_value', type=int, default=1)
+    parser.add_argument('--data_modifier_value', type=float, default=1.0)
     parser.add_argument('--bounding_boxes', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=25000)
@@ -99,5 +102,6 @@ def init(args: argparse.Namespace) -> None:
             project=args.wandb_project,
             group=args.wandb_group,
             tags=args.wandb_tags,
+            name=args.wandb_name,
             config=config
         )

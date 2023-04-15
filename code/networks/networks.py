@@ -137,3 +137,43 @@ class ProgressNetBoundingBoxes(nn.Module):
         progress = progress.reshape(B, S)
 
         return progress
+
+class ProgressNetCategories(nn.Module):
+    def __init__(self, embedding_size: int, num_categories: int, p_dropout: float) -> None:
+        super(ProgressNetCategories, self).__init__()
+        self.categories_fc = nn.Linear(num_categories, embedding_size)
+        self.categories_dropout = nn.Dropout(p=p_dropout)
+
+        self.fc7 = nn.Linear(embedding_size*2, 64)
+        self.fc7_dropout = nn.Dropout(p=p_dropout)
+        self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
+        self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)
+        self.fc8 = nn.Linear(32, 1)
+
+    def forward(self, data: torch.FloatTensor, categories: torch.FloatTensor) -> torch.FloatTensor:
+        B, S, _ = data.shape
+        num_samples = B * S
+
+        categories = categories.reshape(num_samples, -1)
+        categories = self.categories_fc(categories)
+        categories = self.categories_dropout(categories)
+        categories = torch.relu(categories)
+
+        data = data.reshape(num_samples, -1)
+
+        x = torch.cat((data, categories), dim=-1)
+        x = self.fc7(x)
+        x = self.fc7_dropout(x)
+        x = torch.relu(x)
+
+        x = x.reshape(B, S, -1)
+        x, _ = self.lstm1(x)
+        x, _ = self.lstm2(x)
+        x = x.reshape(num_samples, -1)
+        x = torch.relu(x)
+
+        x = self.fc8(x)
+        x = torch.sigmoid(x)
+        x = x.reshape(B, S)
+
+        return x
