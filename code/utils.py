@@ -45,8 +45,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--beta1', type=float, default=0.9)
     parser.add_argument('--beta2', type=float, default=0.999)
     parser.add_argument('--weight_decay', type=float, default=0.0)
-    parser.add_argument('--lr_decay_every', type=int, default=5000)
-    parser.add_argument('--lr_decay', type=float, default=1/2)
+    parser.add_argument('--lr_decay_every', type=int, default=1_000_000)
+    parser.add_argument('--lr_decay', type=float, default=1)
     parser.add_argument('--subsection_chance', type=float, default=0.0)
     parser.add_argument('--subsample_chance', type=float, default=0.0)
     # testing
@@ -78,6 +78,8 @@ def init(args: argparse.Namespace) -> None:
         'train_split': args.train_split,
         'test_split': args.test_split,
         'data_type': args.data_type,
+        'category_directory': args.category_directory,
+        'num_categories': args.num_categories,
         'data_modifier': args.data_modifier,
         'data_modifier_value': args.data_modifier_value,
         'bounding_boxes': args.bounding_boxes,
@@ -87,7 +89,7 @@ def init(args: argparse.Namespace) -> None:
         'average_loss': args.average_loss,
         'bo': args.bo,
         'lr': args.lr,
-        'beta': (args.beta1, args.beta2),
+        'betas': (args.beta1, args.beta2),
         'weight_decay': args.weight_decay,
         'lr_decay_every': args.lr_decay_every,
         'lr_decay': args.lr_decay,
