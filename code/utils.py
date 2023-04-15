@@ -11,7 +11,6 @@ def parse_args() -> argparse.Namespace:
     # experiment
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--experiment_name', type=str, default=None)
     parser.add_argument('--data_root', type=str, default='/home/frans/Datasets/')
     # wandb
     parser.add_argument('--wandb_disable', action='store_true')
@@ -40,7 +39,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--average_loss', action='store_true')
     parser.add_argument('--bo', action='store_true')
     parser.add_argument('--lr', type=float, default=3e-3)
-    # TODO (maybe?): Adam betas, weight_decay
+    parser.add_argument('--beta1', type=float, default=0.9)
+    parser.add_argument('--beta2', type=float, default=0.999)
+    parser.add_argument('--weight_decay', type=float, default=0.0)
     parser.add_argument('--lr_decay_every', type=int, default=5000)
     parser.add_argument('--lr_decay', type=float, default=1/2)
     parser.add_argument('--subsection_chance', type=float, default=0.0)
@@ -63,7 +64,6 @@ def init(args: argparse.Namespace) -> None:
     config = {
         # experiment
         'seed': args.seed,
-        'experiment_name': args.experiment_name,
         # network
         'network': args.network,
         'embedding_size': args.embedding_size,
@@ -76,10 +76,16 @@ def init(args: argparse.Namespace) -> None:
         'test_split': args.test_split,
         'data_type': args.data_type,
         'data_modifier': args.data_modifier,
+        'data_modifier_value': args.data_modifier_value,
         'bounding_boxes': args.bounding_boxes,
         # training
         'iterations': args.iterations,
+        'loss': args.loss,
+        'average_loss': args.average_loss,
+        'bo': args.bo,
         'lr': args.lr,
+        'beta': (args.beta1, args.beta2),
+        'weight_decay': args.weight_decay,
         'lr_decay_every': args.lr_decay_every,
         'lr_decay': args.lr_decay,
         'subsection_chance': args.subsection_chance,
@@ -95,11 +101,3 @@ def init(args: argparse.Namespace) -> None:
             tags=args.wandb_tags,
             config=config
         )
-    if args.experiment_name:
-        experiment_root = os.path.join(
-            args.data_root, 'experiments', args.experiment_name
-        )
-        os.mkdir(experiment_root)
-        os.mkdir(os.path.join(experiment_root, 'results'))
-        with open(os.path.join(experiment_root, 'config.json'), 'w+') as f:
-            json.dump(config, f)
