@@ -27,13 +27,15 @@ def init(args: argparse.Namespace) -> None:
         'train_split': args.train_split,
         'test_split': args.test_split,
         'data_type': args.data_type,
+        'data_modifier': args.data_modifier,
+        'bounding_boxes': args.bounding_boxes,
         # training
         'iterations': args.iterations,
         'lr': args.lr,
         'lr_decay_every': args.lr_decay_every,
         'lr_decay': args.lr_decay,
-        'augmentations': args.augmentations,
-        'data_modifier': args.data_modifier,
+        'subsection_chance': args.subsection_chance,
+        'subsample_chance': args.subsample_chance,
         # testing
         'test_every': args.test_every,
     }
@@ -60,10 +62,9 @@ def main() -> None:
     device = get_device(args.device)
     init(args)
 
+    # TODO: Data augmentations
     train_set, test_set = get_datasets(args)
-    # get train & test set (function)
-    # get (data) augmentations
-    # get sample augmentations
+    
     # get network (function)
     # init network
     # for parameters: xavier / random

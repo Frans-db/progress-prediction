@@ -23,14 +23,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--train_split', type=str, default='train_s1.txt')
     parser.add_argument('--test_split', type=str, default='test_s1.txt')
     parser.add_argument('--data_type', type=str, default='features/dense_trajectories')
-    parser.add_argument('--data_mode', type=str, default='sequential', choices=['sequential', 'individual'])
-    parser.add_argument('--data_modifier', type=str, default=None, choices=['random', 'ones', 'indices'])
+    parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
+    parser.add_argument('--bounding_boxes', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=1500)
     parser.add_argument('--lr', type=float, default=3e-3)
     parser.add_argument('--lr_decay_every', type=int, default=500)
     parser.add_argument('--lr_decay', type=float, default=1/2)
-    parser.add_argument('--augmentations', nargs='+', default='', choices=['subsection', 'subsample'])
+    parser.add_argument('--subsection_chance', type=float, default=0.0)
+    parser.add_argument('--subsample_chance', type=float, default=0.0)
     # testing
     parser.add_argument('--test_every', type=int, default=250)
 
