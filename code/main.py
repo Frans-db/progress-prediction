@@ -30,7 +30,6 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     data = batch[1:num_items-1]
     data = tuple(map(lambda x: x.to(device), data))
     progress = batch[-1].to(device)
-    print(data[0])
     # forward pass
     predicted_progress = network(*data)
     # loss calculations
