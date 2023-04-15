@@ -1,5 +1,6 @@
 import os
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
 
 from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset
 from .boundingbox_dataset import BoundingBoxDataset
@@ -14,7 +15,10 @@ def get_datasets(args):
     train_set = get_dataset(args, args.train_set, args.train_split, transform=transform, sample_transform=sample_transform)
     test_set = get_dataset(args, args.test_set, args.test_split, transform=transform)
 
-    return train_set, test_set
+    train_loader = DataLoader(train_set, batch_size=1, num_workers=4, shuffle=True)
+    test_loader = DataLoader(test_set, batch_size=1, num_workers=4, shuffle=False)
+
+    return train_set, test_set, train_loader, test_loader
 
 def get_dataset(args, dataset: str, split_file: str, transform = None, sample_transform = None):
     root = os.path.join(args.data_root, dataset)

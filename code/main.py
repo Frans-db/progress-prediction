@@ -1,61 +1,18 @@
-import random
 import torch
-import numpy as np
+import torch.optim as optim
+import torch.nn as nn
 import argparse
 import wandb
 import json
 import os
 
-from utils import parse_args, get_device
+from utils import parse_args, get_device, init
 from datasets import get_datasets
+from networks import get_network
 
 
-def init(args: argparse.Namespace) -> None:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-
-    config = {
-        # experiment
-        'seed': args.seed,
-        'experiment_name': args.experiment_name,
-        # network
-        'network': args.network,
-        # dataset
-        'train_set': args.train_set,
-        'test_set': args.test_set,
-        'train_split': args.train_split,
-        'test_split': args.test_split,
-        'data_type': args.data_type,
-        'data_modifier': args.data_modifier,
-        'bounding_boxes': args.bounding_boxes,
-        # training
-        'iterations': args.iterations,
-        'lr': args.lr,
-        'lr_decay_every': args.lr_decay_every,
-        'lr_decay': args.lr_decay,
-        'subsection_chance': args.subsection_chance,
-        'subsample_chance': args.subsample_chance,
-        # testing
-        'test_every': args.test_every,
-    }
-
-    if not args.wandb_disable:
-        wandb.init(
-            project=args.wandb_project,
-            group=args.wandb_group,
-            tags=args.wandb_tags,
-            config=config
-        )
-    if args.experiment_name:
-        experiment_root = os.path.join(
-            args.data_root, 'experiments', args.experiment_name
-        )
-        os.mkdir(experiment_root)
-        os.mkdir(os.path.join(experiment_root, 'results'))
-        with open(os.path.join(experiment_root, 'config.json'), 'w+') as f:
-            json.dump(config, f)
-
+def train():
+    pass
 
 def main() -> None:
     args = parse_args()
@@ -63,16 +20,31 @@ def main() -> None:
     init(args)
 
     # TODO: Data augmentations
-    train_set, test_set = get_datasets(args)
-    
-    # get network (function)
-    # init network
-    # for parameters: xavier / random
-    # for static: depending on train set
-    # get optimizer & scheduler
+    train_set, test_set, train_loader, test_loader = get_datasets(args)
+    network = get_network(args, device)
+
+    # get optimizer & scheduler & losses
+    optimizer = optim.Adam(network.parameters(), lr=args.lr)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
+    l1_criterion = nn.L1Loss(reduction='none')
+    l2_criterion = nn.MSELoss(reduction='none')
 
     # training
+    iteration = 0
+    done = False
+    while not done:
+        for batch in train_loader:
+            pass
 
+            if iteration % args.test_every == 0:
+                for batch in test_loader:
+                    pass
+
+            iteration += 1
+            scheduler.step()
+            if iteration > args.iterations:
+                done = True
+                break
 
 if __name__ == '__main__':
     main()
