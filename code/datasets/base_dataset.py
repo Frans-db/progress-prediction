@@ -3,7 +3,7 @@ import os
 from typing import List
 
 class BaseDataset(Dataset):
-    def __init__(self, root: str, data_type: str, split_file: str, transform = None, sample_transform = None) -> None:
+    def __init__(self, root: str, data_type: str, split_file: str, transform = None) -> None:
         super(Dataset, self).__init__()
         self.root = root
         self.data_root = os.path.join(self.root, data_type)
@@ -11,8 +11,10 @@ class BaseDataset(Dataset):
         split_file_path = os.path.join(self.root, 'splitfiles', split_file)
         self.split_names = self._load_split_file(split_file_path)
 
-        self.transform = transform
-        self.sample_transform = sample_transform
+        if transform is None:
+            self.transform = {}
+        else:
+            self.transform = transform
 
     @staticmethod
     def _load_split_file(path: str) -> List[str]:

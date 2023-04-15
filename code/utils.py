@@ -30,6 +30,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--test_split', type=str, default='test_s1.txt')
     parser.add_argument('--data_type', type=str, default='features/dense_trajectories')
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
+    # bf 2113.340410958904
+    # ucf24 173.42794759825327
+    parser.add_argument('--data_modifier_value', type=int, default=1)
     parser.add_argument('--bounding_boxes', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=25000)

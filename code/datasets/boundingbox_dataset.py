@@ -10,8 +10,8 @@ from .base_dataset import BaseDataset
 
 
 class BoundingBoxDataset(BaseDataset):
-    def __init__(self, root: str, data_type: str, split_file: str, annotation_file: str, transform=None, sample_transform=None, image_size: Tuple[int, int] = (320, 240)) -> None:
-        super(BoundingBoxDataset, self).__init__(root, data_type, split_file, transform, sample_transform)
+    def __init__(self, root: str, data_type: str, split_file: str, annotation_file: str, transform=None, image_size: Tuple[int, int] = (320, 240)) -> None:
+        super(BoundingBoxDataset, self).__init__(root, data_type, split_file, transform)
         self.image_size = image_size
         annotation_path = os.path.join(self.root, 'splitfiles', annotation_file)
         tube_names, frame_paths, boxes, progress = self._load_tubes(self.split_names, annotation_path, self.data_root)
@@ -19,6 +19,15 @@ class BoundingBoxDataset(BaseDataset):
         self.frame_paths = frame_paths
         self.boxes = boxes
         self.progress = progress
+
+    @property
+    def lengths(self) -> List[int]:
+        return [len(paths) for paths in self.frame_paths]
+
+    @property
+    def average_length(self) -> float:
+        lengths = self.lengths
+        return sum(lengths) / len(lengths)
 
     def __len__(self) -> int:
         return len(self.tube_names)
@@ -31,8 +40,8 @@ class BoundingBoxDataset(BaseDataset):
 
         num_frames = len(frame_paths)
         indices = list(range(num_frames))[::5]
-        if self.sample_transform:
-            indices = self.sample_transform(indices)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
         frame_paths = frame_paths[indices]
         boxes = boxes[indices]
         progress = progress[indices]
@@ -40,11 +49,14 @@ class BoundingBoxDataset(BaseDataset):
         frames = []
         for frame_path in frame_paths:
             frame = Image.open(frame_path).convert('RGB')
-            if self.transform:
-                frame = self.transform(frame)
+            if 'transform' in self.transform:
+                frame = self.transform['transform'](frame)
             frames.append(frame)
+        frames = torch.stack(frames)
+        if 'data_transform' in self.transform:
+            frames = self.transform['data_transform'](frames)
 
-        return tube_name, torch.stack(frames), boxes, progress
+        return tube_name, frames, boxes, progress
 
     def _load_tubes(self, split_names: List[str], annotation_path: str, data_root: str) -> Tuple[List[str], List[List[str]], List[torch.FloatTensor], List[torch.FloatTensor]]:
         with open(annotation_path, 'rb') as f:

@@ -30,6 +30,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     data = batch[1:num_items-1]
     data = tuple(map(lambda x: x.to(device), data))
     progress = batch[-1].to(device)
+    print(data[0])
     # forward pass
     predicted_progress = network(*data)
     # loss calculations
@@ -100,8 +101,7 @@ def main() -> None:
 
     # get optimizer & scheduler
     optimizer = optim.Adam(network.parameters(), lr=args.lr)
-    # scheduler = optim.lr_scheduler.StepLR(
-    #     optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
 
     # training
     iteration = 0
@@ -127,7 +127,7 @@ def main() -> None:
 
             # update iteration & scheduler
             iteration += 1
-            # scheduler.step()
+            scheduler.step()
             if iteration > args.iterations:
                 done = True
                 break

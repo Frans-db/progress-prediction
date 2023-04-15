@@ -9,11 +9,20 @@ from .base_dataset import BaseDataset
 
 
 class ProgressFeatureDataset(BaseDataset):
-    def __init__(self, root: str, data_type: str, split_file: str, transform=None, sample_transform=None) -> None:
-        super(ProgressFeatureDataset, self).__init__(root, data_type, split_file, transform, sample_transform)
+    def __init__(self, root: str, data_type: str, split_file: str, transform=None) -> None:
+        super(ProgressFeatureDataset, self).__init__(root, data_type, split_file, transform)
         data, progress = self._load_data(self.split_names, self.data_root)
         self.data = data
         self.progress = progress
+
+    @property
+    def lengths(self) -> List[int]:
+        return [item.shape[0] for item in self.data]
+
+    @property
+    def average_length(self) -> float:
+        lengths = self.lengths
+        return sum(lengths) / len(lengths)
 
     @staticmethod
     def _load_data(split_names: List[str], data_root: str) -> Tuple[List[torch.FloatTensor], List[torch.FloatTensor]]:
@@ -43,23 +52,34 @@ class ProgressFeatureDataset(BaseDataset):
         video_progress = self.progress[index]
 
         indices = list(range(video_data.shape[0]))
-        if self.sample_transform:
-            indices = self.sample_transform(indices)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
         video_data = video_data[indices]
         video_progress = video_progress[indices]
 
-        if self.transform:
-            video_data = self.transform(video_data)
+        if 'transform' in self.transform:
+            video_data = self.transform['transform'](video_data)
+        if 'data_transform' in self.transform:
+            video_data = self.transform['data_transform'](video_data)
 
         return video_name, video_data, video_progress
 
 
 class ProgressVideoDataset(BaseDataset):
-    def __init__(self, root: str, data_type: str, split_file: str, transform=None, sample_transform=None) -> None:
-        super(ProgressVideoDataset, self).__init__(root, data_type, split_file, transform, sample_transform)
+    def __init__(self, root: str, data_type: str, split_file: str, transform=None) -> None:
+        super(ProgressVideoDataset, self).__init__(root, data_type, split_file, transform)
         paths, progress = self._get_frame_paths(self.split_names, self.data_root)
         self.paths = paths
         self.progress = progress
+
+    @property
+    def lengths(self) -> List[int]:
+        return [len(paths) for paths in self.paths]
+
+    @property
+    def average_length(self) -> float:
+        lengths = self.lengths
+        return sum(lengths) / len(lengths)
 
     @staticmethod
     def _get_frame_paths(split_names: List[str], data_root: str) -> Tuple[List[str], List[torch.FloatTensor]]:
@@ -86,16 +106,19 @@ class ProgressVideoDataset(BaseDataset):
 
         num_frames = len(frame_paths)
         indices = list(range(num_frames))
-        if self.sample_transform:
-            indices = self.sample_transform(indices)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
         frame_paths = frame_paths[indices]
         video_progress = video_progress[indices]
 
         frames = []
         for frame_path in frame_paths:
             frame = Image.open(frame_path).convert('RGB')
-            if self.transform:
-                frame = self.transform(frame)
+            if 'transform' in self.transform:
+                frame = self.transform['transform'](frame)
             frames.append(frame)
+        frames = torch.stack(frames)
+        if 'data_transform' in self.transform:
+            frames = self.transform['data_transform'](frames)
 
-        return video_name, torch.stack(frames), video_progress
+        return video_name, frames, video_progress
