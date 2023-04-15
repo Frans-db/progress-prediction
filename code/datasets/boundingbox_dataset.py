@@ -39,7 +39,7 @@ class BoundingBoxDataset(BaseDataset):
         progress = self.progress[index]
 
         num_frames = len(frame_paths)
-        indices = list(range(num_frames))[::5]
+        indices = list(range(num_frames))
         if 'sample_transform' in self.transform:
             indices = self.transform['sample_transform'](indices)
         frame_paths = frame_paths[indices]
