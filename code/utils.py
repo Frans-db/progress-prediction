@@ -5,7 +5,9 @@ import random
 import numpy as np
 
 def parse_args() -> argparse.Namespace:
-    networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 'progressnet_categories']
+    networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 
+                'progressnet_categories', 'progressnet_features_2d', 'progressnet_boundingboxes_2d',
+                'progressnet_resnet']
 
     parser = argparse.ArgumentParser()
     # experiment

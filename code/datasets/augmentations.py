@@ -9,11 +9,11 @@ class Indices:
         self.normalization_factor = normalization_factor
 
     def __call__(self, data: torch.FloatTensor) -> torch.FloatTensor:
-        S, C, H, W = data.shape
+        S, _ = data.shape
         x = torch.arange(1, S+1, 1, dtype=torch.float32).reshape(S, 1) / self.normalization_factor
         data = torch.ones_like(data, dtype=torch.float32).reshape(S, -1)
         data = data * x
-        return data.reshape(S, C, H, W)
+        return data.reshape(*data.shape)
 
 
 class Ones:
