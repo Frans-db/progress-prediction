@@ -53,6 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--subsample_chance', type=float, default=1.0)
     # testing
     parser.add_argument('--test_every', type=int, default=1000)
+    parser.add_argument('--testing_fps', type=int, default=1)
 
     return parser.parse_args()
 
@@ -99,6 +100,7 @@ def init(args: argparse.Namespace) -> None:
         'subsample_chance': args.subsample_chance,
         # testing
         'test_every': args.test_every,
+        'testing_fps': args.testing_fps
     }
 
     if not args.wandb_disable:
