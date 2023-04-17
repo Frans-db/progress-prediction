@@ -2,7 +2,7 @@ import torch.nn as nn
 import argparse
 import torch
 
-from .dumb_networks import StaticNet
+from .dumb_networks import StaticNet, RandomNet
 from .networks import ProgressNet, ProgressNetFeatures, ProgressNetBoundingBoxes, ProgressNetCategories, ProgressNetBoundingBoxes2D, ProgressNetFeatures2D
 from .networks import ProgressResNet
 
@@ -34,6 +34,8 @@ def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
         network = ProgressResNet()
     elif args.network == 'dumb_static':
         network = StaticNet(device)
+    elif args.network == 'dumb_random':
+        network = RandomNet(device)
 
     if args.initialisation == 'xavier':
         network.apply(init_weights)
