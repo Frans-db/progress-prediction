@@ -117,6 +117,7 @@ def main() -> None:
             # test
             if iteration % args.test_every == 0:
                 for batch in test_loader:
+                    # print(batch[1].shape)
                     batch_result = train(batch, network, args, device)
                     update_result(test_result, batch_result)
                 if not args.wandb_disable:
