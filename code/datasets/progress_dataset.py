@@ -176,6 +176,7 @@ class ProgressCategoryDataset(BaseDataset):
             data.append(torch.FloatTensor(video_data))
             video_categories.append(mapped_categories)
             progress.append(torch.FloatTensor(video_progress))
+        
         return data, video_categories, progress
 
     def __len__(self) -> int:
@@ -188,15 +189,15 @@ class ProgressCategoryDataset(BaseDataset):
         video_progress = self.progress[index]
 
         indices = list(range(video_data.shape[0]))
-        if 'sample_transform' in self.transform:
-            indices = self.transform['sample_transform'](indices)
-        video_data = video_data[indices]
-        video_categories = video_categories[indices]
-        video_progress = video_progress[indices]
+        # video_data = video_data[indices]
+        # video_categories = video_categories[indices]
+        # video_progress = video_progress[indices]
 
         if 'transform' in self.transform:
             video_data = self.transform['transform'](video_data)
         if 'data_transform' in self.transform:
             video_data = self.transform['data_transform'](video_data)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
 
-        return video_name, video_data, video_categories, video_progress
+        return video_name, video_data[indices], video_categories[indices], video_progress[indices]

@@ -297,6 +297,39 @@ class ProgressResNet(nn.Module):
 
         return progress
 
+class ProgressResNetIndices(nn.Module):
+    def __init__(self, device: torch.device) -> None:
+        self.device = device
+        super(ProgressResNetIndices, self).__init__()
+        self.resnet = models.resnet18()
+        self.resnet.fc = nn.Linear(512, 64)
+
+        self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
+        self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)
+
+        self.fc8 = nn.Linear(32+1, 1)
+
+    def forward(self, frames: torch.FloatTensor, *args, **kwargs) -> torch.FloatTensor:
+        B, S, C, H, W = frames.shape
+        num_samples = B * S
+
+        flat_frames = frames.reshape(num_samples, C, H, W)
+
+        embedded = self.resnet(flat_frames)
+
+        rnn = embedded.reshape(B, S, -1)
+        rnn, _ = self.lstm1(rnn)
+        rnn, _ = self.lstm2(rnn)
+        rnn = torch.relu(rnn)
+
+        indices = torch.arange(1, S+1, 1, requires_grad=True, dtype=torch.float32, device=self.device).reshape(num_samples, -1)
+        progress = rnn.reshape(num_samples, -1)
+        progress = torch.cat((progress, indices), dim=-1)
+        progress = self.fc8(progress)
+        progress = torch.sigmoid(progress)
+        progress = progress.reshape(B, S)
+
+        return progress
 
 def vgg(cfg, i, batch_norm=False):
     layers = []
