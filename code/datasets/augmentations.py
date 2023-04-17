@@ -8,12 +8,12 @@ class Indices:
         super(Indices, self).__init__()
         self.normalization_factor = normalization_factor
 
-    def __call__(self, data: torch.FloatTensor) -> torch.FloatTensor:
-        S, _ = data.shape
+    def __call__(self, frames: torch.FloatTensor) -> torch.FloatTensor:
+        S = frames.shape[0]
         x = torch.arange(1, S+1, 1, dtype=torch.float32).reshape(S, 1) / self.normalization_factor
-        data = torch.ones_like(data, dtype=torch.float32).reshape(S, -1)
+        data = torch.ones_like(frames, dtype=torch.float32).reshape(S, -1)
         data = data * x
-        return data.reshape(*data.shape)
+        return data.reshape(*frames.shape)
 
 
 class Ones:
@@ -27,14 +27,18 @@ class Randoms:
 
 
 class Subsample:
-    def __init__(self, p: float = 0.5) -> None:
+    def __init__(self, p: float = 0.5, fps = None) -> None:
+        self.fps = fps
         self.p = p
 
     def __call__(self, indices: List[int]) -> List[int]:
         if random.random() > self.p:
             return indices
 
-        fps = random.randint(1, 10)
+        if self.fps is None:
+            fps = random.randint(1, 10)
+        else:
+            fps = self.fps
         return indices[::fps]
 
     def __repr__(self) -> str:

@@ -277,7 +277,7 @@ class ProgressResNet(nn.Module):
 
         self.fc8 = nn.Linear(32, 1)
 
-    def forward(self, frames: torch.FloatTensor) -> torch.FloatTensor:
+    def forward(self, frames: torch.FloatTensor, *args, **kwargs) -> torch.FloatTensor:
         B, S, C, H, W = frames.shape
         num_samples = B * S
 
