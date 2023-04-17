@@ -4,7 +4,7 @@ import torch
 
 from .dumb_networks import StaticNet, RandomNet
 from .networks import ProgressNet, ProgressNetFeatures, ProgressNetBoundingBoxes, ProgressNetCategories, ProgressNetBoundingBoxes2D, ProgressNetFeatures2D
-from .networks import ProgressResNet
+from .networks import ProgressResNet, ProgressNetBoundingBoxesVGG
 
 def init_weights(m: nn.Module) -> None:
     if isinstance(m, nn.Linear):
@@ -27,7 +27,9 @@ def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
     elif args.network == 'progressnet_categories':
         network = ProgressNetCategories(args.embedding_size, args.num_categories, args.dropout_chance)
     elif args.network == 'progressnet_boundingboxes_2d':
-        network = ProgressNetBoundingBoxes2D(args.embedding_size, args.dropout_chance)
+        network = ProgressNetBoundingBoxes2D(args.embedding_size, args.dropout_chance, device)
+    elif args.network == 'progressnet_boundingboxes_vgg':
+        network = ProgressNetBoundingBoxesVGG(args.embedding_size, args.dropout_chance, device)
     elif args.network == 'progressnet_features_2d':
         network = ProgressNetFeatures2D(args.embedding_size, args.dropout_chance)
     elif args.network == 'progressnet_resnet':

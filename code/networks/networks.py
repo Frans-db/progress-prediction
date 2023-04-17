@@ -296,3 +296,97 @@ class ProgressResNet(nn.Module):
         progress = progress.reshape(B, S)
 
         return progress
+
+
+def vgg(cfg, i, batch_norm=False):
+    layers = []
+    in_channels = i
+    for v in cfg:
+        if v == 'M':
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+        elif v == 'C':
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)]
+        else:
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+            if batch_norm:
+                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+            else:
+                layers += [conv2d, nn.ReLU(inplace=True)]
+            in_channels = v
+    pool5 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+    conv6 = nn.Conv2d(512, 1024, kernel_size=3, padding=6, dilation=6)
+    conv7 = nn.Conv2d(1024, 1024, kernel_size=1)
+    layers += [pool5, conv6,
+               nn.ReLU(inplace=True), conv7, nn.ReLU(inplace=True)]
+    return layers
+
+base = {
+    '300': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'C', 512, 512, 512, 'M',
+            512, 512, 512],
+    '512': [],
+}
+
+class ProgressNetBoundingBoxesVGG(nn.Module):
+    def __init__(self, embedding_size: int, p_dropout: float, device: torch.device) -> None:
+        super(ProgressNetBoundingBoxesVGG, self).__init__()
+        self.device = device
+
+        vgg_layers = tuple(vgg(base[str(300)], 3))
+        self.vgg = nn.Sequential(*vgg_layers)
+        # self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+
+        self.spp = SpatialPyramidPooling([1, 2, 3, 4])
+        self.spp_fc = nn.Linear(30720, embedding_size)
+        self.spp_dropout = nn.Dropout(p=p_dropout)
+
+        self.roi_fc = nn.Linear(50176, embedding_size)
+        self.roi_dropout = nn.Dropout(p=p_dropout)
+
+        self.fc7 = nn.Linear(embedding_size*2, 64)
+        self.fc7_dropout = nn.Dropout(p=p_dropout)
+
+        self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
+        self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)
+
+        self.fc8 = nn.Linear(32, 1)
+
+    def forward(self, frames: torch.FloatTensor, boxes: torch.FloatTensor) -> torch.FloatTensor:
+        B, S, C, H, W = frames.shape
+        num_samples = B * S
+
+        flat_frames = frames.reshape(num_samples, C, H, W)
+        flat_boxes = boxes.reshape(num_samples, 4)
+        box_indices = torch.arange(start=0, end=num_samples).reshape(
+            num_samples, 1).to(self.device)
+
+        boxes_with_indices = torch.cat((box_indices, flat_boxes), dim=-1)
+
+        flat_frames = self.vgg(flat_frames)
+
+        pooled = self.spp(flat_frames)
+        pooled = self.spp_fc(pooled)
+        pooled = self.spp_dropout(pooled)
+        pooled = torch.relu(pooled)
+
+        roi = roi_pool(flat_frames, boxes_with_indices, 7)
+        roi = roi.reshape(num_samples, -1)
+        roi = self.roi_fc(roi)
+        roi = self.roi_dropout(roi)
+        roi = torch.relu(roi)
+
+        concatenated = torch.cat((pooled, roi), dim=-1)
+        concatenated = self.fc7(concatenated)
+        concatenated = self.fc7_dropout(concatenated)
+        concatenated = torch.relu(concatenated)
+
+        rnn = concatenated.reshape(B, S, -1)
+        rnn, _ = self.lstm1(rnn)
+        rnn, _ = self.lstm2(rnn)
+        rnn = torch.relu(rnn)
+
+        progress = rnn.reshape(num_samples, -1)
+        progress = self.fc8(progress)
+        progress = torch.sigmoid(progress)
+        progress = progress.reshape(B, S)
+
+        return progress

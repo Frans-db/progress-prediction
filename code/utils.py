@@ -7,7 +7,7 @@ import numpy as np
 def parse_args() -> argparse.Namespace:
     networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 
                 'progressnet_categories', 'progressnet_features_2d', 'progressnet_boundingboxes_2d',
-                'progressnet_resnet', 'dumb_static', 'dumb_random']
+                'progressnet_resnet', 'dumb_static', 'dumb_random', 'progressnet_boundingboxes_vgg']
 
     parser = argparse.ArgumentParser()
     # experiment
@@ -49,8 +49,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--weight_decay', type=float, default=0.0)
     parser.add_argument('--lr_decay_every', type=int, default=1_000_000)
     parser.add_argument('--lr_decay', type=float, default=1)
-    parser.add_argument('--subsection_chance', type=float, default=0.0)
-    parser.add_argument('--subsample_chance', type=float, default=0.0)
+    parser.add_argument('--subsection_chance', type=float, default=1.0)
+    parser.add_argument('--subsample_chance', type=float, default=1.0)
     # testing
     parser.add_argument('--test_every', type=int, default=1000)
 

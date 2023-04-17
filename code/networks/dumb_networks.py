@@ -9,8 +9,8 @@ class StaticNet(nn.Module):
         self.device = device
         self.value = value
 
-    def forward(self, x):
-        B, S, _ = x.shape
+    def forward(self, x, *args, **kwargs):
+        B, S = x.shape[0], x.shape[1]
         return torch.full((B, S), self.value, device=self.device, requires_grad=True)
 
 class RandomNet(nn.Module):
@@ -20,6 +20,6 @@ class RandomNet(nn.Module):
         self.linear = nn.Linear(1, 1)
         self.device = device
 
-    def forward(self, x):
-        B, S, _ = x.shape
-        return torch.rand((B, S), self.value, device=self.device, requires_grad=True)
+    def forward(self, x, *args, **kwargs):
+        B, S = x.shape[0], x.shape[1]
+        return torch.rand((B, S), device=self.device, requires_grad=True)

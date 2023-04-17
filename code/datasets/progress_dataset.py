@@ -54,15 +54,15 @@ class ProgressFeatureDataset(BaseDataset):
         video_progress = self.progress[index]
 
         indices = list(range(video_data.shape[0]))
-        if 'sample_transform' in self.transform:
-            indices = self.transform['sample_transform'](indices)
-        video_data = video_data[indices]
-        video_progress = video_progress[indices]
 
         if 'transform' in self.transform:
             video_data = self.transform['transform'](video_data)
         if 'data_transform' in self.transform:
             video_data = self.transform['data_transform'](video_data)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
+        video_data = video_data[indices]
+        video_progress = video_progress[indices]
 
         return video_name, video_data, video_progress
 
@@ -108,10 +108,9 @@ class ProgressVideoDataset(BaseDataset):
 
         num_frames = len(frame_paths)
         indices = list(range(num_frames))
-        if 'sample_transform' in self.transform:
-            indices = self.transform['sample_transform'](indices)
-        frame_paths = frame_paths[indices]
-        video_progress = video_progress[indices]
+
+        # frame_paths = frame_paths[indices]
+        # video_progress = video_progress[indices]
 
         frames = []
         for frame_path in frame_paths:
@@ -122,8 +121,10 @@ class ProgressVideoDataset(BaseDataset):
         frames = torch.stack(frames)
         if 'data_transform' in self.transform:
             frames = self.transform['data_transform'](frames)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
 
-        return video_name, frames, video_progress
+        return video_name, frames[indices], video_progress[indices]
 
 class ProgressCategoryDataset(BaseDataset):
     def __init__(self, root: str, data_type: str, category_directory: str, num_categories: int, split_file: str, transform=None) -> None:

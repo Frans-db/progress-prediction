@@ -40,11 +40,10 @@ class BoundingBoxDataset(BaseDataset):
 
         num_frames = len(frame_paths)
         indices = list(range(num_frames))
-        if 'sample_transform' in self.transform:
-            indices = self.transform['sample_transform'](indices)
-        frame_paths = frame_paths[indices]
-        boxes = boxes[indices]
-        progress = progress[indices]
+
+        # frame_paths = frame_paths[indices]
+        # boxes = boxes[indices]
+        # progress = progress[indices]
 
         frames = []
         for frame_path in frame_paths:
@@ -55,8 +54,10 @@ class BoundingBoxDataset(BaseDataset):
         frames = torch.stack(frames)
         if 'data_transform' in self.transform:
             frames = self.transform['data_transform'](frames)
+        if 'sample_transform' in self.transform:
+            indices = self.transform['sample_transform'](indices)
 
-        return tube_name, frames, boxes, progress
+        return tube_name, frames[indices], boxes[indices], progress[indices]
 
     def _load_tubes(self, split_names: List[str], annotation_path: str, data_root: str) -> Tuple[List[str], List[List[str]], List[torch.FloatTensor], List[torch.FloatTensor]]:
         with open(annotation_path, 'rb') as f:
