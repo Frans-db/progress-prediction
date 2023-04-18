@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchvision.ops import roi_pool
 import torchvision.models as models
+import os
 
 from .pyramid_pooling import SpatialPyramidPooling
 
@@ -360,15 +361,19 @@ base = {
 }
 
 class ProgressNetBoundingBoxesVGG(nn.Module):
-    def __init__(self, embedding_size: int, p_dropout: float, device: torch.device) -> None:
+    def __init__(self, args, device: torch.device) -> None:
         super(ProgressNetBoundingBoxesVGG, self).__init__()
         self.device = device
 
         vgg_layers = tuple(vgg(base[str(300)], 3))
         self.vgg = nn.Sequential(*vgg_layers)
-        self.vgg.load_state_dict(torch.load('/home/frans/Datasets/ucf24/train_data/vgg16_reducedfc.pth'))
-        for param in self.vgg.parameters():
-            param.requires_grad = False
+        model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
+        self.vgg.load_state_dict(torch.load(model_path))
+        print(args.basemodel_gradients)
+        if not args.basemodel_gradients:
+            print('grad disable')
+            for param in self.vgg.parameters():
+                param.requires_grad = False
         # self.vgg = nn.Sequential(
         #     nn.Conv2d(3, 32, 3, 2), nn.ReLU(),
         #     nn.Conv2d(32, 64, 3, 2), nn.ReLU(),
@@ -379,14 +384,14 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         # self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
 
         self.spp = SpatialPyramidPooling([1, 2])
-        self.spp_fc = nn.Linear(5120, embedding_size)
-        self.spp_dropout = nn.Dropout(p=p_dropout)
+        self.spp_fc = nn.Linear(5120, args.embedding_size)
+        self.spp_dropout = nn.Dropout(p=args.dropout_chance)
 
-        self.roi_fc = nn.Linear(9216, embedding_size)
-        self.roi_dropout = nn.Dropout(p=p_dropout)
+        self.roi_fc = nn.Linear(9216, args.embedding_size)
+        self.roi_dropout = nn.Dropout(p=args.dropout_chance)
 
-        self.fc7 = nn.Linear(embedding_size*2, 64)
-        self.fc7_dropout = nn.Dropout(p=p_dropout)
+        self.fc7 = nn.Linear(args.embedding_size*2, 64)
+        self.fc7_dropout = nn.Dropout(p=args.dropout_chance)
 
         self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
         self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)

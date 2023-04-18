@@ -29,7 +29,7 @@ def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
     elif args.network == 'progressnet_boundingboxes_2d':
         network = ProgressNetBoundingBoxes2D(args.embedding_size, args.dropout_chance, device)
     elif args.network == 'progressnet_boundingboxes_vgg':
-        network = ProgressNetBoundingBoxesVGG(args.embedding_size, args.dropout_chance, device)
+        network = ProgressNetBoundingBoxesVGG(args, device)
     elif args.network == 'progressnet_features_2d':
         network = ProgressNetFeatures2D(args.embedding_size, args.dropout_chance)
     elif args.network == 'progressnet_resnet':

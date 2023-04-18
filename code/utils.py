@@ -29,6 +29,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--embedding_size', type=int, default=64)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.0)
+    parser.add_argument('--basemodel', type=str, default='vgg16_reducedfc.pth')
+    parser.add_argument('--basemodel_gradients', action='store_true')
+    parser.add_argument('--finetune', action='store_true')
     # dataset
     parser.add_argument('--train_set', type=str, default='breakfast')
     parser.add_argument('--test_set', type=str, default='breakfast')
@@ -80,6 +83,9 @@ def init(args: argparse.Namespace) -> None:
         'embedding_size': args.embedding_size,
         'initialisation': args.initialisation,
         'dropout_chance': args.dropout_chance,
+        'basemodel': args.basemodel,
+        'basemodel_gradients': args.basemodel_gradients,
+        'finetune': args.finetune,
         # dataset
         'train_set': args.train_set,
         'test_set': args.test_set,
