@@ -113,6 +113,7 @@ def init(args: argparse.Namespace) -> None:
         os.mkdir(experiment_root)
         os.mkdir(os.path.join(experiment_root, 'results'))
         os.mkdir(os.path.join(experiment_root, 'models'))
+        os.mkdir(os.path.join(experiment_root, 'plots'))
         with open(os.path.join(experiment_root, 'config.json'), 'w+') as f:
             json.dump(config, f)
 

@@ -106,8 +106,8 @@ class ProgressNetBoundingBoxes(nn.Module):
 
         flat_frames = frames.reshape(num_samples, C, H, W)
         flat_boxes = boxes.reshape(num_samples, 4)
-        box_indices = torch.arange(start=0, end=num_samples).reshape(
-            num_samples, 1).to(self.device)
+        box_indices = torch.arange(start=0, end=num_samples, device=self.device).reshape(
+            num_samples, 1)
 
         boxes_with_indices = torch.cat((box_indices, flat_boxes), dim=-1)
 
@@ -235,8 +235,8 @@ class ProgressNetBoundingBoxes2D(nn.Module):
 
         flat_frames = frames.reshape(num_samples, C, H, W)
         flat_boxes = boxes.reshape(num_samples, 4)
-        box_indices = torch.arange(start=0, end=num_samples).reshape(
-            num_samples, 1).to(self.device)
+        box_indices = torch.arange(start=0, end=num_samples, device=self.device).reshape(
+            num_samples, 1)
 
         boxes_with_indices = torch.cat((box_indices, flat_boxes), dim=-1)
 
@@ -399,8 +399,8 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
 
         frames = frames.reshape(num_samples, C, H, W)
         boxes = boxes.reshape(num_samples, 4)
-        box_indices = torch.arange(start=0, end=num_samples).reshape(
-            num_samples, 1).to(self.device)
+        box_indices = torch.arange(start=0, end=num_samples, device=self.device).reshape(
+            num_samples, 1)
 
         boxes = torch.cat((box_indices, boxes), dim=-1)
         del box_indices
@@ -420,21 +420,21 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         roi = self.roi_dropout(roi)
         roi = torch.relu(roi)
 
-        roi = torch.cat((frames, roi), dim=-1)
-        del frames
+        frames = torch.cat((frames, roi), dim=-1)
+        del roi
 
-        roi = self.fc7(roi)
-        roi = self.fc7_dropout(roi)
-        roi = torch.relu(roi)
+        frames = self.fc7(frames)
+        frames = self.fc7_dropout(frames)
+        frames = torch.relu(frames)
 
-        roi = roi.reshape(B, S, -1)
-        roi, _ = self.lstm1(roi)
-        roi, _ = self.lstm2(roi)
-        roi = torch.relu(roi)
+        frames = frames.reshape(B, S, -1)
+        frames, _ = self.lstm1(frames)
+        frames, _ = self.lstm2(frames)
+        frames = torch.relu(frames)
 
-        roi = roi.reshape(num_samples, -1)
-        roi = self.fc8(roi)
-        roi = torch.sigmoid(roi)
-        roi = roi.reshape(B, S)
+        frames = frames.reshape(num_samples, -1)
+        frames = self.fc8(frames)
+        frames = torch.sigmoid(frames)
+        frames = frames.reshape(B, S)
 
-        return roi
+        return frames

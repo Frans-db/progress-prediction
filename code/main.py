@@ -22,8 +22,8 @@ def bo(p, p_hat, device):
 
 
 def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
-    l1_criterion = nn.L1Loss(reduction='none')
-    l2_criterion = nn.MSELoss(reduction='none')
+    l1_criterion = nn.L1Loss(reduction='sum')
+    l2_criterion = nn.MSELoss(reduction='sum')
     # extract data from batch
     num_items = len(batch)
     video_names = batch[0]
@@ -35,20 +35,20 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     progress = batch[-1].to(device)
     l1_loss = l1_criterion(predicted_progress, progress)
     l2_loss = l2_criterion(predicted_progress, progress)
-    bo_weight = bo(predicted_progress, progress, device)
+    # bo_weight = bo(predicted_progress, progress, device)
     count = progress.shape[-1]
     # optimizer
     if optimizer:
         optimizer.zero_grad()
         if args.loss == 'l1':
-            loss = l1_loss
+            loss = l1_loss.clone()
         elif args.loss == 'l2':
-            loss = l2_loss
-        if args.bo:
-            loss *= bo_weight
+            loss = l2_loss.clone()
+        # if args.bo:
+        #     loss = loss * bo_weight
         loss = loss.sum()
         if args.average_loss:
-            loss /= count
+            loss = loss / count
 
         loss.backward()
         optimizer.step()
@@ -57,9 +57,9 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
         'video_names': video_names,
         'predictions': predicted_progress.cpu().detach(),
         'progress': progress.cpu().detach(),
-        'l1_loss': l1_loss.sum().item(),
-        'l1_bo_loss': (l1_loss * bo_weight).sum().item(),
-        'l2_loss': l2_loss.sum().item(),
+        'l1_loss': l1_loss().item(),
+        # 'l1_bo_loss': (l1_loss * bo_weight)().item(),
+        'l2_loss': l2_loss().item(),
         'count': count
     }
 
@@ -109,6 +109,7 @@ def main() -> None:
     iteration = 0
     done = False
     train_result, test_result = get_empty_result(), get_empty_result()
+    torch.backends.cudnn.benchmark = True
     while not done:
         for batch in train_loader:
             # train step
@@ -118,18 +119,31 @@ def main() -> None:
             update_result(train_result, batch_result)
 
             # test
+            
             if iteration % args.test_every == 0:
-                for batch in test_loader:
-                    # print(batch[1].shape)
-                    batch_result = train(batch, network, args, device)
-                    update_result(test_result, batch_result)
-                if not args.wandb_disable:
-                    wandb_log(test_result, iteration, 'test')
-                    wandb_log(train_result, iteration, 'avg_train')
-                train_result, test_result = get_empty_result(), get_empty_result()
-                if args.experiment_name:
-                    model_path = os.path.join(experiment_root, 'models', f'model_{iteration}.pth')
-                    torch.save(network.state_dict(), model_path)
+                model.eval()
+                with torch.no_grad():
+                    test_json = []
+                    for batch in test_loader:
+                        # print(batch[1].shape)
+                        batch_result = train(batch, network, args, device)
+                        update_result(test_result, batch_result)
+                        test_json.append({
+                            'video_name': batch_result['video_names'][0],
+                            'progress': batch_result['progress'][0].tolist(),
+                            'predictions': batch_result['predictions'][0].tolist(),
+                        })
+                    if not args.wandb_disable:
+                        wandb_log(test_result, iteration, 'test')
+                        wandb_log(train_result, iteration, 'avg_train')
+                    train_result, test_result = get_empty_result(), get_empty_result()
+                    if args.experiment_name:
+                        model_path = os.path.join(experiment_root, 'models', f'model_{iteration}.pth')
+                        json_path = os.path.join(experiment_root, 'results', f'{iteration}.json')
+                        with open(json_path, 'w+') as f:
+                            json.dump(test_json, f)
+                        torch.save(network.state_dict(), model_path)
+                model.train()
 
             # update iteration & scheduler
             iteration += 1
