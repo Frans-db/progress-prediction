@@ -22,8 +22,8 @@ def bo(p, p_hat, device):
 
 
 def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
-    l1_criterion = nn.L1Loss(reduction='sum')
-    l2_criterion = nn.MSELoss(reduction='sum')
+    l1_criterion = nn.L1Loss(reduction='none')
+    l2_criterion = nn.MSELoss(reduction='none')
     # extract data from batch
     num_items = len(batch)
     video_names = batch[0]
@@ -35,7 +35,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     progress = batch[-1].to(device)
     l1_loss = l1_criterion(predicted_progress, progress)
     l2_loss = l2_criterion(predicted_progress, progress)
-    # bo_weight = bo(predicted_progress, progress, device)
+    bo_weight = bo(predicted_progress, progress, device)
     count = progress.shape[-1]
     # optimizer
     if optimizer:
@@ -44,22 +44,22 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
             loss = l1_loss.clone()
         elif args.loss == 'l2':
             loss = l2_loss.clone()
-        # if args.bo:
-        #     loss = loss * bo_weight
+        if args.bo:
+            loss = loss * bo_weight
         loss = loss.sum()
         if args.average_loss:
             loss = loss / count
 
         loss.backward()
         optimizer.step()
-
+    
     return {
         'video_names': video_names,
         'predictions': predicted_progress.cpu().detach(),
         'progress': progress.cpu().detach(),
-        'l1_loss': l1_loss().item(),
-        # 'l1_bo_loss': (l1_loss * bo_weight)().item(),
-        'l2_loss': l2_loss().item(),
+        'l1_loss': l1_loss.sum().item(),
+        'l1_bo_loss': (l1_loss * bo_weight).sum().item(),
+        'l2_loss': l2_loss.sum().item(),
         'count': count
     }
 
@@ -67,7 +67,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
 def get_empty_result() -> dict:
     return {
         'l1_loss': 0.0,
-        'l1_bo_loss': 0.0,
+        # 'l1_bo_loss': 0.0,
         'l2_loss': 0.0,
         'count': 0
     }
@@ -82,7 +82,7 @@ def update_result(result: dict, batch_result: dict) -> None:
 def wandb_log(result: dict, iteration: int, prefix: str) -> None:
     wandb.log({
         f'{prefix}_l1_loss': result['l1_loss'] / result['count'],
-        f'{prefix}_l1_bo_loss': result['l1_bo_loss'] / result['count'],
+        # f'{prefix}_l1_bo_loss': result['l1_bo_loss'] / result['count'],
         f'{prefix}_l2_loss': result['l2_loss'] / result['count'],
         'count': result['count'],
         'iteration': iteration,
@@ -121,7 +121,7 @@ def main() -> None:
             # test
             
             if iteration % args.test_every == 0:
-                model.eval()
+                network.eval()
                 with torch.no_grad():
                     test_json = []
                     for batch in test_loader:
@@ -143,7 +143,7 @@ def main() -> None:
                         with open(json_path, 'w+') as f:
                             json.dump(test_json, f)
                         torch.save(network.state_dict(), model_path)
-                model.train()
+                network.train()
 
             # update iteration & scheduler
             iteration += 1
