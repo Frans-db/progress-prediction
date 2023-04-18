@@ -27,9 +27,9 @@ def get_datasets(args):
     test_set = get_dataset(args, args.test_set, args.test_split, transform=test_transform)
 
     train_loader = DataLoader(train_set, batch_size=1,
-                              num_workers=0, shuffle=True)
+                              num_workers=2, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=1,
-                             num_workers=4, shuffle=False)
+                             num_workers=2, shuffle=False)
 
     return train_set, test_set, train_loader, test_loader
 
