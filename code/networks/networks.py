@@ -369,9 +369,7 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         self.vgg = nn.Sequential(*vgg_layers)
         model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
         self.vgg.load_state_dict(torch.load(model_path))
-        print(args.basemodel_gradients)
         if not args.basemodel_gradients:
-            print('grad disable')
             for param in self.vgg.parameters():
                 param.requires_grad = False
         # self.vgg = nn.Sequential(
