@@ -29,7 +29,17 @@ def main():
             if len(progress) <= i:
                 progress.append([])
             progress[i].append(p)
-        lengths.append(length)
+        
+        lengths.append((length, result['video_name']))
+    lengths.sort(key=lambda x:x[0])
+    for (length, name) in lengths:
+        print(length, name)
+
+    return
+
+
+
+
     average_progress = []
     for i, values in enumerate(progress):
         average_progress.append(statistics.mean(values))

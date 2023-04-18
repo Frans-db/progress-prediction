@@ -74,7 +74,7 @@ class BoundingBoxDataset(BaseDataset):
                 num_frames = len(tube_frame_paths)
                 tube_progress = [(i+1) / num_frames for i in range(num_frames)]
 
-                tube_names.append(video_name)
+                tube_names.append(f'{video_name}_{tube["sf"]}_{tube["ef"]}')
                 frame_paths.append(tube_frame_paths)
                 boxes.append(tube_boxes)
                 progress.append(torch.FloatTensor(tube_progress))
