@@ -366,6 +366,16 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
 
         vgg_layers = tuple(vgg(base[str(300)], 3))
         self.vgg = nn.Sequential(*vgg_layers)
+        self.vgg.load_state_dict(torch.load('FILL'))
+        for param in self.vgg.parameters():
+            param.requires_grad = False
+        # self.vgg = nn.Sequential(
+        #     nn.Conv2d(3, 32, 3, 2), nn.ReLU(),
+        #     nn.Conv2d(32, 64, 3, 2), nn.ReLU(),
+        #     nn.MaxPool2d(2, 2),
+        #     nn.Conv2d(64, 128, 2, 2), nn.ReLU(),
+        #     nn.Conv2d(128, 128, 2, 2), nn.ReLU(),
+        # )
         # self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
 
         self.spp = SpatialPyramidPooling([1, 2, 3])
@@ -393,9 +403,7 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
             num_samples, 1).to(self.device)
 
         boxes_with_indices = torch.cat((box_indices, flat_boxes), dim=-1)
-
         flat_frames = self.vgg(flat_frames)
-
         pooled = self.spp(flat_frames)
         pooled = self.spp_fc(pooled)
         pooled = self.spp_dropout(pooled)

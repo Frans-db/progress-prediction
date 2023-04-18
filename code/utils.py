@@ -3,6 +3,8 @@ import torch
 import wandb
 import random
 import numpy as np
+import os
+import json
 
 def parse_args() -> argparse.Namespace:
     networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 
@@ -15,6 +17,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--data_root', type=str, default='/home/frans/Datasets/')
+    parser.add_argument('--experiment_name', type=str, default=None)
     # wandb
     parser.add_argument('--wandb_disable', action='store_true')
     parser.add_argument('--wandb_project', type=str, default='mscfransdeboer')
@@ -71,6 +74,7 @@ def init(args: argparse.Namespace) -> None:
     config = {
         # experiment
         'seed': args.seed,
+        'experiment_name': args.experiment_name,
         # network
         'network': args.network,
         'embedding_size': args.embedding_size,
@@ -103,6 +107,15 @@ def init(args: argparse.Namespace) -> None:
         'test_every': args.test_every,
         'testing_fps': args.testing_fps
     }
+
+    if args.experiment_name:
+        experiment_root = os.path.join(args.data_root, 'experiments', args.experiment_name)
+        os.mkdir(experiment_root)
+        os.mkdir(os.path.join(experiment_root, 'results'))
+        os.mkdir(os.path.join(experiment_root, 'models'))
+        with open(os.path.join(experiment_root, 'config.json'), 'w+') as f:
+            json.dump(config, f)
+
 
     if not args.wandb_disable:
         wandb.init(

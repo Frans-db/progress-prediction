@@ -94,6 +94,9 @@ def main() -> None:
     device = get_device(args.device)
     init(args)
 
+    if args.experiment_name:
+        experiment_root = os.path.join(args.data_root, 'experiments', args.experiment_name)
+
     # TODO: Data augmentations
     train_set, test_set, train_loader, test_loader = get_datasets(args)
     network = get_network(args, device)
@@ -124,6 +127,9 @@ def main() -> None:
                     wandb_log(test_result, iteration, 'test')
                     wandb_log(train_result, iteration, 'avg_train')
                 train_result, test_result = get_empty_result(), get_empty_result()
+                if args.experiment_name:
+                    model_path = os.path.join(experiment_root, 'models', f'model_{iteration}.pth')
+                    torch.save(network.state_dict(), model_path)
 
             # update iteration & scheduler
             iteration += 1
