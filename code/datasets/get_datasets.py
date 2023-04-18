@@ -21,7 +21,6 @@ def get_datasets(args):
     test_transform = {
         'transform': transform,
         'data_transform': data_transform,
-        'sample_transform': transforms.Compose([Subsample(fps=args.testing_fps)])
     }
     train_set = get_dataset(args, args.train_set, args.train_split, transform=train_transform)
     test_set = get_dataset(args, args.test_set, args.test_split, transform=test_transform)
