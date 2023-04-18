@@ -29,10 +29,10 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     video_names = batch[0]
     data = batch[1:num_items-1]
     data = tuple(map(lambda x: x.to(device), data))
-    progress = batch[-1].to(device)
     # forward pass
     predicted_progress = network(*data)
     # loss calculations
+    progress = batch[-1].to(device)
     l1_loss = l1_criterion(predicted_progress, progress)
     l2_loss = l2_criterion(predicted_progress, progress)
     bo_weight = bo(predicted_progress, progress, device)

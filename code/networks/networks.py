@@ -366,7 +366,7 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
 
         vgg_layers = tuple(vgg(base[str(300)], 3))
         self.vgg = nn.Sequential(*vgg_layers)
-        self.vgg.load_state_dict(torch.load('FILL'))
+        self.vgg.load_state_dict(torch.load('/home/frans/Datasets/ucf24/train_data/vgg16_reducedfc.pth'))
         for param in self.vgg.parameters():
             param.requires_grad = False
         # self.vgg = nn.Sequential(
@@ -382,7 +382,7 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         self.spp_fc = nn.Linear(14336, embedding_size)
         self.spp_dropout = nn.Dropout(p=p_dropout)
 
-        self.roi_fc = nn.Linear(25600, embedding_size)
+        self.roi_fc = nn.Linear(16384, embedding_size)
         self.roi_dropout = nn.Dropout(p=p_dropout)
 
         self.fc7 = nn.Linear(embedding_size*2, 64)
@@ -397,37 +397,44 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         B, S, C, H, W = frames.shape
         num_samples = B * S
 
-        flat_frames = frames.reshape(num_samples, C, H, W)
-        flat_boxes = boxes.reshape(num_samples, 4)
+        frames = frames.reshape(num_samples, C, H, W)
+        boxes = boxes.reshape(num_samples, 4)
         box_indices = torch.arange(start=0, end=num_samples).reshape(
             num_samples, 1).to(self.device)
 
-        boxes_with_indices = torch.cat((box_indices, flat_boxes), dim=-1)
-        flat_frames = self.vgg(flat_frames)
-        pooled = self.spp(flat_frames)
-        pooled = self.spp_fc(pooled)
-        pooled = self.spp_dropout(pooled)
-        pooled = torch.relu(pooled)
+        boxes = torch.cat((box_indices, boxes), dim=-1)
+        del box_indices
+        frames = self.vgg(frames)
 
-        roi = roi_pool(flat_frames, boxes_with_indices, 5)
+        roi = roi_pool(frames, boxes, 4)
+        del boxes
+
+        frames = self.spp(frames)
+
+        frames = self.spp_fc(frames)
+        frames = self.spp_dropout(frames)
+        frames = torch.relu(frames)
+
         roi = roi.reshape(num_samples, -1)
         roi = self.roi_fc(roi)
         roi = self.roi_dropout(roi)
         roi = torch.relu(roi)
 
-        concatenated = torch.cat((pooled, roi), dim=-1)
-        concatenated = self.fc7(concatenated)
-        concatenated = self.fc7_dropout(concatenated)
-        concatenated = torch.relu(concatenated)
+        roi = torch.cat((frames, roi), dim=-1)
+        del frames
 
-        rnn = concatenated.reshape(B, S, -1)
-        rnn, _ = self.lstm1(rnn)
-        rnn, _ = self.lstm2(rnn)
-        rnn = torch.relu(rnn)
+        roi = self.fc7(roi)
+        roi = self.fc7_dropout(roi)
+        roi = torch.relu(roi)
 
-        progress = rnn.reshape(num_samples, -1)
-        progress = self.fc8(progress)
-        progress = torch.sigmoid(progress)
-        progress = progress.reshape(B, S)
+        roi = roi.reshape(B, S, -1)
+        roi, _ = self.lstm1(roi)
+        roi, _ = self.lstm2(roi)
+        roi = torch.relu(roi)
 
-        return progress
+        roi = roi.reshape(num_samples, -1)
+        roi = self.fc8(roi)
+        roi = torch.sigmoid(roi)
+        roi = roi.reshape(B, S)
+
+        return roi
