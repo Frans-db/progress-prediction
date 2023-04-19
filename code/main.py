@@ -67,7 +67,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
 def get_empty_result() -> dict:
     return {
         'l1_loss': 0.0,
-        # 'l1_bo_loss': 0.0,
+        'l1_bo_loss': 0.0,
         'l2_loss': 0.0,
         'count': 0
     }
@@ -82,7 +82,7 @@ def update_result(result: dict, batch_result: dict) -> None:
 def wandb_log(result: dict, iteration: int, prefix: str) -> None:
     wandb.log({
         f'{prefix}_l1_loss': result['l1_loss'] / result['count'],
-        # f'{prefix}_l1_bo_loss': result['l1_bo_loss'] / result['count'],
+        f'{prefix}_l1_bo_loss': result['l1_bo_loss'] / result['count'],
         f'{prefix}_l2_loss': result['l2_loss'] / result['count'],
         'count': result['count'],
         'iteration': iteration,
