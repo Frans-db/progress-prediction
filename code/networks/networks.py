@@ -381,11 +381,11 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         # )
         # self.vgg = models.vgg16(num_classes=64)
 
-        self.spp = SpatialPyramidPooling([1])
-        self.spp_fc = nn.Linear(1024, args.embedding_size)
+        self.spp = SpatialPyramidPooling([1, 2, 3])
+        self.spp_fc = nn.Linear(14336, args.embedding_size)
         self.spp_dropout = nn.Dropout(p=args.dropout_chance)
 
-        self.roi_fc = nn.Linear(1024, args.embedding_size)
+        self.roi_fc = nn.Linear(25600, args.embedding_size)
         self.roi_dropout = nn.Dropout(p=args.dropout_chance)
 
         self.fc7 = nn.Linear(args.embedding_size*2, 64)
@@ -407,6 +407,7 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
 
         boxes = torch.cat((box_indices, boxes), dim=-1)
         vgg_frames = self.vgg(frames)
+        # print(frames.shape, vgg_frames.shape)
         # return torch.sigmoid(vgg_frames)
 
         pooled = self.spp(vgg_frames)
@@ -414,7 +415,7 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         pooled = self.spp_dropout(pooled)
         pooled = torch.relu(pooled)
 
-        roi = roi_pool(vgg_frames, boxes, 1)
+        roi = roi_pool(vgg_frames, boxes, 5, spatial_scale=0.0625)
         roi = roi.reshape(num_samples, -1)
         roi = self.roi_fc(roi)
         roi = self.roi_dropout(roi)

@@ -98,10 +98,10 @@ class BoundingBoxDataset(BaseDataset):
         boxes[:, 2] += boxes[:, 0]
         boxes[:, 3] += boxes[:, 1]
         # make box sizes relative to image size
-        boxes[:, 0] /= self.image_size[0]
-        boxes[:, 2] /= self.image_size[0]
-        boxes[:, 1] /= self.image_size[1]
-        boxes[:, 3] /= self.image_size[1]
+        # boxes[:, 0] /= self.image_size[0]
+        # boxes[:, 2] /= self.image_size[0]
+        # boxes[:, 1] /= self.image_size[1]
+        # boxes[:, 3] /= self.image_size[1]
 
         return torch.FloatTensor(boxes)
 
