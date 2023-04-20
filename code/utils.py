@@ -10,7 +10,7 @@ def parse_args() -> argparse.Namespace:
     networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 
                 'progressnet_categories', 'progressnet_features_2d', 'progressnet_boundingboxes_2d',
                 'progressnet_resnet', 'dumb_static', 'dumb_random', 'progressnet_boundingboxes_vgg',
-                'progressnet_resnet_indices',]
+                'progressnet_resnet_indices', 'progressnet_boundingboxes_vgg_2d']
 
     parser = argparse.ArgumentParser()
     # experiment

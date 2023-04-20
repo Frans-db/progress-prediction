@@ -41,18 +41,19 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     if optimizer:
         optimizer.zero_grad()
         if args.loss == 'l1':
-            loss = l1_loss.clone()
+            loss = nn.L1Loss()(predicted_progress, progress)
         elif args.loss == 'l2':
-            loss = l2_loss.clone()
+            loss = nn.MSELoss()(predicted_progress, progress)
         if args.bo:
-            loss = loss * bo_weight
-        loss = loss.sum()
-        if args.average_loss:
-            loss = loss / count
+            loss = loss * bo_weight.sum()
+        # loss = loss.sum()
+        # loss = loss * 1_000_000
+        # if args.average_loss:
+        #     loss = loss / count
 
         loss.backward()
         optimizer.step()
-    
+
     return {
         'video_names': video_names,
         'predictions': predicted_progress.cpu().detach(),
@@ -97,7 +98,6 @@ def main() -> None:
     if args.experiment_name:
         experiment_root = os.path.join(args.data_root, 'experiments', args.experiment_name)
 
-    # TODO: Data augmentations
     train_set, test_set, train_loader, test_loader = get_datasets(args)
     network = get_network(args, device)
 
@@ -119,7 +119,6 @@ def main() -> None:
             update_result(train_result, batch_result)
 
             # test
-            
             if iteration % args.test_every == 0:
                 network.eval()
                 with torch.no_grad():

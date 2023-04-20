@@ -257,15 +257,15 @@ class ProgressNetBoundingBoxes2D(nn.Module):
         concatenated = self.fc7_dropout(concatenated)
         concatenated = torch.relu(concatenated)
 
-        rnn = self.lstm1(rnn)
-        rnn = self.lstm2(rnn)
-        rnn = torch.relu(rnn)
+        concatenated = self.lstm1(concatenated)
+        concatenated = self.lstm2(concatenated)
+        concatenated = torch.relu(concatenated)
 
-        progress = self.fc8(progress)
-        progress = torch.sigmoid(progress)
-        progress = progress.reshape(B, S)
+        concatenated = self.fc8(concatenated)
+        concatenated = torch.sigmoid(concatenated)
+        concatenated = concatenated.reshape(B, S)
 
-        return progress
+        return concatenated
 
 class ProgressResNet(nn.Module):
     def __init__(self) -> None:
@@ -365,13 +365,13 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         super(ProgressNetBoundingBoxesVGG, self).__init__()
         self.device = device
 
-        vgg_layers = tuple(vgg(base[str(300)], 3))
-        self.vgg = nn.Sequential(*vgg_layers)
-        model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
-        self.vgg.load_state_dict(torch.load(model_path))
-        if not args.basemodel_gradients:
-            for param in self.vgg.parameters():
-                param.requires_grad = False
+        # vgg_layers = tuple(vgg(base[str(300)], 3))
+        # self.vgg = nn.Sequential(*vgg_layers)
+        # model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
+        # self.vgg.load_state_dict(torch.load(model_path))
+        # if not args.basemodel_gradients:
+        #     for param in self.vgg.parameters():
+        #         param.requires_grad = False
         # self.vgg = nn.Sequential(
         #     nn.Conv2d(3, 32, 3, 2), nn.ReLU(),
         #     nn.Conv2d(32, 64, 3, 2), nn.ReLU(),
@@ -379,13 +379,13 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         #     nn.Conv2d(64, 128, 2, 2), nn.ReLU(),
         #     nn.Conv2d(128, 128, 2, 2), nn.ReLU(),
         # )
-        # self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+        self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
 
-        self.spp = SpatialPyramidPooling([1, 2])
-        self.spp_fc = nn.Linear(5120, args.embedding_size)
+        self.spp = SpatialPyramidPooling([1])
+        self.spp_fc = nn.Linear(1000, args.embedding_size)
         self.spp_dropout = nn.Dropout(p=args.dropout_chance)
 
-        self.roi_fc = nn.Linear(9216, args.embedding_size)
+        self.roi_fc = nn.Linear(1000, args.embedding_size)
         self.roi_dropout = nn.Dropout(p=args.dropout_chance)
 
         self.fc7 = nn.Linear(args.embedding_size*2, 64)
@@ -402,42 +402,114 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
 
         frames = frames.reshape(num_samples, C, H, W)
         boxes = boxes.reshape(num_samples, 4)
-        box_indices = torch.arange(start=0, end=num_samples, device=self.device).reshape(
-            num_samples, 1)
+        box_indices = torch.arange(start=0, end=num_samples, device=self.device)
+        box_indices = box_indices.reshape(num_samples, 1)
 
         boxes = torch.cat((box_indices, boxes), dim=-1)
-        del box_indices
-        frames = self.vgg(frames)
+        vgg_frames = self.vgg(frames)
 
-        roi = roi_pool(frames, boxes, 3)
-        del boxes
+        # pooled = self.spp(vgg_frames)
+        pooled = self.spp_fc(vgg_frames)
+        pooled = self.spp_dropout(pooled)
+        pooled = torch.relu(pooled)
 
-        frames = self.spp(frames)
+        # roi = roi_pool(vgg_frames, boxes, 1)
+        # roi = roi.reshape(num_samples, -1)
+        roi = self.roi_fc(vgg_frames)
+        roi = self.roi_dropout(roi)
+        roi = torch.relu(roi)
 
-        frames = self.spp_fc(frames)
-        frames = self.spp_dropout(frames)
-        frames = torch.relu(frames)
+        concatenated = torch.cat((pooled, roi), dim=-1)
 
+        concatenated = self.fc7(concatenated)
+        concatenated = self.fc7_dropout(concatenated)
+        concatenated = torch.relu(concatenated)
+
+        concatenated = concatenated.reshape(B, S, -1)
+        concatenated, _ = self.lstm1(concatenated)
+        concatenated, _ = self.lstm2(concatenated)
+        concatenated = torch.relu(concatenated)
+
+        concatenated = concatenated.reshape(num_samples, -1)
+        concatenated = self.fc8(concatenated)
+        concatenated = torch.sigmoid(concatenated)
+        concatenated = concatenated.reshape(B, S)
+
+        return concatenated
+
+class ProgressNetBoundingBoxesVGG2D(nn.Module):
+    def __init__(self, args, device: torch.device) -> None:
+        super(ProgressNetBoundingBoxesVGG2D, self).__init__()
+        self.device = device
+
+        vgg_layers = tuple(vgg(base[str(300)], 3))
+        self.vgg = nn.Sequential(*vgg_layers)
+        model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
+        self.vgg.load_state_dict(torch.load(model_path))
+        if not args.basemodel_gradients:
+            for param in self.vgg.parameters():
+                param.requires_grad = False
+        # self.vgg = nn.Sequential(
+        #     nn.Conv2d(3, 32, 3, 2), nn.ReLU(),
+        #     nn.Conv2d(32, 64, 3, 2), nn.ReLU(),
+        #     nn.MaxPool2d(2, 2),
+        #     nn.Conv2d(64, 128, 2, 2), nn.ReLU(),
+        #     nn.Conv2d(128, 128, 2, 2), nn.ReLU(),
+        # )
+        # self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+
+        self.spp = SpatialPyramidPooling([1])
+        self.spp_fc = nn.Linear(1024, args.embedding_size)
+        self.spp_dropout = nn.Dropout(p=args.dropout_chance)
+
+        self.roi_fc = nn.Linear(1024, args.embedding_size)
+        self.roi_dropout = nn.Dropout(p=args.dropout_chance)
+
+        self.fc7 = nn.Linear(args.embedding_size*2, 64)
+        self.fc7_dropout = nn.Dropout(p=args.dropout_chance)
+
+        self.lstm1 = nn.Linear(64, 64)
+        self.lstm2 = nn.Linear(64, 32)
+
+        self.fc8 = nn.Linear(32, 1)
+
+    def forward(self, frames: torch.FloatTensor, boxes: torch.FloatTensor) -> torch.FloatTensor:
+        B, S, C, H, W = frames.shape
+        num_samples = B * S
+
+        frames = frames.reshape(num_samples, C, H, W)
+        boxes = boxes.reshape(num_samples, 4)
+        box_indices = torch.arange(start=0, end=num_samples, device=self.device)
+        box_indices = box_indices.reshape(num_samples, 1)
+
+        boxes = torch.cat((box_indices, boxes), dim=-1)
+        vgg_frames = self.vgg(frames)
+
+        pooled = self.spp(vgg_frames)
+        pooled = self.spp_fc(pooled)
+        pooled = self.spp_dropout(pooled)
+        pooled = torch.relu(pooled)
+
+        roi = roi_pool(vgg_frames, boxes, 1)
         roi = roi.reshape(num_samples, -1)
         roi = self.roi_fc(roi)
         roi = self.roi_dropout(roi)
         roi = torch.relu(roi)
 
-        frames = torch.cat((frames, roi), dim=-1)
-        del roi
+        concatenated = torch.cat((pooled, roi), dim=-1)
 
-        frames = self.fc7(frames)
-        frames = self.fc7_dropout(frames)
-        frames = torch.relu(frames)
+        concatenated = self.fc7(concatenated)
+        concatenated = self.fc7_dropout(concatenated)
+        concatenated = torch.relu(concatenated)
 
-        frames = frames.reshape(B, S, -1)
-        frames, _ = self.lstm1(frames)
-        frames, _ = self.lstm2(frames)
-        frames = torch.relu(frames)
+        concatenated = concatenated.reshape(B, S, -1)
+        concatenated = self.lstm1(concatenated)
+        concatenated = self.lstm2(concatenated)
+        concatenated = torch.relu(concatenated)
 
-        frames = frames.reshape(num_samples, -1)
-        frames = self.fc8(frames)
-        frames = torch.sigmoid(frames)
-        frames = frames.reshape(B, S)
+        concatenated = concatenated.reshape(num_samples, -1)
+        concatenated = self.fc8(concatenated)
+        concatenated = torch.sigmoid(concatenated)
+        concatenated = concatenated.reshape(B, S)
 
-        return frames
+        return concatenated
