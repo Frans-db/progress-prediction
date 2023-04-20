@@ -365,13 +365,13 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         super(ProgressNetBoundingBoxesVGG, self).__init__()
         self.device = device
 
-        # vgg_layers = tuple(vgg(base[str(300)], 3))
-        # self.vgg = nn.Sequential(*vgg_layers)
-        # model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
-        # self.vgg.load_state_dict(torch.load(model_path))
-        # if not args.basemodel_gradients:
-        #     for param in self.vgg.parameters():
-        #         param.requires_grad = False
+        vgg_layers = tuple(vgg(base[str(300)], 3))
+        self.vgg = nn.Sequential(*vgg_layers)
+        model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
+        self.vgg.load_state_dict(torch.load(model_path))
+        if not args.basemodel_gradients:
+            for param in self.vgg.parameters():
+                param.requires_grad = False
         # self.vgg = nn.Sequential(
         #     nn.Conv2d(3, 32, 3, 2), nn.ReLU(),
         #     nn.Conv2d(32, 64, 3, 2), nn.ReLU(),
@@ -379,13 +379,13 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
         #     nn.Conv2d(64, 128, 2, 2), nn.ReLU(),
         #     nn.Conv2d(128, 128, 2, 2), nn.ReLU(),
         # )
-        self.vgg = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+        # self.vgg = models.vgg16(num_classes=64)
 
         self.spp = SpatialPyramidPooling([1])
-        self.spp_fc = nn.Linear(1000, args.embedding_size)
+        self.spp_fc = nn.Linear(1024, args.embedding_size)
         self.spp_dropout = nn.Dropout(p=args.dropout_chance)
 
-        self.roi_fc = nn.Linear(1000, args.embedding_size)
+        self.roi_fc = nn.Linear(1024, args.embedding_size)
         self.roi_dropout = nn.Dropout(p=args.dropout_chance)
 
         self.fc7 = nn.Linear(args.embedding_size*2, 64)
@@ -407,15 +407,16 @@ class ProgressNetBoundingBoxesVGG(nn.Module):
 
         boxes = torch.cat((box_indices, boxes), dim=-1)
         vgg_frames = self.vgg(frames)
+        # return torch.sigmoid(vgg_frames)
 
-        # pooled = self.spp(vgg_frames)
-        pooled = self.spp_fc(vgg_frames)
+        pooled = self.spp(vgg_frames)
+        pooled = self.spp_fc(pooled)
         pooled = self.spp_dropout(pooled)
         pooled = torch.relu(pooled)
 
-        # roi = roi_pool(vgg_frames, boxes, 1)
-        # roi = roi.reshape(num_samples, -1)
-        roi = self.roi_fc(vgg_frames)
+        roi = roi_pool(vgg_frames, boxes, 1)
+        roi = roi.reshape(num_samples, -1)
+        roi = self.roi_fc(roi)
         roi = self.roi_dropout(roi)
         roi = torch.relu(roi)
 

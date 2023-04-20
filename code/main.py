@@ -109,7 +109,7 @@ def main() -> None:
     iteration = 0
     done = False
     train_result, test_result = get_empty_result(), get_empty_result()
-    torch.backends.cudnn.benchmark = True
+    # torch.backends.cudnn.benchmark = True
     while not done:
         for batch in train_loader:
             # train step
