@@ -7,7 +7,6 @@ import json
 import os
 from typing import Tuple
 import math
-import torchsummary
 import numpy as np
 
 from utils import parse_args, get_device, init
