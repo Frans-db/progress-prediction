@@ -494,7 +494,7 @@ class Conv(nn.Module): # pytorch vgg16 features model & roi
         roi = torch.relu(self.roi_fc(roi))
         roi = self.roi_dropout(roi)
         # concatenating
-        concatenated = torch.concat((pooled, roi), dim=-1)
+        concatenated = torch.cat((pooled, roi), dim=-1)
         # progressnet
         concatenated = torch.relu(self.fc7(concatenated))
         concatenated = self.fc7_dropout(concatenated)
