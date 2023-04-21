@@ -51,7 +51,7 @@ def get_transform(args):
     transform = []
     if args.data_type == 'rgb-images':
         transform.append(transforms.ToTensor())
-        transform.append(transforms.Resize((300, 300), antialias=True))
+        transform.append(transforms.Resize((300, 300)))
     return transforms.Compose(transform)
 
 
