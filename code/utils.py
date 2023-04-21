@@ -10,7 +10,7 @@ def parse_args() -> argparse.Namespace:
     networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 
                 'progressnet_categories', 'progressnet_features_2d', 'progressnet_boundingboxes_2d',
                 'progressnet_resnet', 'dumb_static', 'dumb_random', 'progressnet_boundingboxes_vgg',
-                'progressnet_resnet_indices', 'progressnet_boundingboxes_vgg_2d']
+                'progressnet_resnet_indices', 'progressnet_boundingboxes_vgg_2d', 'conv']
 
     parser = argparse.ArgumentParser()
     # experiment
@@ -25,19 +25,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--wandb_group', type=str, default=None)
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
-    parser.add_argument('--network', type=str, default='progressnet_features', choices=networks)
-    parser.add_argument('--embedding_size', type=int, default=64)
+    parser.add_argument('--network', type=str, default='conv', choices=networks)
+    parser.add_argument('--embedding_size', type=int, default=4096)
+    parser.add_argument('--pooling_layers', type=int, nargs='+', default='1, 3, 5')
+    parser.add_argument('--roi_size', type=int, default=1)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
-    parser.add_argument('--dropout_chance', type=float, default=0.0)
-    parser.add_argument('--basemodel', type=str, default='vgg16_reducedfc.pth')
+    parser.add_argument('--dropout_chance', type=float, default=0.5)
+    parser.add_argument('--basemodel', type=str, default='vgg.pth')
     parser.add_argument('--basemodel_gradients', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     # dataset
-    parser.add_argument('--train_set', type=str, default='breakfast')
-    parser.add_argument('--test_set', type=str, default='breakfast')
-    parser.add_argument('--train_split', type=str, default='train_s1.txt')
-    parser.add_argument('--test_split', type=str, default='test_s1.txt')
-    parser.add_argument('--data_type', type=str, default='features/dense_trajectories')
+    parser.add_argument('--train_set', type=str, default='ucf24')
+    parser.add_argument('--test_set', type=str, default='ucf24')
+    parser.add_argument('--train_split', type=str, default='train.txt')
+    parser.add_argument('--test_split', type=str, default='test.txt')
+    parser.add_argument('--data_type', type=str, default='rgb-images')
     parser.add_argument('--category_directory', type=str, default=None)
     parser.add_argument('--num_categories', type=int, default=48)
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
@@ -60,7 +62,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--subsample_chance', type=float, default=1.0)
     # testing
     parser.add_argument('--test_every', type=int, default=1000)
-    parser.add_argument('--testing_fps', type=int, default=1)
 
     return parser.parse_args()
 
@@ -81,6 +82,8 @@ def init(args: argparse.Namespace) -> None:
         # network
         'network': args.network,
         'embedding_size': args.embedding_size,
+        'pooling_layers': args.pooling_layers,
+        'roi_size': args.roi_size,
         'initialisation': args.initialisation,
         'dropout_chance': args.dropout_chance,
         'basemodel': args.basemodel,
@@ -111,7 +114,6 @@ def init(args: argparse.Namespace) -> None:
         'subsample_chance': args.subsample_chance,
         # testing
         'test_every': args.test_every,
-        'testing_fps': args.testing_fps
     }
 
     if args.experiment_name:

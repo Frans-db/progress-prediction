@@ -1,6 +1,7 @@
 import os
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+import torch
 
 from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset, ProgressCategoryDataset
 from .boundingbox_dataset import BoundingBoxDataset
@@ -50,7 +51,7 @@ def get_transform(args):
     transform = []
     if args.data_type == 'rgb-images':
         transform.append(transforms.ToTensor())
-
+        transform.append(transforms.Resize((300, 300), antialias=True))
     return transforms.Compose(transform)
 
 

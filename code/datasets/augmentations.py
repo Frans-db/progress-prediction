@@ -54,10 +54,6 @@ class Subsection:
 
         start = random.randint(0, len(indices) - 2)
         end = random.randint(start+1, len(indices) - 1)
-        # if random.random() < 0.25:
-        #     start = 0
-        # elif random.random() < 0.5:
-        #     end = len(indices)
 
         return indices[start:end]
 

@@ -7,6 +7,8 @@ import json
 import os
 from typing import Tuple
 import math
+import torchsummary
+import numpy as np
 
 from utils import parse_args, get_device, init
 from datasets import get_datasets
@@ -100,7 +102,14 @@ def main() -> None:
 
     train_set, test_set, train_loader, test_loader = get_datasets(args)
     network = get_network(args, device)
-
+    model_parameters = filter(lambda p: p.requires_grad, network.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    # resnet:               11,255,201
+    # vgg (frozen):         2,610,145
+    # vgg:                  23,094,049
+    # torchsummary.summary(network, (10, 3, 320, 240), boxes = None)
+    # return
+    # return
     # get optimizer & scheduler
     optimizer = optim.Adam(network.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
