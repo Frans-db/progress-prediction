@@ -498,8 +498,11 @@ class Conv(nn.Module): # pytorch vgg16 features model & roi
         # progressnet
         concatenated = torch.relu(self.fc7(concatenated))
         concatenated = self.fc7_dropout(concatenated)
+
+        concatenated = concatenated.reshape(B, S, -1)
         concatenated, _ = self.lstm1(concatenated)
         concatenated, _ = self.lstm2(concatenated)
+        concatenated = concatenated.reshape(num_samples, -1)
         
         progress = torch.sigmoid(self.fc8(concatenated))
         return progress.reshape(B, S)
