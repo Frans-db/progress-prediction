@@ -16,6 +16,7 @@ from networks import get_network
 
 def add_arg(parser):
     parser.add_argument('--save_directory', type=str, required=True)
+    parser.add_argument('--split_size', type=int, default=100)
 
     return parser.parse_args()
 
@@ -56,10 +57,19 @@ def embed(network, loader, device, root: str):
         name = f'{video_names[0]}.txt'
         make_dir(name, root)
         B, S, C, H, W = frames.shape
-        frames = frames.to(device).reshape(B*S, C, H, W)
-        embedded = network(frames).reshape(B*S, -1)
-        embedded = embedded.cpu().tolist()
-        
+        frames = frames.reshape(B*S, C, H, W)
+        split = torch.split(frames, 100, dim=0)
+
+        embeddings = []
+        for t in split:
+            t = t.to(device)
+            num_samples = t.shape[0]
+            embedded = network(t).reshape(num_samples, -1).cpu()
+            embeddings.append(embedded)
+
+        embedded = torch.cat(embeddings, dim=0)
+        embedded = embedded.tolist()
+    
         rows = []
         for row in embedded:
             rows.append(' '.join(list(map(str, row))))
