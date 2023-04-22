@@ -6,7 +6,7 @@ import numpy as np
 import os
 import json
 
-def parse_args() -> argparse.Namespace:
+def parse_args(parse=True) -> argparse.Namespace:
     networks = ['progressnet', 'dumb_static', 'dumb_random']
 
     parser = argparse.ArgumentParser()
@@ -22,14 +22,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--wandb_group', type=str, default=None)
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
-    parser.add_argument('--network', type=str, default='conv', choices=networks)
+    parser.add_argument('--network', type=str, default='progressnet', choices=networks)
     parser.add_argument('--embedding_size', type=int, default=4096)
-    parser.add_argument('--pooling_layers', type=int, nargs='+', default='1, 3, 5')
+    parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 3, 5])
     parser.add_argument('--roi_size', type=int, default=1)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.5)
     parser.add_argument('--basemodel', type=str, default='vgg512', choices=['vgg512', 'vgg1024'])
-    parser.add_argument('--basemodel_name', type=str, default='vgg.pth')
+    parser.add_argument('--basemodel_name', type=str, default='vgg_512.pth')
     parser.add_argument('--basemodel_gradients', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     # dataset
@@ -54,7 +54,9 @@ def parse_args() -> argparse.Namespace:
     # testing
     parser.add_argument('--test_every', type=int, default=1000)
 
-    return parser.parse_args()
+    if parse:
+        return parser.parse_args()
+    return parser
 
 def get_device(device: str) -> torch.device:
     if torch.cuda.is_available() and device == 'cuda':

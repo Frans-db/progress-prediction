@@ -7,20 +7,50 @@ import os
 
 from .pyramid_pooling import SpatialPyramidPooling
 
+cfg = [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'C', 512, 512, 512, 'M', 512, 512, 512]
 
-class ProgressNet(nn.Module): # pytorch vgg16 features model & roi
+# This function is derived from torchvision VGG make_layers()
+# https://github.com/pytorch/vision/blob/master/torchvision/models/vgg.py
+def vgg(cfg, i, batch_norm=False):
+    layers = []
+    in_channels = i
+    for v in cfg:
+        if v == 'M':
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+        elif v == 'C':
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)]
+        else:
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+            if batch_norm:
+                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+            else:
+                layers += [conv2d, nn.ReLU(inplace=True)]
+            in_channels = v
+    pool5 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+    conv6 = nn.Conv2d(512, 1024, kernel_size=3, padding=6, dilation=6)
+    conv7 = nn.Conv2d(1024, 1024, kernel_size=1)
+    layers += [pool5, conv6,
+               nn.ReLU(inplace=True), conv7, nn.ReLU(inplace=True)]
+    return tuple(layers)
+
+
+class ProgressNet(nn.Module):
     def __init__(self, args, device) -> None:
-        super(Conv, self).__init__()
+        super(ProgressNet, self).__init__()
         self.device = device
         # create vgg net
         if args.basemodel == 'vgg512':
-            self.vgg = models.vgg16().features
+            self.vgg = models.vgg16()
         elif args.basemodel == 'vgg1024':
-            pass
+            vgg_layers = vgg(cfg, 3)
+            self.vgg = nn.Sequential(*vgg_layers)
         # load vgg weights
         if args.basemodel_name:
-            model_path = os.path.join(args.data_root, args.train_set, 'train_data', args.basemodel)
+            model_path = os.path.join(args.data_root, args.dataset, 'train_data', args.basemodel_name)
             self.vgg.load_state_dict(torch.load(model_path))
+        # extract vgg features from pytorch vgg
+        if hasattr(self.vgg, 'features'):
+            self.vgg = self.vgg.features
         # freeze vgg weights
         if not args.basemodel_gradients:
             for param in self.vgg.parameters():
