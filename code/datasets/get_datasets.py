@@ -23,8 +23,8 @@ def get_datasets(args):
         'transform': transform,
         'data_transform': data_transform,
     }
-    train_set = get_dataset(args, args.train_set, args.train_split, transform=train_transform)
-    test_set = get_dataset(args, args.test_set, args.test_split, transform=test_transform)
+    train_set = get_dataset(args, args.train_split, transform=train_transform)
+    test_set = get_dataset(args, args.test_split, transform=test_transform)
 
     train_loader = DataLoader(train_set, batch_size=1,
                               num_workers=2, shuffle=True)
@@ -34,8 +34,8 @@ def get_datasets(args):
     return train_set, test_set, train_loader, test_loader
 
 
-def get_dataset(args, dataset: str, split_file: str, transform=None):
-    root = os.path.join(args.data_root, dataset)
+def get_dataset(args, split_file: str, transform=None):
+    root = os.path.join(args.data_root, args.dataset)
 
     if args.bounding_boxes:
         return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)

@@ -3,8 +3,7 @@ import argparse
 import torch
 
 from .dumb_networks import StaticNet, RandomNet
-from .networks import ProgressNet, ProgressNetFeatures, ProgressNetBoundingBoxes, ProgressNetCategories, ProgressNetBoundingBoxes2D, ProgressNetFeatures2D
-from .networks import ProgressResNet, ProgressNetBoundingBoxesVGG, ProgressResNetIndices, Conv
+from .networks import ProgressNet
 
 def init_weights(m: nn.Module) -> None:
     if isinstance(m, nn.Linear):
@@ -19,31 +18,11 @@ def init_weights(m: nn.Module) -> None:
 
 def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
     if args.network == 'progressnet':
-        network = ProgressNet(args.embedding_size, args.dropout_chance)
-    elif args.network == 'progressnet_features':
-        network = ProgressNetFeatures(args.embedding_size, args.dropout_chance)
-    elif args.network == 'progressnet_boundingboxes':
-        network = ProgressNetBoundingBoxes(args.embedding_size, args.dropout_chance, device)
-    elif args.network == 'progressnet_categories':
-        network = ProgressNetCategories(args.embedding_size, args.num_categories, args.dropout_chance)
-    elif args.network == 'progressnet_boundingboxes_2d':
-        network = ProgressNetBoundingBoxes2D(args.embedding_size, args.dropout_chance, device)
-    elif args.network == 'progressnet_boundingboxes_vgg':
-        network = ProgressNetBoundingBoxesVGG(args, device)
-    elif args.network == 'progressnet_boundingboxes_vgg_2d':
-        network = ProgressNetBoundingBoxesVGG2D(args, device)
-    elif args.network == 'progressnet_features_2d':
-        network = ProgressNetFeatures2D(args.embedding_size, args.dropout_chance)
-    elif args.network == 'progressnet_resnet':
-        network = ProgressResNet()
-    elif args.network == 'progressnet_resnet_indices':
-        network = ProgressResNetIndices(device)
+        network = ProgressNet(args, device)
     elif args.network == 'dumb_static':
         network = StaticNet(device)
     elif args.network == 'dumb_random':
         network = RandomNet(device)
-    elif args.network == 'conv':
-        network = Conv(args, device)
 
     if args.initialisation == 'xavier':
         network.apply(init_weights)

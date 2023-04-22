@@ -23,8 +23,8 @@ def bo(p, p_hat, device):
 
 
 def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
-    l1_criterion = nn.L1Loss(reduction='none')
-    l2_criterion = nn.MSELoss(reduction='none')
+    l1_criterion, l1_criterion_mean = nn.L1Loss(reduction='none'), nn.L1Loss(reduction='mean')
+    l2_criterion, l2_criterion_mean = nn.MSELoss(reduction='none'), nn.MSELoss(reduction='mean')
     # extract data from batch
     num_items = len(batch)
     video_names = batch[0]
@@ -42,16 +42,9 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     if optimizer:
         optimizer.zero_grad()
         if args.loss == 'l1':
-            loss = nn.L1Loss()(predicted_progress, progress)
+            loss =l1_criterion_mean(predicted_progress, progress)
         elif args.loss == 'l2':
-            loss = nn.MSELoss()(predicted_progress, progress)
-        if args.bo:
-            loss = loss * bo_weight.sum()
-        # loss = loss.sum()
-        # loss = loss * 1_000_000
-        # if args.average_loss:
-        #     loss = loss / count
-
+            loss =l2_criterion_mean(predicted_progress, progress)
         loss.backward()
         optimizer.step()
 

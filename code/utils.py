@@ -7,10 +7,7 @@ import os
 import json
 
 def parse_args() -> argparse.Namespace:
-    networks = ['progressnet', 'progressnet_features', 'progressnet_boundingboxes', 
-                'progressnet_categories', 'progressnet_features_2d', 'progressnet_boundingboxes_2d',
-                'progressnet_resnet', 'dumb_static', 'dumb_random', 'progressnet_boundingboxes_vgg',
-                'progressnet_resnet_indices', 'progressnet_boundingboxes_vgg_2d', 'conv']
+    networks = ['progressnet', 'dumb_static', 'dumb_random']
 
     parser = argparse.ArgumentParser()
     # experiment
@@ -31,27 +28,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--roi_size', type=int, default=1)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.5)
-    parser.add_argument('--basemodel', type=str, default='vgg.pth')
+    parser.add_argument('--basemodel', type=str, default='vgg512', choices=['vgg512', 'vgg1024'])
+    parser.add_argument('--basemodel_name', type=str, default='vgg.pth')
     parser.add_argument('--basemodel_gradients', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     # dataset
-    parser.add_argument('--train_set', type=str, default='ucf24')
-    parser.add_argument('--test_set', type=str, default='ucf24')
+    parser.add_argument('--dataset', type=str, default='ucf24')
     parser.add_argument('--train_split', type=str, default='train.txt')
     parser.add_argument('--test_split', type=str, default='test.txt')
     parser.add_argument('--data_type', type=str, default='rgb-images')
-    parser.add_argument('--category_directory', type=str, default=None)
-    parser.add_argument('--num_categories', type=int, default=48)
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
-    # bf 2113.340410958904
-    # ucf24 173.42794759825327
     parser.add_argument('--data_modifier_value', type=float, default=1.0)
     parser.add_argument('--bounding_boxes', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=25000)
     parser.add_argument('--loss', type=str, default='l2', choices=['l1', 'l2'])
-    parser.add_argument('--average_loss', action='store_true')
-    parser.add_argument('--bo', action='store_true')
     parser.add_argument('--lr', type=float, default=3e-3)
     parser.add_argument('--beta1', type=float, default=0.9)
     parser.add_argument('--beta2', type=float, default=0.999)
@@ -87,24 +78,20 @@ def init(args: argparse.Namespace) -> None:
         'initialisation': args.initialisation,
         'dropout_chance': args.dropout_chance,
         'basemodel': args.basemodel,
+        'basemodel_name': args.basemodel_name,
         'basemodel_gradients': args.basemodel_gradients,
         'finetune': args.finetune,
         # dataset
-        'train_set': args.train_set,
-        'test_set': args.test_set,
+        'dataset': args.dataset,
         'train_split': args.train_split,
         'test_split': args.test_split,
         'data_type': args.data_type,
-        'category_directory': args.category_directory,
-        'num_categories': args.num_categories,
         'data_modifier': args.data_modifier,
         'data_modifier_value': args.data_modifier_value,
         'bounding_boxes': args.bounding_boxes,
         # training
         'iterations': args.iterations,
         'loss': args.loss,
-        'average_loss': args.average_loss,
-        'bo': args.bo,
         'lr': args.lr,
         'betas': (args.beta1, args.beta2),
         'weight_decay': args.weight_decay,
