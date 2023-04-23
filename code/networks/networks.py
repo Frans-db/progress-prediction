@@ -37,11 +37,15 @@ def vgg(cfg, i, batch_norm=False):
 class ProgressNet(nn.Module):
     def __init__(self, args, device) -> None:
         super(ProgressNet, self).__init__()
+        channels = 512
         self.device = device
         # create vgg net
         if args.basemodel == 'vgg512':
             self.vgg = models.vgg16()
+            if 'old' in args.basemodel_name:
+                self.vgg = self.vgg.features
         elif args.basemodel == 'vgg1024':
+            channels = channels * 2
             vgg_layers = vgg(cfg, 3)
             self.vgg = nn.Sequential(*vgg_layers)
         # load vgg weights
@@ -59,11 +63,11 @@ class ProgressNet(nn.Module):
         # spp
         num_pools = sum(map(lambda x: x**2, args.pooling_layers))
         self.spp = SpatialPyramidPooling(args.pooling_layers)
-        self.spp_fc = nn.Linear(512 * num_pools, args.embedding_size)
+        self.spp_fc = nn.Linear(channels * num_pools, args.embedding_size)
         self.spp_dropout = nn.Dropout(p=args.dropout_chance)
         # roi
         self.roi_size = args.roi_size
-        self.roi_fc = nn.Linear(512 * (self.roi_size**2), args.embedding_size)
+        self.roi_fc = nn.Linear(channels * (self.roi_size**2), args.embedding_size)
         self.roi_dropout = nn.Dropout(p=args.dropout_chance)
         # progressnet
         self.fc7 = nn.Linear(2*args.embedding_size, 64)
