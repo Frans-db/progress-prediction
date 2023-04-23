@@ -41,8 +41,8 @@ def get_dataset(args, split_file: str, transform=None):
         return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
     elif 'rgb-images' in args.data_type:
         return ProgressVideoDataset(root, args.data_type, split_file, transform=transform)
-    elif args.category_directory is not None:
-        return ProgressCategoryDataset(root, args.data_type, args.category_directory, args.num_categories, split_file, transform=transform)
+    # elif args.category_directory is not None:
+    #     return ProgressCategoryDataset(root, args.data_type, args.category_directory, args.num_categories, split_file, transform=transform)
     else:
         return ProgressFeatureDataset(root, args.data_type, split_file, transform=transform)
 

@@ -76,6 +76,10 @@ class ProgressNet(nn.Module):
         self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
         self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)
 
+        if args.finetune:
+            for param in self.parameters():
+                param.requires_grad = False
+
         self.fc8 = nn.Linear(32, 1)
 
     def forward(self, frames, boxes):
@@ -166,6 +170,35 @@ class ProgressNetPooling(nn.Module):
         
         progress = torch.sigmoid(self.fc8(concatenated))
         return progress.reshape(B, S)
+
+class ProgressNetFeatures(nn.Module):
+    def __init__(self, args, device) -> None:
+        super(ProgressNetFeatures, self).__init__()
+        self.device = device
+
+        # progressnet
+        self.fc7 = nn.Linear(args.embedding_size, 64)
+        self.fc7_dropout = nn.Dropout(p=args.dropout_chance)
+
+        self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
+        self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)
+
+        self.fc8 = nn.Linear(32, 1)
+
+    def forward(self, x, *args, **kwargs):
+        B, S = x.shape[0], x.shape[1]
+        num_samples = B * S
+        # progressnet
+        x = torch.relu(self.fc7(x))
+        x = self.fc7_dropout(x)
+
+        x = x.reshape(B, S, -1)
+        x, _ = self.lstm1(x)
+        x, _ = self.lstm2(x)
+        x = x.reshape(num_samples, -1)
+        
+        x = torch.sigmoid(self.fc8(x))
+        return x.reshape(B, S)
 
 # class Conv(nn.Module): # pytorch vgg16 features model & roi
 #     def __init__(self, args, device) -> None:

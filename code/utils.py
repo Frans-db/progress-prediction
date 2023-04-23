@@ -7,7 +7,8 @@ import os
 import json
 
 def parse_args(parse=True) -> argparse.Namespace:
-    networks = ['progressnet', 'progressnet_pooling', 'dumb_static', 'dumb_random']
+    networks = ['progressnet', 'progressnet_pooling', 'progressnet_features',
+                'dumb_static', 'dumb_random']
 
     parser = argparse.ArgumentParser()
     # experiment
@@ -32,12 +33,17 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--basemodel_name', type=str, default='vgg_512.pth')
     parser.add_argument('--basemodel_gradients', action='store_true')
     parser.add_argument('--finetune', action='store_true')
+    # network loading
+    parser.add_argument('--load_experiment', type=str, default=None)
+    parser.add_argument('--load_iteration', type=int, default=None)
     # dataset
     parser.add_argument('--dataset', type=str, default='ucf24')
     parser.add_argument('--train_split', type=str, default='train.txt')
     parser.add_argument('--test_split', type=str, default='test.txt')
     parser.add_argument('--data_type', type=str, default='rgb-images')
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
+    # bf 2113.340410958904
+    # ucf24 173.42794759825327
     parser.add_argument('--data_modifier_value', type=float, default=1.0)
     parser.add_argument('--bounding_boxes', action='store_true')
     parser.add_argument('--resize', type=int, default=300)
@@ -85,6 +91,8 @@ def init(args: argparse.Namespace) -> None:
         'basemodel_name': args.basemodel_name,
         'basemodel_gradients': args.basemodel_gradients,
         'finetune': args.finetune,
+        # network loading
+
         # dataset
         'dataset': args.dataset,
         'train_split': args.train_split,
