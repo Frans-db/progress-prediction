@@ -111,6 +111,62 @@ class ProgressNet(nn.Module):
         progress = torch.sigmoid(self.fc8(concatenated))
         return progress.reshape(B, S)
 
+class ProgressNetPooling(nn.Module):
+    def __init__(self, args, device) -> None:
+        super(ProgressNetPooling, self).__init__()
+        self.device = device
+
+        # spp
+        num_pools = sum(map(lambda x: x**2, args.pooling_layers))
+        self.spp = SpatialPyramidPooling(args.pooling_layers)
+        self.spp_fc = nn.Linear(3 * num_pools, args.embedding_size)
+        self.spp_dropout = nn.Dropout(p=args.dropout_chance)
+        # roi
+        self.roi_size = args.roi_size
+        self.roi_fc = nn.Linear(3 * (self.roi_size**2), args.embedding_size)
+        self.roi_dropout = nn.Dropout(p=args.dropout_chance)
+        # progressnet
+        self.fc7 = nn.Linear(2*args.embedding_size, 64)
+        self.fc7_dropout = nn.Dropout(p=args.dropout_chance)
+
+        self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True)
+        self.lstm2 = nn.LSTM(64, 32, 1, batch_first=True)
+
+        self.fc8 = nn.Linear(32, 1)
+
+    def forward(self, frames, boxes):
+        B, S, C, H, W = frames.shape
+        num_samples = B * S
+        # reshaping frames & adding indices to boxes
+        frames = frames.reshape(num_samples, C, H, W)
+        boxes = boxes.reshape(num_samples, 4)
+        box_indices = torch.arange(start=0, end=num_samples, device=self.device).reshape(num_samples, 1)
+        boxes = torch.cat((box_indices, boxes), dim=-1)
+        # vgg
+        # frames = self.vgg(frames)
+        # spp
+        pooled = self.spp(frames)
+        pooled = torch.relu(self.spp_fc(pooled))
+        pooled = self.spp_dropout(pooled)
+        # roi
+        roi = roi_pool(frames, boxes, self.roi_size)
+        roi = roi.reshape(num_samples, -1)
+        roi = torch.relu(self.roi_fc(roi))
+        roi = self.roi_dropout(roi)
+        # concatenating
+        concatenated = torch.cat((pooled, roi), dim=-1)
+        # progressnet
+        concatenated = torch.relu(self.fc7(concatenated))
+        concatenated = self.fc7_dropout(concatenated)
+
+        concatenated = concatenated.reshape(B, S, -1)
+        concatenated, _ = self.lstm1(concatenated)
+        concatenated, _ = self.lstm2(concatenated)
+        concatenated = concatenated.reshape(num_samples, -1)
+        
+        progress = torch.sigmoid(self.fc8(concatenated))
+        return progress.reshape(B, S)
+
 # class Conv(nn.Module): # pytorch vgg16 features model & roi
 #     def __init__(self, args, device) -> None:
 #         super(Conv, self).__init__()

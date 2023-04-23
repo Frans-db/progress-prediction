@@ -42,7 +42,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     if optimizer:
         optimizer.zero_grad()
         if args.loss == 'l1':
-            loss =l1_criterion_mean(predicted_progress, progress)
+            loss = l1_criterion_mean(predicted_progress, progress)
         elif args.loss == 'l2':
             loss =l2_criterion_mean(predicted_progress, progress)
         loss.backward()

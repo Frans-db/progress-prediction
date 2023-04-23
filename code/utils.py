@@ -7,7 +7,7 @@ import os
 import json
 
 def parse_args(parse=True) -> argparse.Namespace:
-    networks = ['progressnet', 'dumb_static', 'dumb_random']
+    networks = ['progressnet', 'progressnet_pooling', 'dumb_static', 'dumb_random']
 
     parser = argparse.ArgumentParser()
     # experiment
@@ -40,6 +40,8 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
     parser.add_argument('--data_modifier_value', type=float, default=1.0)
     parser.add_argument('--bounding_boxes', action='store_true')
+    parser.add_argument('--resize', type=int, default=300)
+    parser.add_argument('--antialias', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=25000)
     parser.add_argument('--loss', type=str, default='l2', choices=['l1', 'l2'])
@@ -91,6 +93,8 @@ def init(args: argparse.Namespace) -> None:
         'data_modifier': args.data_modifier,
         'data_modifier_value': args.data_modifier_value,
         'bounding_boxes': args.bounding_boxes,
+        'resize': args.resize,
+        'antialias': args.antialias,
         # training
         'iterations': args.iterations,
         'loss': args.loss,
