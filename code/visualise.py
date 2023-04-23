@@ -19,7 +19,7 @@ def load_splitfile(path: str) -> List[str]:
     return names
 
 def main():
-    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'tab:orange', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:lime'] 
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'tab:orange', 'purple', 'brown', 'pink', 'lime'] 
     data_root = '/mnt/hdd/vgg512'
     split_root = '/home/frans/Datasets/ucf24/splitfiles'
     splitfiles = ['train_telic.txt', 'test_telic.txt']
@@ -32,7 +32,7 @@ def main():
     count, total = 0, len(names)
     print('--- Loading Data ---')
     for root, dirs, files in os.walk(data_root, topdown=False):
-        for name in files[:20]:
+        for name in files[:15]:
             activity = root.split('/')[-1]
             cleaned_name = activity + '/' + '_'.join(name.split('_')[:-2])
             if cleaned_name not in names:
@@ -60,11 +60,11 @@ def main():
     new_data = np.concatenate((transformed, np.array(activities).reshape(num_samples, 1), np.array(progress).reshape(num_samples, 1)), axis=1)
 
     print('--- Plotting ---')
-    for activity in tqdm(unique_activities):
+    for i, activity in enumerate(tqdm(unique_activities)):
         indices = new_data[:, 2] == activity
         subset = new_data[indices]
         print(f'--- Plotting {activity} ({len(subset)}) ---')
-        plt.scatter(subset[:, 0].astype(float), subset[:, 1].astype(float), label=activity)
+        plt.scatter(subset[:, 0].astype(float), subset[:, 1].astype(float), label=activity, c=colors[i])
     
     print('--- Saving ---')
     plt.title('PCA (n=2) grouped by activity (telic activities)')
