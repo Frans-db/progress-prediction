@@ -22,17 +22,18 @@ def main():
     colors = ['b', 'g', 'r', 'c', 'm', 'y', 'tab:orange', 'purple', 'brown', 'pink', 'lime'] 
     data_root = '/mnt/hdd/vgg512'
     split_root = '/home/frans/Datasets/ucf24/splitfiles'
-    splitfiles = ['train_telic.txt', 'test_telic.txt']
+    splitfiles = ['test.txt']
     names = []
     for splitfile in splitfiles:
         path = os.path.join(split_root, splitfile)
         names += load_splitfile(path)
 
     data, activities, progress = [], [], []
+    lengths = []
     count, total = 0, len(names)
     print('--- Loading Data ---')
     for root, dirs, files in os.walk(data_root, topdown=False):
-        for name in files[:15]:
+        for name in files:
             activity = root.split('/')[-1]
             cleaned_name = activity + '/' + '_'.join(name.split('_')[:-2])
             if cleaned_name not in names:
@@ -43,12 +44,16 @@ def main():
             with open(path) as f:
                 file_data = f.readlines()
                 length = len(file_data)
-                for i,row in enumerate(file_data):
-                    values = list(map(float, row.split(' ')))
-                    data.append(values)
-                    activities.append(activity)
-                    progress.append((i+1) / length)
+                lengths.append(length)
+                # for i,row in enumerate(file_data):
+                #     values = list(map(float, row.split(' ')))
+                #     data.append(values)
+                #     activities.append(activity)
+                #     progress.append((i+1) / length)
 
+    lengths = sorted(lengths)
+    print(lengths)
+    return
     print('--- Fitting PCA ---')
     pca = PCA(n_components=2)
     pca.fit(data)

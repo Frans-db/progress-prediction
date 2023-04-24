@@ -59,3 +59,12 @@ class Subsection:
 
     def __repr__(self) -> str:
         return f'<Subsection(p={self.p})>'
+
+class Truncate:
+    def __init__(self, max_length: int) -> None:
+        self.max_length = max_length
+
+    def __call__(self, indices: List[int]) -> List[int]:
+        if len(indices) > self.max_length:
+            return indices[:max_length]
+        return indices

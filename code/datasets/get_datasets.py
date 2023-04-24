@@ -7,7 +7,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset, ProgressCategoryDataset
 from .boundingbox_dataset import BoundingBoxDataset
 from .augmentations import Indices, Ones, Randoms
-from .augmentations import Subsection, Subsample
+from .augmentations import Subsection, Subsample, Truncate
 
 
 def collate_fn(batch):
@@ -87,5 +87,6 @@ def get_data_transform(args):
 def get_sample_transform(args):
     return transforms.Compose([
         Subsection(p=args.subsection_chance),
-        Subsample(p=args.subsample_chance)
+        Subsample(p=args.subsample_chance),
+        Truncate(max_length=int(300 / args.batch_size))
     ])
