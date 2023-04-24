@@ -14,14 +14,14 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
-    --experiment_name 512_30 \
-    --wandb_name 512_30 \
-    --roi_size 3 \
-    --roi_scale 0.03125 \
+    --experiment_name 512_15 \
+    --wandb_name 512_15 \
+    --roi_size 5 \
+    --roi_scale 0.25 \
     --backbone vgg512 \
     --backbone_name vgg_512.pth \
-    --backbone_depth 30 \
-    --backbone_channels 512 \
+    --backbone_depth 15 \
+    --backbone_channels 256 \
     --resize 224 \
     --iterations 1000000 \
     --test_every 2500
