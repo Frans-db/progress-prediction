@@ -40,6 +40,7 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--load_iteration', type=int, default=None)
     # dataset
     parser.add_argument('--dataset', type=str, default='ucf24')
+    parser.add_argument('--max_length', type=int, default=400)
     parser.add_argument('--train_split', type=str, default='train.txt')
     parser.add_argument('--test_split', type=str, default='test.txt')
     parser.add_argument('--data_type', type=str, default='rgb-images')
@@ -85,7 +86,6 @@ def init(args: argparse.Namespace) -> None:
         },
         'network': {
             'network': args.network,
-
             'sizes': {
                 'embedding_size': args.embedding_size,
                 'pooling_layers': args.pooling_layers,
@@ -109,6 +109,7 @@ def init(args: argparse.Namespace) -> None:
         'data': {
             'dataset': args.dataset,
             'data_type': args.data_type,
+            'max_length': args.max_length,
             'splits': {
                 'train_split': args.train_split,
                 'test_split': args.test_split,

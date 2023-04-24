@@ -77,5 +77,5 @@ def get_sample_transform(args):
     return transforms.Compose([
         Subsection(p=args.subsection_chance),
         Subsample(p=args.subsample_chance),
-        Truncate(max_length=int(300 / args.batch_size))
+        Truncate(max_length=int(args.max_length / args.batch_size))
     ])
