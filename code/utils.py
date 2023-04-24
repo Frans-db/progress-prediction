@@ -33,7 +33,6 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--backbone_depth', type=int, default=34)
     parser.add_argument('--backbone_gradients', action='store_true')
     parser.add_argument('--backbone_channels', type=int, default=512)
-    parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.5)
     parser.add_argument('--finetune', action='store_true')
     # network loading
@@ -105,7 +104,6 @@ def init(args: argparse.Namespace) -> None:
                 'load_experiment': args.load_experiment,
                 'load_iteration': args.load_iteration,
             },
-            'initialisation': args.initialisation,
             'dropout_chance': args.dropout_chance,
             'finetune': args.finetune,
         },
