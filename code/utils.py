@@ -26,7 +26,7 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--network', type=str, default='progressnet', choices=networks)
     parser.add_argument('--vgg_depth', type=int, default=34)
     parser.add_argument('--embedding_size', type=int, default=4096)
-    parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 3, 5])
+    parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 2, 3])
     parser.add_argument('--roi_size', type=int, default=1)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.5)
@@ -47,7 +47,6 @@ def parse_args(parse=True) -> argparse.Namespace:
     # bf 2113.340410958904
     # ucf24 173.42794759825327
     parser.add_argument('--data_modifier_value', type=float, default=1.0)
-    parser.add_argument('--bounding_boxes', action='store_true')
     parser.add_argument('--resize', type=int, default=300)
     parser.add_argument('--antialias', action='store_true')
     # training
@@ -103,7 +102,6 @@ def init(args: argparse.Namespace) -> None:
         'data_type': args.data_type,
         'data_modifier': args.data_modifier,
         'data_modifier_value': args.data_modifier_value,
-        'bounding_boxes': args.bounding_boxes,
         'resize': args.resize,
         'antialias': args.antialias,
         # training

@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset, ProgressCategoryDataset
 from .boundingbox_dataset import BoundingBoxDataset
 from .augmentations import Indices, Ones, Randoms
 from .augmentations import Subsection, Subsample, Truncate
@@ -21,9 +20,7 @@ def collate_fn(batch):
     return video_names, padded_frames, padded_boxes, padded_progress, lengths
 
 
-
 def get_datasets(args):
-    # TODO: augmentations & data modifier
     transform = get_transform(args)
     data_transform = get_data_transform(args)
     sample_transform = get_sample_transform(args)
@@ -49,15 +46,7 @@ def get_datasets(args):
 
 def get_dataset(args, split_file: str, transform=None):
     root = os.path.join(args.data_root, args.dataset)
-
-    if args.bounding_boxes:
-        return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
-    elif 'rgb-images' in args.data_type:
-        return ProgressVideoDataset(root, args.data_type, split_file, transform=transform)
-    # elif args.category_directory is not None:
-    #     return ProgressCategoryDataset(root, args.data_type, args.category_directory, args.num_categories, split_file, transform=transform)
-    else:
-        return ProgressFeatureDataset(root, args.data_type, split_file, transform=transform)
+    return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
 
 
 def get_transform(args):

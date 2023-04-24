@@ -18,22 +18,19 @@ def init_weights(m: nn.Module) -> None:
 
 
 def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
+    # get network
     if args.network == 'progressnet':
         network = ProgressNet(args, device)
-    # elif args.network == 'progressnet_pooling':
-    #     network = ProgressNetPooling(args, device)
-    # elif args.network == 'progressnet_features':
-    #     network = ProgressNetFeatures(args, device)
-    # elif args.network == 'progressnet_resnet':
-    #     network = ProgressResNet(args, device)
     elif args.network == 'dumb_static':
         network = StaticNet(device)
     elif args.network == 'dumb_random':
         network = RandomNet(device)
-
+    # load weights from previous experiment
     if args.load_experiment and args.load_iteration:
         path = os.path.join(args.data_root, 'experiments', args.load_experiment, 'models', f'model_{args.load_iteration}.pth')
         network.load_state_dict(torch.load(path))
+    # or network initialisation
     elif args.initialisation == 'xavier':
         network.apply(init_weights)
+
     return network.to(device)

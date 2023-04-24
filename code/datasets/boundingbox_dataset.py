@@ -41,10 +41,6 @@ class BoundingBoxDataset(BaseDataset):
         num_frames = len(frame_paths)
         indices = list(range(num_frames))
 
-        # frame_paths = frame_paths[indices]
-        # boxes = boxes[indices]
-        # progress = progress[indices]
-
         frames = []
         for frame_path in frame_paths:
             frame = Image.open(frame_path).convert('RGB')
@@ -97,17 +93,5 @@ class BoundingBoxDataset(BaseDataset):
         # convert boxes to (x_min, y_min, x_max, y_max)
         boxes[:, 2] += boxes[:, 0]
         boxes[:, 3] += boxes[:, 1]
-        # make box sizes relative to image size
-        # boxes[:, 0] /= self.image_size[0]
-        # boxes[:, 2] /= self.image_size[0]
-        # boxes[:, 1] /= self.image_size[1]
-        # boxes[:, 3] /= self.image_size[1]
 
         return torch.FloatTensor(boxes)
-
-
-if __name__ == '__main__':
-    dataset = UCF24Dataset('/home/frans/Datasets/ucf24', 'rgb-images', 'trainlist01.txt', 'pyannot.pkl')
-    print(len(dataset))
-    dataset[0]
-    test = [1, 2, 3, 4, 5]
