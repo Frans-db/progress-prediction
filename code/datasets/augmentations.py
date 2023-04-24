@@ -66,5 +66,5 @@ class Truncate:
 
     def __call__(self, indices: List[int]) -> List[int]:
         if len(indices) > self.max_length:
-            return indices[:max_length]
+            return indices[:self.max_length]
         return indices
