@@ -33,20 +33,16 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     # forward pass
     predicted_progress = network(*data)
     # loss calculations
-    progress = batch[-2].to(device)
+    progress = batch[-1].to(device)
 
-    mask = (progress != 0).int()
-    l1_loss = l1_criterion(predicted_progress, progress) * mask
-    l2_loss = l2_criterion(predicted_progress, progress) * mask
+    l1_loss = l1_criterion(predicted_progress, progress)
+    l2_loss = l2_criterion(predicted_progress, progress)
     bo_weight = bo(predicted_progress, progress, device)
-    count = batch[-1].sum().item()
+    count = progress.shape[0]
     # optimizer
     if optimizer:
         optimizer.zero_grad()
-        if args.loss == 'l1':
-            loss = l1_loss.sum() / count
-        elif args.loss == 'l2':
-            loss = l2_loss.sum() / count
+        loss = l1_criterion_mean(predicted_progress, progress)
         loss.backward()
         optimizer.step()
 
