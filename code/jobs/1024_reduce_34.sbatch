@@ -19,7 +19,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --roi_size 2 \
     --roi_scale 0.0633 \
     --backbone vgg1024 \
-    --backbone_name vgg_reduced_1024.pth \
+    --backbone_name vgg_1024_reduced.pth \
     --backbone_depth 34 \
     --backbone_channels 1024 \
     --resize 300 \
