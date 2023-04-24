@@ -96,7 +96,7 @@ def main() -> None:
 
     train_set, test_set, train_loader, test_loader = get_datasets(args)
     network = get_network(args, device)
-
+    print(network)
     optimizer = optim.Adam(network.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
 

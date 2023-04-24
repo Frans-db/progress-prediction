@@ -24,6 +24,7 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
     parser.add_argument('--network', type=str, default='progressnet', choices=networks)
+    parser.add_argument('--vgg_depth', type=int, default=34)
     parser.add_argument('--embedding_size', type=int, default=4096)
     parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 3, 5])
     parser.add_argument('--roi_size', type=int, default=1)
