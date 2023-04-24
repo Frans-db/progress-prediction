@@ -51,6 +51,7 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--antialias', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=25000)
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--loss', type=str, default='l2', choices=['l1', 'l2'])
     parser.add_argument('--lr', type=float, default=3e-3)
     parser.add_argument('--beta1', type=float, default=0.9)

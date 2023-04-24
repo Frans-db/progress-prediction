@@ -2,11 +2,24 @@ import os
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import torch
+from torch.nn.utils.rnn import pad_sequence
 
 from .progress_dataset import ProgressFeatureDataset, ProgressVideoDataset, ProgressCategoryDataset
 from .boundingbox_dataset import BoundingBoxDataset
 from .augmentations import Indices, Ones, Randoms
 from .augmentations import Subsection, Subsample
+
+
+def collate_fn(batch):
+    video_names, frames, boxes, progress = zip(*batch)
+    lengths = torch.Tensor([sample.shape[0] for sample in frames])
+
+    padded_frames = pad_sequence(frames, batch_first=True)
+    padded_boxes = pad_sequence(boxes, batch_first=True)
+    padded_progress = pad_sequence(progress, batch_first=True)
+
+    return video_names, padded_frames, padded_boxes, padded_progress, lengths
+
 
 
 def get_datasets(args):
@@ -26,10 +39,10 @@ def get_datasets(args):
     train_set = get_dataset(args, args.train_split, transform=train_transform)
     test_set = get_dataset(args, args.test_split, transform=test_transform)
 
-    train_loader = DataLoader(train_set, batch_size=1,
-                              num_workers=2, shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size,
+                            num_workers=2, shuffle=True, collate_fn=collate_fn)
     test_loader = DataLoader(test_set, batch_size=1,
-                             num_workers=2, shuffle=False)
+                             num_workers=2, shuffle=False, collate_fn=collate_fn)
 
     return train_set, test_set, train_loader, test_loader
 
