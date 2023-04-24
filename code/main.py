@@ -103,7 +103,7 @@ def main() -> None:
 
     if not args.wandb_disable and not args.debug:
         print('-> Watching model 👀')
-        wandb.watch(network, log_freq=1)
+        wandb.watch(network)
 
     # training
     iteration = 0
