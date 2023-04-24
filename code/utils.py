@@ -24,16 +24,16 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
     parser.add_argument('--network', type=str, default='progressnet', choices=networks)
-    parser.add_argument('--vgg_depth', type=int, default=34)
     parser.add_argument('--embedding_size', type=int, default=4096)
     parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 2, 3])
     parser.add_argument('--roi_size', type=int, default=1)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.5)
-    parser.add_argument('--basemodel', type=str, default='vgg512')
-    parser.add_argument('--basemodel_name', type=str, default=None)
-    parser.add_argument('--basemodel_gradients', action='store_true')
-    parser.add_argument('--channels', type=int, default=512)
+    parser.add_argument('--backbone', type=str, default='vgg512')
+    parser.add_argument('--backbone_name', type=str, default=None)
+    parser.add_argument('--backbone_depth', type=int, default=34)
+    parser.add_argument('--backbone_gradients', action='store_true')
+    parser.add_argument('--backbone_channels', type=int, default=512)
     parser.add_argument('--finetune', action='store_true')
     # network loading
     parser.add_argument('--load_experiment', type=str, default=None)
@@ -79,43 +79,71 @@ def init(args: argparse.Namespace) -> None:
     np.random.seed(args.seed)
 
     config = {
-        # experiment
-        'seed': args.seed,
-        'experiment_name': args.experiment_name,
-        # network
-        'network': args.network,
-        'embedding_size': args.embedding_size,
-        'pooling_layers': args.pooling_layers,
-        'roi_size': args.roi_size,
-        'initialisation': args.initialisation,
-        'dropout_chance': args.dropout_chance,
-        'basemodel': args.basemodel,
-        'basemodel_name': args.basemodel_name,
-        'basemodel_gradients': args.basemodel_gradients,
-        'finetune': args.finetune,
-        # network loading
+        'experiment': {
+            'seed': args.seed,
+            'experiment_name': args.experiment_name,
+        },
+        'network': {
+            'network': args.network,
 
-        # dataset
-        'dataset': args.dataset,
-        'train_split': args.train_split,
-        'test_split': args.test_split,
-        'data_type': args.data_type,
-        'data_modifier': args.data_modifier,
-        'data_modifier_value': args.data_modifier_value,
-        'resize': args.resize,
-        'antialias': args.antialias,
-        # training
-        'iterations': args.iterations,
-        'loss': args.loss,
-        'lr': args.lr,
-        'betas': (args.beta1, args.beta2),
-        'weight_decay': args.weight_decay,
-        'lr_decay_every': args.lr_decay_every,
-        'lr_decay': args.lr_decay,
-        'subsection_chance': args.subsection_chance,
-        'subsample_chance': args.subsample_chance,
-        # testing
-        'test_every': args.test_every,
+            'sizes': {
+                'embedding_size': args.embedding_size,
+                'pooling_layers': args.pooling_layers,
+                'roi_size': args.roi_size,
+            },
+            'backbone': {
+                'backbone': args.backbone,
+                'backbone_name': args.backbone_name,
+                'backbone_depth': args.backbone_depth,
+                'backbone_gradients': args.backbone_gradients,
+                'backbone_channels': args.backbone_channels,
+            },
+            'loading': {
+                'load_experiment': args.load_experiment,
+                'load_iteration': args.load_iteration,
+            },
+            'initialisation': args.initialisation,
+            'dropout_chance': args.dropout_chance,
+            'finetune': args.finetune,
+        },
+        'data': {
+            'dataset': args.dataset,
+            'data_type': args.data_type,
+            'splits': {
+                'train_split': args.train_split,
+                'test_split': args.test_split,
+            },
+            'modifiers': {
+                'data_modifier': args.data_modifier,
+                'data_modifier_value': args.data_modifier_value,
+            },
+            'resize': {
+                'resize': args.resize,
+                'antialias': args.antialias,
+            },
+        },
+        'training': {
+            'iterations': args.iterations,
+            'batch_size': args.batch_size,
+            'loss': args.loss,
+            'optimizer': {
+                'lr': args.lr,
+                'betas': (args.beta1, args.beta2),
+                'weight_decay': args.weight_decay,
+            },
+            'scheduler': {
+                'lr_decay_every': args.lr_decay_every,
+                'lr_decay': args.lr_decay,
+            },
+            'sampling': {
+                'subsection_chance': args.subsection_chance,
+                'subsample_chance': args.subsample_chance,
+            },
+
+        },
+        'testing': {
+            'test_every': args.test_every,
+        },        
     }
 
     if args.experiment_name:

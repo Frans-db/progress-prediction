@@ -52,23 +52,23 @@ class ProgressNet(nn.Module):
     def __init__(self, args, device) -> None:
         super(ProgressNet, self).__init__()
         self.device = device
-        channels = args.channels
-        self.depth = args.vgg_depth + 1
+        channels = args.backbone_channels
+        self.depth = args.backbone_depth + 1
         # create vgg net
-        if args.basemodel == 'vgg512':
+        if args.backbone == 'vgg512':
             self.vgg = models.vgg16()
-        elif args.basemodel == 'vgg1024':
+        elif args.backbone == 'vgg1024':
             vgg_layers = vgg(cfg, 3)
             self.vgg = nn.ModuleList(vgg_layers)
         # load vgg weights
-        if args.basemodel_name:
-            model_path = os.path.join(args.data_root, args.dataset, 'train_data', args.basemodel_name)
+        if args.backbone_name:
+            model_path = os.path.join(args.data_root, args.dataset, 'train_data', args.backbone_name)
             self.vgg.load_state_dict(torch.load(model_path))
         # extract vgg features from pytorch vgg
         if hasattr(self.vgg, 'features'):
             self.vgg = nn.ModuleList(self.vgg.features)
         # freeze vgg weights
-        if not args.basemodel_gradients:
+        if not args.backbone_gradients:
             for param in self.vgg.parameters():
                 param.requires_grad = False
 
