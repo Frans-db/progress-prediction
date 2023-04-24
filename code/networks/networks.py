@@ -9,6 +9,16 @@ from .pyramid_pooling import SpatialPyramidPooling
 
 cfg = [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'C', 512, 512, 512, 'M', 512, 512, 512]
 
+def init_weights(m: nn.Module) -> None:
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight)
+        nn.init.uniform_(m.bias, a=0, b=0)
+    elif isinstance(m, nn.LSTM):
+        nn.init.xavier_uniform_(m.weight_hh_l0)
+        nn.init.xavier_uniform_(m.weight_ih_l0)
+        nn.init.uniform_(m.bias_ih_l0, a=0, b=0)
+        nn.init.uniform_(m.bias_hh_l0, a=0, b=0)
+
 def resnet_forward_impl(self, x):
     # See note [TorchScript super()]
     x = self.conv1(x)
@@ -96,6 +106,13 @@ class ProgressNet(nn.Module):
                 param.requires_grad = False
 
         self.fc8 = nn.Linear(32, 1)
+
+        self.spp_fc.apply(init_weights)
+        self.roi_fc.apply(init_weights)
+        self.fc7.apply(init_weights)
+        self.lstm1.apply(init_weights)
+        self.lstm2.apply(init_weights)
+        self.fc8.apply(init_weights)
 
     def forward(self, frames, boxes):
         B, S, C, H, W = frames.shape

@@ -38,7 +38,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     l1_loss = l1_criterion(predicted_progress, progress)
     l2_loss = l2_criterion(predicted_progress, progress)
     bo_weight = bo(predicted_progress, progress, device)
-    count = progress.shape[0]
+    count = progress.shape[-1]
     # optimizer
     if optimizer:
         optimizer.zero_grad()
@@ -92,14 +92,18 @@ def main() -> None:
 
     train_set, test_set, train_loader, test_loader = get_datasets(args)
     network = get_network(args, device)
-    print('--- Network ---')
+    print('--- Network 🤖 ---')
     print(network)
-    print('--- Datasets ---')
+    print('--- Datasets 💿 ---')
     print(f'Train size: {len(train_set)} ({len(train_loader)})')
     print(f'Test size: {len(test_set)} ({len(test_loader)})')
 
     optimizer = optim.Adam(network.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
+
+    if not args.wandb_disable and not args.debug:
+        print('-> Watching model 👀')
+        wandb.watch(network, log_freq=1)
 
     # training
     iteration = 0
@@ -115,7 +119,7 @@ def main() -> None:
             update_result(train_result, batch_result)
 
             # test
-            if iteration % args.test_every == 0:
+            if iteration % args.test_every == 0 and iteration > 0:
                 network.eval()
                 with torch.no_grad():
                     test_json = []
