@@ -4,7 +4,7 @@ import torch
 import os
 
 from .dumb_networks import StaticNet, RandomNet
-from .networks import ProgressNet, ProgressNetPooling, ProgressNetFeatures
+from .networks import ProgressNet, ProgressNetPooling, ProgressNetFeatures, ProgressResNet
 
 def init_weights(m: nn.Module) -> None:
     if isinstance(m, nn.Linear):
@@ -24,6 +24,8 @@ def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
         network = ProgressNetPooling(args, device)
     elif args.network == 'progressnet_features':
         network = ProgressNetFeatures(args, device)
+    elif args.network == 'progressnet_resnet':
+        network = ProgressResNet(args, device)
     elif args.network == 'dumb_static':
         network = StaticNet(device)
     elif args.network == 'dumb_random':
