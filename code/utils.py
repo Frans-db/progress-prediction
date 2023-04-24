@@ -7,8 +7,7 @@ import os
 import json
 
 def parse_args(parse=True) -> argparse.Namespace:
-    networks = ['progressnet', 'progressnet_pooling', 'progressnet_features', 'progressnet_resnet',
-                'dumb_static', 'dumb_random']
+    networks = ['progressnet', 'dumb_static', 'dumb_random']
 
     parser = argparse.ArgumentParser()
     # experiment
