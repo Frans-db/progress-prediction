@@ -26,7 +26,9 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--network', type=str, default='progressnet', choices=networks)
     parser.add_argument('--embedding_size', type=int, default=4096)
     parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 2, 3])
+    parser.add_argument('--roi_type', type=str, default='pool', choices=['pool', 'align'])
     parser.add_argument('--roi_size', type=int, default=1)
+    parser.add_argument('--roi_scale', type=float, default=1.0)
     parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
     parser.add_argument('--dropout_chance', type=float, default=0.5)
     parser.add_argument('--backbone', type=str, default='vgg512')
@@ -64,6 +66,8 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--subsample_chance', type=float, default=1.0)
     # testing
     parser.add_argument('--test_every', type=int, default=1000)
+    # misc
+    parser.add_argument('--debug', action='store_true')
 
     if parse:
         return parser.parse_args()
@@ -86,10 +90,12 @@ def init(args: argparse.Namespace) -> None:
         },
         'network': {
             'network': args.network,
-            'sizes': {
-                'embedding_size': args.embedding_size,
-                'pooling_layers': args.pooling_layers,
+            'embedding_size': args.embedding_size,
+            'pooling_layers': args.pooling_layers,
+            'roi': {
+                'roi_type': args.roi_type,   
                 'roi_size': args.roi_size,
+                'roi_scale': args.roi_scale
             },
             'backbone': {
                 'backbone': args.backbone,
@@ -142,9 +148,8 @@ def init(args: argparse.Namespace) -> None:
             },
 
         },
-        'testing': {
-            'test_every': args.test_every,
-        },        
+        'test_every': args.test_every,   
+        'debug': args.debug,
     }
 
     if args.experiment_name:
@@ -157,7 +162,7 @@ def init(args: argparse.Namespace) -> None:
             json.dump(config, f)
 
 
-    if not args.wandb_disable:
+    if not args.wandb_disable and not args.debug:
         wandb.init(
             project=args.wandb_project,
             group=args.wandb_group,

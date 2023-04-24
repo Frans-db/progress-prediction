@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.ops import roi_pool
+from torchvision.ops import roi_pool, roi_align
 import torchvision.models as models
 import os
 
@@ -52,8 +52,13 @@ class ProgressNet(nn.Module):
     def __init__(self, args, device) -> None:
         super(ProgressNet, self).__init__()
         self.device = device
-        channels = args.backbone_channels
+        self.debug = args.debug
+        self.channels = args.backbone_channels
         self.depth = args.backbone_depth + 1
+        self.roi_type = args.roi_type
+        self.roi_size = args.roi_size
+        self.roi_scale = args.roi_scale
+
         # create vgg net
         if args.backbone == 'vgg512':
             self.vgg = models.vgg16()
@@ -75,11 +80,10 @@ class ProgressNet(nn.Module):
         # spp
         num_pools = sum(map(lambda x: x**2, args.pooling_layers))
         self.spp = SpatialPyramidPooling(args.pooling_layers)
-        self.spp_fc = nn.Linear(channels * num_pools, args.embedding_size)
+        self.spp_fc = nn.Linear(self.channels * num_pools, args.embedding_size)
         self.spp_dropout = nn.Dropout(p=args.dropout_chance)
         # roi
-        self.roi_size = args.roi_size
-        self.roi_fc = nn.Linear(channels * (self.roi_size**2), args.embedding_size)
+        self.roi_fc = nn.Linear(self.channels * (self.roi_size**2), args.embedding_size)
         self.roi_dropout = nn.Dropout(p=args.dropout_chance)
         # progressnet
         self.fc7 = nn.Linear(2*args.embedding_size, 64)
@@ -98,18 +102,26 @@ class ProgressNet(nn.Module):
         num_samples = B * S
         # reshaping frames & adding indices to boxes
         frames = frames.reshape(num_samples, C, H, W)
+        if self.debug: print('Frames', frames.shape)
         boxes = boxes.reshape(num_samples, 4)
         box_indices = torch.arange(start=0, end=num_samples, device=self.device).reshape(num_samples, 1)
         boxes = torch.cat((box_indices, boxes), dim=-1)
         # vgg untill depth
         for i in range(self.depth):
             frames = self.vgg[i](frames)
+        if self.debug: print(f'Frames (vgg to depth {self.depth})', frames.shape)
         # spp
         pooled = self.spp(frames)
+        if self.debug: print(f'Pooled', pooled.shape)
         pooled = torch.relu(self.spp_fc(pooled))
         pooled = self.spp_dropout(pooled)
         # roi
-        roi = roi_pool(frames, boxes, self.roi_size, 0.03)
+        if self.roi_type == 'pool':
+            roi = roi_pool(frames, boxes, self.roi_size, self.roi_scale)
+        elif self.roi_type == 'align':
+            roi = roi_align(frames, boxes, self.roi_size, self.roi_scale)
+        if self.debug: print(f'ROI (type {self.roi_type} / size {self.roi_size})', roi.shape)
+
         roi = roi.reshape(num_samples, -1)
         roi = torch.relu(self.roi_fc(roi))
         roi = self.roi_dropout(roi)

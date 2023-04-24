@@ -96,7 +96,12 @@ def main() -> None:
 
     train_set, test_set, train_loader, test_loader = get_datasets(args)
     network = get_network(args, device)
+    print('--- Network ---')
     print(network)
+    print('--- Datasets ---')
+    print(f'Train size: {len(train_set)} ({len(train_loader)})')
+    print(f'Test size: {len(test_set)} ({len(test_loader)})')
+
     optimizer = optim.Adam(network.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
 
@@ -109,7 +114,7 @@ def main() -> None:
         for batch in train_loader:
             # train step
             batch_result = train(batch, network, args, device, optimizer=optimizer)
-            if not args.wandb_disable:
+            if not args.wandb_disable and not args.debug:
                 wandb_log(batch_result, iteration, 'train')
             update_result(train_result, batch_result)
 
@@ -127,7 +132,7 @@ def main() -> None:
                             'progress': batch_result['progress'][0].tolist(),
                             'predictions': batch_result['predictions'][0].tolist(),
                         })
-                    if not args.wandb_disable:
+                    if not args.wandb_disable and not args.debug:
                         wandb_log(test_result, iteration, 'test')
                         wandb_log(train_result, iteration, 'avg_train')
                     train_result, test_result = get_empty_result(), get_empty_result()
