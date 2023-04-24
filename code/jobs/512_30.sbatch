@@ -12,14 +12,16 @@
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-srun python main.py \
-    --train_split train_telic.txt \
-    --test_split test_telic.txt \
-    --iterations 1000000 \
-    --lr 1e-4 \
-    --test_every 2500 \
-    --pooling_layers 1 2 3 \
+srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+    --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
+    --experiment_name 512_30 \
+    --wandb_name 512_30 \
     --roi_size 3 \
+    --roi_scale 7/224 \
     --backbone vgg512 \
     --backbone_name vgg_512.pth \
-    --batch_size 1
+    --backbone_depth 30 \
+    --backbone_channels 512 \
+    --resize 224 \
+    --iterations 1000000 \
+    --test_every 2500 \

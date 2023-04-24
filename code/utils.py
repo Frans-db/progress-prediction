@@ -23,28 +23,28 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--wandb_tags', nargs='+', default=None)
     # network
     parser.add_argument('--network', type=str, default='progressnet', choices=networks)
-    parser.add_argument('--embedding_size', type=int, default=4096)
+    parser.add_argument('--embedding_size', type=int, default=1024)
     parser.add_argument('--pooling_layers', type=int, nargs='+', default=[1, 2, 3])
-    parser.add_argument('--roi_type', type=str, default='pool', choices=['pool', 'align'])
+    parser.add_argument('--roi_type', type=str, default='align', choices=['pool', 'align'])
     parser.add_argument('--roi_size', type=int, default=1)
     parser.add_argument('--roi_scale', type=float, default=1.0)
-    parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
-    parser.add_argument('--dropout_chance', type=float, default=0.5)
     parser.add_argument('--backbone', type=str, default='vgg512')
     parser.add_argument('--backbone_name', type=str, default=None)
     parser.add_argument('--backbone_depth', type=int, default=34)
     parser.add_argument('--backbone_gradients', action='store_true')
     parser.add_argument('--backbone_channels', type=int, default=512)
+    parser.add_argument('--initialisation', type=str, default='xavier', choices=['random', 'xavier'])
+    parser.add_argument('--dropout_chance', type=float, default=0.5)
     parser.add_argument('--finetune', action='store_true')
     # network loading
     parser.add_argument('--load_experiment', type=str, default=None)
     parser.add_argument('--load_iteration', type=int, default=None)
     # dataset
     parser.add_argument('--dataset', type=str, default='ucf24')
-    parser.add_argument('--max_length', type=int, default=400)
-    parser.add_argument('--train_split', type=str, default='train.txt')
-    parser.add_argument('--test_split', type=str, default='test.txt')
     parser.add_argument('--data_type', type=str, default='rgb-images')
+    parser.add_argument('--max_length', type=int, default=400)
+    parser.add_argument('--train_split', type=str, default='train_telic.txt')
+    parser.add_argument('--test_split', type=str, default='test_telic.txt')
     parser.add_argument('--data_modifier', type=str, default=None, choices=['indices', 'ones', 'randoms'])
     # bf 2113.340410958904
     # ucf24 173.42794759825327
@@ -53,7 +53,6 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--antialias', action='store_true')
     # training
     parser.add_argument('--iterations', type=int, default=25000)
-    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--beta1', type=float, default=0.9)
     parser.add_argument('--beta2', type=float, default=0.999)
@@ -129,7 +128,6 @@ def init(args: argparse.Namespace) -> None:
         },
         'training': {
             'iterations': args.iterations,
-            'batch_size': args.batch_size,
             'optimizer': {
                 'lr': args.lr,
                 'betas': (args.beta1, args.beta2),

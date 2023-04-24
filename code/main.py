@@ -28,7 +28,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     # extract data from batch
     num_items = len(batch)
     video_names = batch[0]
-    data = batch[1:num_items-2]
+    data = batch[1:num_items-1]
     data = tuple(map(lambda x: x.to(device), data))
     # forward pass
     predicted_progress = network(*data)
