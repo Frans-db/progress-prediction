@@ -17,11 +17,11 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --experiment_name 512_30 \
     --wandb_name 512_30 \
     --roi_size 3 \
-    --roi_scale 7/224 \
+    --roi_scale 0.03125 \
     --backbone vgg512 \
     --backbone_name vgg_512.pth \
     --backbone_depth 30 \
     --backbone_channels 512 \
     --resize 224 \
     --iterations 1000000 \
-    --test_every 2500 \
+    --test_every 2500
