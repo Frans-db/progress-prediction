@@ -19,20 +19,20 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     # extract data from batch
     num_items = len(batch)
     video_names = batch[0]
-    data = batch[1:num_items-1]
+    data = batch[1:num_items-2]
     data = tuple(map(lambda x: x.to(device), data))
     # forward pass
     predicted_progress = network(*data)
     # loss calculations
-    progress = batch[-1].to(device)
-    l1_loss = l1_criterion(predicted_progress, progress)
-    l2_loss = l2_criterion(predicted_progress, progress)
-    count = progress.shape[-1]
+    progress = batch[-2].to(device)
+    mask = (progress != 0).int()
+    l1_loss = l1_criterion(predicted_progress, progress) * mask
+    l2_loss = l2_criterion(predicted_progress, progress) * mask
+    count = batch[-1].sum()
     # optimizer
     if optimizer:
         optimizer.zero_grad()
-        loss = l1_criterion_mean(predicted_progress, progress)
-        loss.backward()
+        (l2_loss.sum() / count).backward()
         optimizer.step()
 
     return {
@@ -41,7 +41,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
         'progress': progress.cpu().detach(),
         'l1_loss': l1_loss.sum().item(),
         'l2_loss': l2_loss.sum().item(),
-        'count': count
+        'count': count.item()
     }
 
 
