@@ -17,6 +17,7 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--experiment_name', type=str, default=None)
     # wandb
     parser.add_argument('--wandb_disable', action='store_true')
+    parser.add_argument('--wandb_watch', action='store_true')
     parser.add_argument('--wandb_project', type=str, default='mscfransdeboer')
     parser.add_argument('--wandb_name', type=str, default=None)
     parser.add_argument('--wandb_group', type=str, default=None)
