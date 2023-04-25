@@ -60,10 +60,12 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--lr_decay', type=float, default=1)
     parser.add_argument('--subsection_chance', type=float, default=1.0)
     parser.add_argument('--subsample_chance', type=float, default=1.0)
-    # testing
+    # logging
     parser.add_argument('--test_every', type=int, default=1000)
+    parser.add_argument('--log_every', type=int, default=250)
     # misc
     parser.add_argument('--debug', action='store_true')
+    
 
     if parse:
         return parser.parse_args()
@@ -141,7 +143,11 @@ def init(args: argparse.Namespace) -> None:
             },
 
         },
-        'test_every': args.test_every,   
+        'logging': {
+            'test_every': args.test_every,
+            'log_every': args.log_every,
+        },
+        
         'debug': args.debug,
     }
 

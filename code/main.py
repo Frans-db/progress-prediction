@@ -13,15 +13,6 @@ from utils import parse_args, get_device, init
 from datasets import get_datasets
 from networks import get_network
 
-
-def bo(p, p_hat, device):
-    m = torch.full(p.shape, 0.5).to(device)
-    r = torch.full(p.shape, 0.5 * math.sqrt(2)).to(device)
-
-    weight = ((p - m) / r).square() + ((p_hat - m) / r).square()
-    return torch.clamp(weight, max=1)
-
-
 def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
     l1_criterion, l1_criterion_mean = nn.L1Loss(reduction='none'), nn.L1Loss(reduction='mean')
     l2_criterion, l2_criterion_mean = nn.MSELoss(reduction='none'), nn.MSELoss(reduction='mean')
@@ -34,10 +25,8 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     predicted_progress = network(*data)
     # loss calculations
     progress = batch[-1].to(device)
-
     l1_loss = l1_criterion(predicted_progress, progress)
     l2_loss = l2_criterion(predicted_progress, progress)
-    bo_weight = bo(predicted_progress, progress, device)
     count = progress.shape[-1]
     # optimizer
     if optimizer:
@@ -51,7 +40,6 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
         'predictions': predicted_progress.cpu().detach(),
         'progress': progress.cpu().detach(),
         'l1_loss': l1_loss.sum().item(),
-        'l1_bo_loss': (l1_loss * bo_weight).sum().item(),
         'l2_loss': l2_loss.sum().item(),
         'count': count
     }
@@ -60,7 +48,6 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
 def get_empty_result() -> dict:
     return {
         'l1_loss': 0.0,
-        'l1_bo_loss': 0.0,
         'l2_loss': 0.0,
         'count': 0
     }
@@ -72,14 +59,13 @@ def update_result(result: dict, batch_result: dict) -> None:
             result[key] += batch_result[key]
 
 
-def wandb_log(result: dict, iteration: int, prefix: str) -> None:
+def wandb_log(result: dict, iteration: int, prefix: str, commit: bool = True) -> None:
     wandb.log({
         f'{prefix}_l1_loss': result['l1_loss'] / result['count'],
-        f'{prefix}_l1_bo_loss': result['l1_bo_loss'] / result['count'],
         f'{prefix}_l2_loss': result['l2_loss'] / result['count'],
-        'count': result['count'],
+        f'{prefix}_count': result['count'],
         'iteration': iteration,
-    })
+    }, commit = commit)
 
 
 def main() -> None:
@@ -109,22 +95,23 @@ def main() -> None:
     iteration = 0
     done = False
     train_result, test_result = get_empty_result(), get_empty_result()
-    # torch.backends.cudnn.benchmark = True
     while not done:
         for batch in train_loader:
             # train step
             batch_result = train(batch, network, args, device, optimizer=optimizer)
-            if not args.wandb_disable and not args.debug:
-                wandb_log(batch_result, iteration, 'train')
             update_result(train_result, batch_result)
-
+            # log average train results
+            if iteration % args.log_every == 0 and iteration > 0:
+                if not args.wandb_disable and not args.debug:
+                    commit = iteration % args.test_every != 0
+                    wandb_log(train_result, iteration, 'train', commit=commit)
+                train_result = get_empty_result()
             # test
             if iteration % args.test_every == 0 and iteration > 0:
                 network.eval()
                 with torch.no_grad():
                     test_json = []
                     for batch in test_loader:
-                        # print(batch[1].shape)
                         batch_result = train(batch, network, args, device)
                         update_result(test_result, batch_result)
                         test_json.append({
@@ -134,8 +121,7 @@ def main() -> None:
                         })
                     if not args.wandb_disable and not args.debug:
                         wandb_log(test_result, iteration, 'test')
-                        wandb_log(train_result, iteration, 'avg_train')
-                    train_result, test_result = get_empty_result(), get_empty_result()
+                    test_result = get_empty_result()
                     if args.experiment_name:
                         model_path = os.path.join(experiment_root, 'models', f'model_{iteration}.pth')
                         json_path = os.path.join(experiment_root, 'results', f'{iteration}.json')
@@ -143,7 +129,6 @@ def main() -> None:
                             json.dump(test_json, f)
                         torch.save(network.state_dict(), model_path)
                 network.train()
-
             # update iteration & scheduler
             iteration += 1
             scheduler.step()
