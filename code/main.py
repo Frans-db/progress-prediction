@@ -114,9 +114,11 @@ def main() -> None:
     print(f'Train size: {len(train_set)} ({len(train_loader)})')
     print(f'Test size: {len(test_set)} ({len(test_loader)})')
 
-    optimizer = optim.Adam(network.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
+    if args.optimizer == 'adam':
+        optimizer = optim.Adam(network.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
+    elif args.optimizer == 'sgd':
+        optimizer = optim.Adam(network.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay)
-
     if args.wandb_watch and not args.wandb_disable and not args.debug:
         print('-> Watching model 👀')
         wandb.watch(network)

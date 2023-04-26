@@ -57,7 +57,9 @@ def parse_args(parse=True) -> argparse.Namespace:
     # training
     parser.add_argument('--iterations', type=int, default=25000)
     parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--optimizer', type=str, default='adam', choices=['adam', 'sgd'])
     parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--momentum', type=float, default=0.9)
     parser.add_argument('--beta1', type=float, default=0.9)
     parser.add_argument('--beta2', type=float, default=0.999)
     parser.add_argument('--weight_decay', type=float, default=0.0)
@@ -136,6 +138,7 @@ def init(args: argparse.Namespace) -> None:
             'iterations': args.iterations,
             'batch_size': args.batch_size,
             'optimizer': {
+                'optimizer': args.optimizer,
                 'lr': args.lr,
                 'betas': (args.beta1, args.beta2),
                 'weight_decay': args.weight_decay,
