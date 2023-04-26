@@ -40,8 +40,8 @@ def get_datasets(args):
         train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
         test_loader = DataLoader(test_set, batch_size=1, num_workers=2, shuffle=False, collate_fn=collate_fn)
     elif args.dataset_type == 'images':
-        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=0, shuffle=True)
-        test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=0, shuffle=False)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=2, shuffle=True)
+        test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=2, shuffle=False)
 
     return train_set, test_set, train_loader, test_loader
 
