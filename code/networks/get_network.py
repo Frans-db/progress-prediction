@@ -5,11 +5,16 @@ import os
 
 from .dumb_networks import StaticNet, RandomNet
 from .networks import ProgressNet
+from .rsd_networks import RSDNet, RSDFlat
 
 def get_network(args: argparse.Namespace, device: torch.device) -> nn.Module:
     # get network
     if args.network == 'progressnet':
         network = ProgressNet(args, device)
+    elif args.network == 'rsdnet':
+        network = RSDNet(args, device)
+    elif args.network == 'rsdflat':
+        network = RSDFlat(args, device)
     elif args.network == 'dumb_static':
         network = StaticNet(device)
     elif args.network == 'dumb_random':

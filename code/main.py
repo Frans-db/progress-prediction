@@ -14,8 +14,8 @@ from datasets import get_datasets
 from networks import get_network
 
 def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
-    l1_criterion, l1_criterion_mean = nn.L1Loss(reduction='none'), nn.L1Loss(reduction='mean')
-    l2_criterion, l2_criterion_mean = nn.MSELoss(reduction='none'), nn.MSELoss(reduction='mean')
+    l1_criterion = nn.L1Loss(reduction='none')
+    l2_criterion = nn.MSELoss(reduction='none')
     # extract data from batch
     num_items = len(batch)
     video_names = batch[0]
@@ -44,6 +44,36 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
         'count': count.item()
     }
 
+
+def train_rsd(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
+    l1_criterion = nn.L1Loss(reduction='none')
+    l2_criterion = nn.MSELoss(reduction='none')
+    # extract data from batch
+    num_items = len(batch)
+    video_names = batch[0]
+    data = batch[1:num_items-1]
+    data = tuple(map(lambda x: x.to(device), data))
+    # forward pass
+    predicted_progress = network(*data)
+    # loss calculations
+    progress = batch[-1].to(device)
+    l1_loss = l1_criterion(predicted_progress, progress)
+    l2_loss = l2_criterion(predicted_progress, progress)
+    count = batch[-1].shape[0]
+    # optimizer
+    if optimizer:
+        optimizer.zero_grad()
+        (l2_loss.sum() / count).backward()
+        optimizer.step()
+
+    return {
+        'video_names': video_names,
+        'predictions': predicted_progress.cpu().detach(),
+        'progress': progress.cpu().detach(),
+        'l1_loss': l1_loss.sum().item(),
+        'l2_loss': l2_loss.sum().item(),
+        'count': count
+    }
 
 def get_empty_result() -> dict:
     return {
@@ -98,7 +128,11 @@ def main() -> None:
     while not done:
         for batch in train_loader:
             # train step
-            batch_result = train(batch, network, args, device, optimizer=optimizer)
+            # TODO: Try to combine both train methods (or seperate files for progressnet/rsdnet)
+            if args.dataset_type == 'images':
+                batch_result = train_rsd(batch, network, args, device, optimizer=optimizer)
+            else:
+                batch_result = train(batch, network, args, device, optimizer=optimizer)
             update_result(train_result, batch_result)
             # log average train results
             if iteration % args.log_every == 0 and iteration > 0:
@@ -112,7 +146,11 @@ def main() -> None:
                 with torch.no_grad():
                     test_json = []
                     for batch in test_loader:
-                        batch_result = train(batch, network, args, device)
+                        # TODO: Try to combine both train methods
+                        if args.dataset_type == 'images':
+                            batch_result = train_rsd(batch, network, args, device)
+                        else:
+                            batch_result = train(batch, network, args, device)
                         update_result(test_result, batch_result)
                         test_json.append({
                             'video_name': batch_result['video_names'][0],

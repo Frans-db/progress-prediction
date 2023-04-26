@@ -19,6 +19,7 @@ class BoundingBoxDataset(BaseDataset):
         self.frame_paths = frame_paths
         self.boxes = boxes
         self.progress = progress
+        self.num_features = 2
 
     @property
     def lengths(self) -> List[int]:

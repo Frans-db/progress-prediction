@@ -10,5 +10,6 @@ for job_name in job_names:
     print(f'--- Job {job_name} ---')
 
     jobs = sorted(os.listdir(job_path))
+    jobs = [f'sbatch {job}' for job in jobs]
     script = ' && '.join(jobs)
     print(script)

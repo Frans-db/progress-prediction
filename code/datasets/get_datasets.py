@@ -5,6 +5,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from .boundingbox_dataset import BoundingBoxDataset
+from .image_dataset import ImageDataset
 from .augmentations import Indices, Ones, Randoms
 from .augmentations import Subsection, Subsample, Truncate
 
@@ -35,15 +36,22 @@ def get_datasets(args):
     train_set = get_dataset(args, args.train_split, transform=train_transform)
     test_set = get_dataset(args, args.test_split, transform=test_transform)
 
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
-    test_loader = DataLoader(test_set, batch_size=1, num_workers=2, shuffle=False, collate_fn=collate_fn)
+    if args.dataset_type == 'boundingboxes':
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
+        test_loader = DataLoader(test_set, batch_size=1, num_workers=2, shuffle=False, collate_fn=collate_fn)
+    elif args.dataset_type == 'images':
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=0, shuffle=True)
+        test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=0, shuffle=False)
 
     return train_set, test_set, train_loader, test_loader
 
 
 def get_dataset(args, split_file: str, transform=None):
     root = os.path.join(args.data_root, args.dataset)
-    return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
+    if args.dataset_type == 'boundingboxes':
+        return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
+    elif args.dataset_type == 'images':
+        return ImageDataset(root, args.data_type, split_file, transform=transform)
 
 
 def get_transform(args):
