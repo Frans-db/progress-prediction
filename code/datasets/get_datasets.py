@@ -37,11 +37,11 @@ def get_datasets(args):
     test_set = get_dataset(args, args.test_split, transform=test_transform)
 
     if args.dataset_type == 'boundingboxes':
-        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=2, shuffle=True, collate_fn=collate_fn)
-        test_loader = DataLoader(test_set, batch_size=1, num_workers=2, shuffle=False, collate_fn=collate_fn)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=4, shuffle=True, collate_fn=collate_fn)
+        test_loader = DataLoader(test_set, batch_size=1, num_workers=4, shuffle=False, collate_fn=collate_fn)
     elif args.dataset_type == 'images':
-        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=2, shuffle=True)
-        test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=2, shuffle=False)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=4, shuffle=True)
+        test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=4, shuffle=False)
 
     return train_set, test_set, train_loader, test_loader
 

@@ -14,13 +14,13 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/temp/code/main.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
-    --experiment_name resnet_fold0 \
-    --wandb_name resnet_fold0 \
+    --experiment_name resnet_fold1 \
+    --wandb_name resnet_fold1 \
     --network rsdflat \
     --dataset cholec80 \
     --dataset_type images \
-    --train_split t1_0.txt \
-    --test_split v_0.txt \
+    --train_split t1_1.txt \
+    --test_split v_1.txt \
     --backbone resnet152 \
     --backbone_name resnet152_v2.pth \
     --backbone_channels 2048 \
