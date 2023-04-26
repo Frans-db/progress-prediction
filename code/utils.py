@@ -118,7 +118,7 @@ def init(args: argparse.Namespace) -> None:
         },
         'data': {
             'dataset': args.dataset,
-            'dataset_tyoe': args.dataset_type,
+            'dataset_type': args.dataset_type,
             'data_type': args.data_type,
             'max_length': args.max_length,
             'splits': {

@@ -7,12 +7,12 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=5120
 #SBATCH --mail-type=ALL
-#SBATCH --gres=gpu:a40
+#SBATCH --gres=gpu
 
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+srun python /home/nfs/fransdeboer/temp/code/main.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
     --experiment_name resnet_fold0 \
     --wandb_name resnet_fold0 \
@@ -34,4 +34,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr 1e-3 \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
-    --weight_decay 5e-4 \
+    --weight_decay 5e-4
