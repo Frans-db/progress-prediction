@@ -152,19 +152,19 @@ def main() -> None:
                         else:
                             batch_result = train(batch, network, args, device)
                         update_result(test_result, batch_result)
-                        test_json.append({
-                            'video_name': batch_result['video_names'][0],
-                            'progress': batch_result['progress'][0].tolist(),
-                            'predictions': batch_result['predictions'][0].tolist(),
-                        })
+                        # test_json.append({
+                        #     'video_name': batch_result['video_names'][0],
+                        #     'progress': batch_result['progress'][0].tolist(),
+                        #     'predictions': batch_result['predictions'][0].tolist(),
+                        # })
                     if not args.wandb_disable and not args.debug:
                         wandb_log(test_result, iteration, 'test')
                     test_result = get_empty_result()
                     if args.experiment_name:
                         model_path = os.path.join(experiment_root, 'models', f'model_{iteration}.pth')
                         json_path = os.path.join(experiment_root, 'results', f'{iteration}.json')
-                        with open(json_path, 'w+') as f:
-                            json.dump(test_json, f)
+                        # with open(json_path, 'w+') as f:
+                        #     json.dump(test_json, f)
                         torch.save(network.state_dict(), model_path)
                 network.train()
             # update iteration & scheduler
