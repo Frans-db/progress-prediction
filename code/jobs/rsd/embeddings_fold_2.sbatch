@@ -14,12 +14,12 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/thesis/code/rsd.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
-    --wandb_name lstm_fold0 \
-    --experiment_name lstm_fold0 \
+    --wandb_name lstm_fold2 \
+    --experiment_name lstm_fold2 \
     --network rsdnet \
     --dataset cholec80 \
     --dataset_type features \
-    --data_type fold0_embeddings \
+    --data_type fold2_embeddings \
     --train_split t1_t2_0.txt \
     --test_split e_0.txt \
     --backbone_channels 2048 \
