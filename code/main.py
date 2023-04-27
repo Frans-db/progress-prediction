@@ -45,7 +45,7 @@ def train(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: to
     }
 
 
-def train_rsd(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
+def train_rsd_images(batch: Tuple, network: nn.Module, args: argparse.Namespace, device: torch.device, optimizer=None) -> dict:
     l1_criterion = nn.L1Loss(reduction='none')
     l2_criterion = nn.MSELoss(reduction='none')
     # extract data from batch
@@ -132,7 +132,7 @@ def main() -> None:
             # train step
             # TODO: Try to combine both train methods (or seperate files for progressnet/rsdnet)
             if args.dataset_type == 'images':
-                batch_result = train_rsd(batch, network, args, device, optimizer=optimizer)
+                batch_result = train_rsd_images(batch, network, args, device, optimizer=optimizer)
             else:
                 batch_result = train(batch, network, args, device, optimizer=optimizer)
             update_result(train_result, batch_result)
@@ -150,7 +150,7 @@ def main() -> None:
                     for batch in test_loader:
                         # TODO: Try to combine both train methods
                         if args.dataset_type == 'images':
-                            batch_result = train_rsd(batch, network, args, device)
+                            batch_result = train_rsd_images(batch, network, args, device)
                         else:
                             batch_result = train(batch, network, args, device)
                         update_result(test_result, batch_result)

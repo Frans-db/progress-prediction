@@ -62,7 +62,6 @@ class RSDFlat(nn.Module):
     def __init__(self, args, device) -> None:
         super(RSDFlat, self).__init__()
         self.device = device
-        self.debug = args.debug
         self.channels = args.backbone_channels
 
         # create resnet
@@ -93,5 +92,36 @@ class RSDFlat(nn.Module):
 
 class RSDNet(nn.Module):
     def __init__(self, args, device) -> None:
-        super(RSDNet, self).__init__()
+        super(RSDFlat, self).__init__()
+        self.device = device
+        self.channels = args.backbone_channels
+
+        # create resnet
+        if args.backbone == 'resnet18':
+            self.resnet = models.resnet18()
+        elif args.backbone == 'resnet34':
+            self.resnet = models.resnet34()
+        elif args.backbone == 'resnet50':
+            self.resnet = models.resnet50()
+        elif args.backbone == 'resnet101':
+            self.resnet = models.resnet101()
+        elif args.backbone == 'resnet152':
+            self.resnet = models.resnet152()
+
+        self.resnet.fc = nn.Linear(self.channels, 1)
+        # load resnet weights
+        if args.backbone_name:
+            model_path = os.path.join(args.data_root, args.dataset, 'train_data', args.backbone_name)
+            self.resnet.load_state_dict(torch.load(model_path))
+        self.resnet.fc = nn.Identity()
+
+        
+
+
+    def forward(self, frames, *args, **kwargs):
+        B, C, H, W = frames.shape
+
+        progress = torch.sigmoid(self.resnet(frames))
+    
+        return progress.reshape(B)
         
