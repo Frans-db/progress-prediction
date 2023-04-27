@@ -20,8 +20,8 @@ srun python /home/nfs/fransdeboer/thesis/code/rsd.py \
     --dataset cholec80 \
     --dataset_type features \
     --data_type fold1_embeddings \
-    --train_split t1_t2_0.txt \
-    --test_split e_0.txt \
+    --train_split t1_t2_1.txt \
+    --test_split e_1.txt \
     --backbone_channels 2048 \
     --embedding_size 512 \
     --iterations 30000 \
