@@ -6,6 +6,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from .boundingbox_dataset import BoundingBoxDataset
 from .image_dataset import ImageDataset
+from .feature_dataset import FeatureDataset
 from .augmentations import Indices, Ones, Randoms
 from .augmentations import Subsection, Subsample, Truncate
 
@@ -42,6 +43,9 @@ def get_datasets(args):
     elif args.dataset_type == 'images':
         train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=4, shuffle=True)
         test_loader = DataLoader(test_set, batch_size=args.batch_size, num_workers=4, shuffle=False)
+    elif args.dataset_type == 'features':
+        train_loader = DataLoader(train_set, batch_size=1, num_workers=4, shuffle=True)
+        test_loader = DataLoader(test_set, batch_size=1, num_workers=4, shuffle=False)
 
     return train_set, test_set, train_loader, test_loader
 
@@ -52,7 +56,8 @@ def get_dataset(args, split_file: str, transform=None):
         return BoundingBoxDataset(root, args.data_type, split_file, 'pyannot.pkl', transform=transform)
     elif args.dataset_type == 'images':
         return ImageDataset(root, args.data_type, split_file, transform=transform)
-
+    elif args.dataset_type == 'features':
+        return FeatureDataset(root, args.data_type, split_file, transform=transform)
 
 def get_transform(args):
     transform = []

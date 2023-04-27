@@ -43,7 +43,7 @@ def parse_args(parse=True) -> argparse.Namespace:
     parser.add_argument('--load_iteration', type=int, default=None)
     # dataset
     parser.add_argument('--dataset', type=str, default='ucf24')
-    parser.add_argument('--dataset_type', type=str, default='boundingboxes', choices=['boundingboxes', 'images'])
+    parser.add_argument('--dataset_type', type=str, default='boundingboxes', choices=['boundingboxes', 'images', 'features'])
     parser.add_argument('--data_type', type=str, default='rgb-images')
     parser.add_argument('--max_length', type=int, default=400)
     parser.add_argument('--train_split', type=str, default='train_telic.txt')

@@ -92,36 +92,28 @@ class RSDFlat(nn.Module):
 
 class RSDNet(nn.Module):
     def __init__(self, args, device) -> None:
-        super(RSDFlat, self).__init__()
+        super(RSDNet, self).__init__()
         self.device = device
-        self.channels = args.backbone_channels
+        self.resnet_dropout = nn.Dropout(p=args.dropout_chance)
+        self.lstm_dropout = nn.Dropout(p=args.dropout_chance)
+        self.lstm = nn.LSTM(args.backbone_channels, args.embedding_size, 1, batch_first=True)
 
-        # create resnet
-        if args.backbone == 'resnet18':
-            self.resnet = models.resnet18()
-        elif args.backbone == 'resnet34':
-            self.resnet = models.resnet34()
-        elif args.backbone == 'resnet50':
-            self.resnet = models.resnet50()
-        elif args.backbone == 'resnet101':
-            self.resnet = models.resnet101()
-        elif args.backbone == 'resnet152':
-            self.resnet = models.resnet152()
+        self.progress_head = nn.Linear(args.embedding_size+1, 1)
+        self.rsd_head = nn.Linear(args.embedding_size+1, 1)
 
-        self.resnet.fc = nn.Linear(self.channels, 1)
-        # load resnet weights
-        if args.backbone_name:
-            model_path = os.path.join(args.data_root, args.dataset, 'train_data', args.backbone_name)
-            self.resnet.load_state_dict(torch.load(model_path))
-        self.resnet.fc = nn.Identity()
+    def forward(self, features, elapsed, *args, **kwargs):
+        B, S, F = features.shape
 
-        
+        features = self.resnet_dropout(features)
+        features, _ = self.lstm(features)
+        features = self.lstm_dropout(features)
 
+        elapsed = elapsed.reshape(B, S, 1)
+        features = torch.cat((features, elapsed), dim=-1)
+        features = features.reshape(B*S, -1)
 
-    def forward(self, frames, *args, **kwargs):
-        B, C, H, W = frames.shape
+        rsd = self.rsd_head(features)
+        progress = self.progress_head(features)
 
-        progress = torch.sigmoid(self.resnet(frames))
-    
-        return progress.reshape(B)
+        return rsd.reshape(B, S), progress.reshape(B, S)
         
