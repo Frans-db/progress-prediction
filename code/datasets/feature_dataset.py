@@ -5,6 +5,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 import pickle
 import numpy as np
+from tqdm import tqdm
 
 
 class FeatureDataset(Dataset):
@@ -22,7 +23,7 @@ class FeatureDataset(Dataset):
 
     def _load_data(self, root: str, split_names: List[str]):
         all_data = []
-        for name in split_names:
+        for name in tqdm(split_names):
             path = os.path.join(root, f'{name}.txt')
             video_data = []
             with open(path) as f:
