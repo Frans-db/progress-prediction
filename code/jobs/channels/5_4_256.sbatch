@@ -12,7 +12,7 @@
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+srun python /home/nfs/fransdeboer/thesis/code/main.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
     --experiment_name 5_4_256 \
     --wandb_name 5_4_256 \
