@@ -87,6 +87,7 @@ class ProgressNet(nn.Module):
             for param in self.vgg.parameters():
                 param.requires_grad = False
 
+        self.conv = nn.Conv2d(512, self.channels, 1)
         # spp
         num_pools = sum(map(lambda x: x**2, args.pooling_layers))
         self.spp = SpatialPyramidPooling(args.pooling_layers)
@@ -126,6 +127,7 @@ class ProgressNet(nn.Module):
         # vgg untill depth
         for i in range(self.depth):
             frames = self.vgg[i](frames)
+        frames = self.conv(frames)
         if self.debug: print(f'Frames (vgg to depth {self.depth})', frames.shape)
         # spp
         pooled = self.spp(frames)
