@@ -14,8 +14,8 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
-    --experiment_name 512_30_5 \
-    --wandb_name 512_30_5 \
+    --experiment_name 4_2 \
+    --wandb_name 4_2 \
     --roi_size 3 \
     --roi_scale 0.03125 \
     --backbone vgg512 \
