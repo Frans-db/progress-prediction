@@ -16,8 +16,8 @@ srun python /home/nfs/fransdeboer/thesis/code/rsd_embed.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
     --batch_size 32 \
     --num_workers 4 \
-    --load_experiment resnet_fold0 \
+    --load_experiment resnet_fold2 \
     --load_iteration 50000 \
     --backbone resnet152 \
     --backbone_channels 2048 \
-    --target_directory fold0_embeddings
+    --target_directory fold2_embeddings
