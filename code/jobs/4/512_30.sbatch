@@ -12,10 +12,10 @@
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+srun python /home/nfs/fransdeboer/thesis/code/main.py \
     --data_root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
-    --experiment_name 512_30 \
-    --wandb_name 512_30 \
+    --experiment_name 512_30_indices \
+    --wandb_name 512_30_indices \
     --roi_size 3 \
     --roi_scale 0.03125 \
     --backbone vgg512 \
@@ -24,4 +24,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --backbone_channels 512 \
     --resize 224 \
     --iterations 1000000 \
-    --test_every 2500
+    --test_every 2500 \
+    --data_modifier indices \
+    --data_modified_value 173.42794759825327
