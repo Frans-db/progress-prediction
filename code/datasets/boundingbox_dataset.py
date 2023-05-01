@@ -94,5 +94,9 @@ class BoundingBoxDataset(BaseDataset):
         # convert boxes to (x_min, y_min, x_max, y_max)
         boxes[:, 2] += boxes[:, 0]
         boxes[:, 3] += boxes[:, 1]
+        boxes[:, 0] *= (224 / 320)
+        boxes[:, 2] *= (224 / 320)
+        boxes[:, 1] *= (224 / 240)
+        boxes[:, 3] *= (224 / 240)
 
         return torch.FloatTensor(boxes)
