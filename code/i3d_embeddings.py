@@ -13,13 +13,11 @@ from utils import get_device, seed
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--model_path", type=str, default="/home/frans/Datasets/models/rgb_imagenet.pth"
     )
-    parser.add_argument(
-        "--data_root", type=str, default="/home/frans/Datasets/ucf24"
-    )
+    parser.add_argument("--data_root", type=str, default="/home/frans/Datasets/ucf24")
     parser.add_argument(
         "--save_path",
         type=str,
@@ -45,26 +43,31 @@ def main():
     network.to(device)
 
     data = []
-    if args.splitfile.endswith('.txt'):
+    if args.splitfile.endswith(".txt"):
         split_path = os.path.join(args.data_root, "splitfiles", args.splitfile)
         splitnames = load_splitfile(split_path)
         for video_name in splitnames:
-            video_path = os.path.join(args.data_root, 'rgb-images', video_name)
-            frame_paths = [os.path.join(video_path, frame_name) for frame_name in sorted(os.listdir(video_path))]
+            video_path = os.path.join(args.data_root, "rgb-images", video_name)
+            frame_paths = [
+                os.path.join(video_path, frame_name)
+                for frame_name in sorted(os.listdir(video_path))
+            ]
             data.append((video_name, frame_paths))
-    elif args.splitfile.endswith('.pkl'):
+    elif args.splitfile.endswith(".pkl"):
         pickle_path = os.path.join(args.data_root, "splitfiles", args.splitfile)
-        with open(pickle_path, 'rb') as f:
+        with open(pickle_path, "rb") as f:
             database = pickle.load(f)
         for video_name in database:
-            annotations = database[video_name]['annotations']
+            annotations = database[video_name]["annotations"]
             for tube_index, tube in enumerate(annotations):
                 frame_paths = []
-                for frame_index in range(tube['sf'], tube['ef']):
-                    frame_name = f'{frame_index+1:05d}.jpg'
-                    frame_path = os.path.join(args.data_root, 'rgb-images', video_name, frame_name)
+                for frame_index in range(tube["sf"], tube["ef"]):
+                    frame_name = f"{frame_index+1:05d}.jpg"
+                    frame_path = os.path.join(
+                        args.data_root, "rgb-images", video_name, frame_name
+                    )
                     frame_paths.append(frame_path)
-                data.append((f'{video_name}_{tube_index}', frame_paths))
+                data.append((f"{video_name}_{tube_index}", frame_paths))
 
     transform = transforms.Compose(
         [
@@ -72,7 +75,7 @@ def main():
             transforms.ToTensor(),
         ]
     )
-    for (video_name, frame_paths) in tqdm(data):
+    for video_name, frame_paths in tqdm(data):
         dataset = ChunkDataset(frame_paths, 15, transform=transform)
         dataloader = DataLoader(
             dataset, batch_size=args.batch_size, num_workers=4, shuffle=False
@@ -86,9 +89,9 @@ def main():
                 embeddings = torch.flatten(embeddings, start_dim=1).tolist()
                 for embedding in embeddings:
                     embedding_texts.append(" ".join(map(str, embedding)))
-            save_path = os.path.join(args.save_path, f"{video_name}.txt") 
-            if '/' in save_path:
-                directories = '/'.join(save_path.split('/')[:-1])
+            save_path = os.path.join(args.save_path, f"{video_name}.txt")
+            if "/" in save_path:
+                directories = "/".join(save_path.split("/")[:-1])
                 try:
                     os.makedirs(directories)
                 except FileExistsError:

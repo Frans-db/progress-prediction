@@ -17,7 +17,7 @@ class Linear(nn.Module):
         x = self.fc_last(x)
         return x
 
-    def embedded(self, x):
+    def embed(self, x):
         x = self.fc1(x)
         x = F.sigmoid(x)
         x = self.fc2(x)
