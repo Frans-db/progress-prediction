@@ -464,3 +464,4 @@ wandb
 plots*
 experiments
 *.png
+.vscode
