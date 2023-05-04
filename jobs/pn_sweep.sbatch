@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #SBATCH --partition=general
-#SBATCH --qos=medium
+#SBATCH --qos=short
 #SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
