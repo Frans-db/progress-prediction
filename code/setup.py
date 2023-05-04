@@ -3,6 +3,7 @@ import random
 import math
 import torch
 import torch.nn as nn
+from torchvision import models
 from typing import List, Tuple
 from copy import copy
 import statistics
@@ -41,10 +42,7 @@ def proper_fold(data: List[Tuple[str, int]], start_index: int) -> None:
         save_fold(data, f"p{start_index+i}")
         data = data[20:] + data[:20]
 
-
-def main() -> None:
-    random.seed(42)
-
+def create_cholec80_folds():
     video_names = sorted(os.listdir(os.path.join(root, "rgb-images")))
     video_lengths = []
     for video_name in video_names:
@@ -63,6 +61,21 @@ def main() -> None:
     proper_fold(video_data, 0)
     print("--- proper 2 ---")
     proper_fold(video_data, 4)
+
+def create_networks():
+    resnet = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V1)
+    resnet.fc = nn.Linear(2048, 1)
+    torch.save(resnet.state_dict(), './resnet152.pth')
+
+    vgg16 = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1).features
+    torch.save(vgg16.state_dict(), './vgg16.pth')
+
+def main() -> None:
+    random.seed(42)
+    create_cholec80_folds()
+    create_networks()
+
+
 
 
 if __name__ == "__main__":

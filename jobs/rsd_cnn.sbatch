@@ -18,7 +18,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --experiment_name rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_project mscfransdeboer \
     --wandb_name rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags rsd \
+    --wandb_tags rsdnet cholec80 \
     --dataset cholec80 \
     --data_dir rgb-images \
     --flat \
@@ -28,6 +28,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --iterations 50000 \
     --network rsdnet \
     --backbone resnet152 \
+    --load_backbone resnet152.pth \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \
@@ -36,4 +37,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
     --log_every 250 \
-    --test_every 1000
+    --test_every 2500

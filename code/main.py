@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     # network parameters
     parser.add_argument("--feature_dim", type=int, default=64)
     parser.add_argument("--embed_dim", type=int, default=1024)
-    parser.add_argument("--dropout_chance", type=str, default=0.5)
+    parser.add_argument("--dropout_chance", type=float, default=0.5)
     parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
     parser.add_argument("--roi_size", type=int, default=4)
     # network loading
@@ -109,6 +109,26 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
     frames = frames.to(device)
     B, _, _, _ = frames.shape
     predicted_progress = network(frames).reshape(B)
+    progress = progress.to(device)
+    if optimizer:
+        optimizer.zero_grad()
+        criterion(predicted_progress, progress).backward()
+        optimizer.step()
+
+    return {
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
+        "l1_loss": l1_loss(predicted_progress, progress).item(),
+        "count": B,
+    }
+
+def train_flat_bbox_frames(network, criterion, batch, device, optimizer=None):
+    l2_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.MSELoss(reduction="sum")
+    _, frames, boxes, progress = batch
+    frames = frames.to(device)
+    boxes = boxes.to(device)
+    B, _, _, _ = frames.shape
+    predicted_progress = network(frames, boxes).reshape(B)
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
@@ -298,6 +318,8 @@ def main():
 
     if "features" in args.data_dir and args.flat:
         train_fn = train_flat_features
+    elif args.bboxes and args.flat:
+        train_fn = train_flat_bbox_frames
     elif "images" in args.data_dir and args.flat:
         train_fn = train_flat_frames
     else:
