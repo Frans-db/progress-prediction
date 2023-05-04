@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument('--fps', type=int, default=None)
     parser.add_argument("--train_split", type=str, default="t12_0.txt")
-    parser.add_argument("--test_split", type=str, default="e_0.txt")
+    parser.add_argument("--test_split", type=str, default="v_0.txt")
     # training
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--iterations", type=int, default=503 * 60)

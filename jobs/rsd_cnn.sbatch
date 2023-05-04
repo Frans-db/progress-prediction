@@ -22,8 +22,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --dataset cholec80 \
     --data_dir rgb-images \
     --flat \
-    --train_split t12_0.txt \
-    --test_split v_0.txt \
+    --train_split t12_p0.txt \
+    --test_split v_p 0.txt \
     --batch_size 48 \
     --iterations 50000 \
     --network rsdnet \
