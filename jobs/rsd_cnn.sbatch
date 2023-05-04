@@ -15,15 +15,15 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name rsd_cnn_fold_{$SLURM_JOB_ID} \
+    --experiment_name rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_project mscfransdeboer \
-    --wandb_name rsd_cnn_fold_{$SLURM_JOB_ID} \
+    --wandb_name rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_tags rsd \
     --dataset cholec80 \
     --data_dir rgb-images \
     --flat \
-    --train_split t12_p{$SLURM_JOB_ID}.txt \
-    --test_split v_p{$SLURM_JOB_ID}.txt \
+    --train_split t12_p${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 48 \
     --iterations 50000 \
     --network rsdnet \
