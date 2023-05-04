@@ -42,7 +42,6 @@ class Experiment:
         self.train_fn = train_fn
         self.experiment_path = experiment_path
         self.result = result
-        print(self.result)
 
         set_seeds(seed)
         if experiment_path:

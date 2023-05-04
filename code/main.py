@@ -17,7 +17,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     # experiment
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--root", type=str, default="/home/frans/Datasets")
     parser.add_argument("--experiment_name", type=str, default=None)
     # wandb
     parser.add_argument("--wandb_project", type=str, default="mscfransdeboer")
@@ -126,12 +125,15 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
 def main():
     args = parse_args()
     pwd = os.getcwd()
-    print(pwd)
-    exit(0)
-    data_root = os.path.join(args.root, args.dataset)
+    if 'nfs' in os.getcwd():
+        root = '/tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/'
+    else:
+        root = '/home/frans/Datasets'
+
+    data_root = os.path.join(root, args.dataset)
     experiment_path = None
     if args.experiment_name:
-        experiment_path = os.path.join(args.root, "experiments", args.experiment_name)
+        experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
     if not args.wandb_disable and not args.print_only:
         wandb.init(
@@ -183,7 +185,7 @@ def main():
         )
     elif "images" in args.data_dir:
         transform = [transforms.ToTensor()]
-        if "tudelft" in args.root:
+        if "tudelft" in root:
             # antialias not available on compute cluster
             transform.append(transforms.Resize((224, 224)))
         else:
@@ -259,7 +261,7 @@ def main():
 
     if args.load_experiment and args.load_iteration:
         network_path = os.path.join(
-            args.root,
+            root,
             "experiments",
             args.load_experiment,
             f"model_{args.load_iteration}",
