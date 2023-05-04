@@ -10,25 +10,44 @@ from datasets import FeatureDataset
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    # experiment
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--data_root", type=str, default="/home/frans/Datasets")
+    parser.add_argument("--root", type=str, default="/home/frans/Datasets")
+    parser.add_argument("--experiment_name", type=str, default=None)
+    # wandb
+    parser.add_argument("--wandb_project", type=str, default="mscfransdeboer")
+    parser.add_argument("--wandb_name", type=str, default=None)
+    # data
     parser.add_argument("--dataset", type=str, default="cholec80")
-    parser.add_argument("--data_type", type=str, default="features/i3d_embeddings")
+    parser.add_argument("--data_type", type=str, default="features")
+    parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
+    parser.add_argument("--flat", action="store_true")
+    parser.add_argument("--bounding_boxes", action="store_true")
+    parser.add_argument(
+        "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
+    )
     parser.add_argument("--train_split", type=str, default="t12_0.txt")
     parser.add_argument("--test_split", type=str, default="e_0.txt")
-
-    parser.add_argument("--wandb_name", type=str, default=None)
-
+    # training
     parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--iterations", type=int, default=503 * 60)
+    # optimizer
+    parser.add_argument(
+        "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
+    )
+    parser.add_argument("--momentum", type=float, default=0.9)
+    parser.add_argument("--beta1", type=float, default=0.9)
+    parser.add_argument("--beta2", type=float, default=0.999)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
+    # scheduler
     parser.add_argument("--lr_decay", type=float, default=0.1)
     parser.add_argument("--lr_decay_every", type=int, default=503 * 30)
-
+    # network
+    parser.add_argument("--network", type=str, default="ute", choices=["ute"])
     parser.add_argument("--feature_dim", type=int, default=64)
     parser.add_argument("--embed_dim", type=int, default=20)
-
-    parser.add_argument("--iterations", type=int, default=503 * 60)
+    # logging
     parser.add_argument("--log_every", type=int, default=50)
     parser.add_argument("--test_every", type=int, default=200)
 
@@ -55,7 +74,10 @@ def train(network, batch, device, optimizer=None):
 
 def main():
     args = parse_args()
-    data_root = os.path.join(args.data_root, args.dataset)
+    data_root = os.path.join(args.root, args.dataset)
+    experiment_path = None
+    if args.experiment_name:
+        experiment_path = os.path.join(args.root, "experiments", args.experiment_name)
 
     wandb.init(
         project="ute",
@@ -79,8 +101,18 @@ def main():
     # TODO: Create Datasets
     # - Feature Dataset (flat / sequential)
     # - Image Dataset (flat / sequential)
-    train_set = FeatureDataset(data_root, args.data_type, args.train_split, flat=True)
-    test_set = FeatureDataset(data_root, args.data_type, args.test_split, flat=True)
+    if args.data_type == "features":
+        train_set = FeatureDataset(
+            data_root, args.data_type, args.train_split, flat=args.flat
+        )
+        test_set = FeatureDataset(
+            data_root, args.data_type, args.test_split, flat=args.flat
+        )
+    elif args.data_type == "images":
+        if "ucf" in args.dataset:
+            pass
+        else:
+            pass
     train_loader = DataLoader(
         train_set, batch_size=args.batch_size, num_workers=4, shuffle=True
     )

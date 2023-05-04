@@ -3,6 +3,7 @@ from torch import nn, optim
 import random
 import numpy as np
 from typing import Dict
+import os
 import wandb
 
 
@@ -25,6 +26,8 @@ class Experiment:
         trainloader,
         testloader,
         train_fn,
+        experiment_path: str,
+        iterations: int,
         log_every: int,
         test_every: int,
         seed: int,
@@ -37,11 +40,15 @@ class Experiment:
         self.trainloader = trainloader
         self.testloader = testloader
         self.train_fn = train_fn
+        self.experiment_path = experiment_path
+        self.iterations = iterations
         self.log_every = log_every
         self.test_every = test_every
-
         self.result = result
+
         set_seeds(seed)
+        if experiment_path:
+            os.mkdir(experiment_path)
 
     def run(self) -> None:
         iteration = 0
@@ -61,6 +68,15 @@ class Experiment:
                         batch_result = self.train_fn(self.network, batch, self.device)
                         self._add_result(test_result, batch_result)
                     test_result = self._log(test_result, iteration, "test")
+                    if self.experiment_path:
+                        model_path = os.path.join(self.experiment_path, f"model_{iteration}.pth")
+                        torch.save(self.network.state_dict(), model_path)
+                
+                iteration += 1
+                if iteration > self.iterations:
+                    done = True
+                    break
+                self.scheduler.step()
 
     @staticmethod
     def _add_result(result: Dict, batch_result: Dict) -> None:

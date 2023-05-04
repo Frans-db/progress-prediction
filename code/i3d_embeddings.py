@@ -8,7 +8,7 @@ import pickle
 
 from networks import InceptionI3d
 from datasets import ChunkDataset, load_splitfile
-from utils import get_device, seed
+from experiment import get_device, set_seeds
 
 
 def parse_args() -> argparse.Namespace:
@@ -17,13 +17,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model_path", type=str, default="/home/frans/Datasets/models/rgb_imagenet.pth"
     )
-    parser.add_argument("--data_root", type=str, default="/home/frans/Datasets/ucf24")
+    parser.add_argument("--root", type=str, default="/home/frans/Datasets/")
+    parser.add_argument("--dataset", type=str, default="breakfast")
     parser.add_argument(
-        "--save_path",
+        "--save_dir",
         type=str,
-        default="/home/frans/Datasets/ucf24/features/i3d_embeddings",
+        default="features/i3d_embeddings",
     )
-    parser.add_argument("--splitfile", type=str, default="pyannot.pkl")
+    parser.add_argument("--splitfile", type=str, default="all.txt")
     parser.add_argument("--batch_size", type=int, default=16)
 
     return parser.parse_args()
@@ -32,10 +33,8 @@ def parse_args() -> argparse.Namespace:
 def main():
     args = parse_args()
     device = get_device()
-    seed(args.seed)
-
-    # TODO: Nested directory structures -> os.makedirs
-    # TODO: pkl database file (ucf24) -> give paths to ChunkDataset
+    set_seeds(args.seed)
+    data_root = os.path.join(args.root, args.dataset)
 
     network = InceptionI3d(400, in_channels=3)
     network.load_state_dict(torch.load(args.model_path))
@@ -44,17 +43,17 @@ def main():
 
     data = []
     if args.splitfile.endswith(".txt"):
-        split_path = os.path.join(args.data_root, "splitfiles", args.splitfile)
+        split_path = os.path.join(data_root, "splitfiles", args.splitfile)
         splitnames = load_splitfile(split_path)
         for video_name in splitnames:
-            video_path = os.path.join(args.data_root, "rgb-images", video_name)
+            video_path = os.path.join(data_root, "rgb-images", video_name)
             frame_paths = [
                 os.path.join(video_path, frame_name)
                 for frame_name in sorted(os.listdir(video_path))
             ]
             data.append((video_name, frame_paths))
     elif args.splitfile.endswith(".pkl"):
-        pickle_path = os.path.join(args.data_root, "splitfiles", args.splitfile)
+        pickle_path = os.path.join(data_root, "splitfiles", args.splitfile)
         with open(pickle_path, "rb") as f:
             database = pickle.load(f)
         for video_name in database:
@@ -64,7 +63,7 @@ def main():
                 for frame_index in range(tube["sf"], tube["ef"]):
                     frame_name = f"{frame_index+1:05d}.jpg"
                     frame_path = os.path.join(
-                        args.data_root, "rgb-images", video_name, frame_name
+                        data_root, "rgb-images", video_name, frame_name
                     )
                     frame_paths.append(frame_path)
                 data.append((f"{video_name}_{tube_index}", frame_paths))
@@ -89,7 +88,9 @@ def main():
                 embeddings = torch.flatten(embeddings, start_dim=1).tolist()
                 for embedding in embeddings:
                     embedding_texts.append(" ".join(map(str, embedding)))
-            save_path = os.path.join(args.save_path, f"{video_name}.txt")
+            save_path = os.path.join(
+                args.root, args.dataset, args.save_dir, f"{video_name}.txt"
+            )
             if "/" in save_path:
                 directories = "/".join(save_path.split("/")[:-1])
                 try:
