@@ -56,7 +56,7 @@ class Experiment:
         print(f"Test {len(self.testloader.dataset)} ({len(self.testloader)})")
         print("--- Optimizer & Scheduler ---")
         print(self.optimizer)
-        print(str(self.scheduler))
+        print(self.scheduler)
 
     def run(self, iterations: int, log_every: int, test_every: int) -> None:
         iteration = 0

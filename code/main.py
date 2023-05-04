@@ -9,7 +9,7 @@ import os
 from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
 from networks import RSDNet, RSDNetFlat
-from datasets import FeatureDataset, ImageDataset
+from datasets import FeatureDataset, ImageDataset, UCFDataset
 from experiment import Experiment
 
 
@@ -26,7 +26,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--wandb_disable", action="store_true")
     # data
     parser.add_argument("--dataset", type=str, default="cholec80")
-    parser.add_argument("--data_type", type=str, default="features")
     parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
     parser.add_argument("--flat", action="store_true")
     parser.add_argument("--bounding_boxes", action="store_true")
@@ -72,15 +71,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--feature_dim", type=int, default=64)
     parser.add_argument("--embed_dim", type=int, default=20)
     parser.add_argument("--dropout_chance", type=str, default=0.5)
+    parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
+    parser.add_argument("--roi_size", type=str, default=4)
     # logging
-    parser.add_argument("--log_every", type=int, default=50)
-    parser.add_argument("--test_every", type=int, default=200)
+    parser.add_argument("--log_every", type=int, default=250)
+    parser.add_argument("--test_every", type=int, default=1000)
 
     parser.add_argument("--print_only", action="store_true")
     return parser.parse_args()
 
 
-def train_features(network, criterion, batch, device, optimizer=None):
+def train_flat_features(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.MSELoss(reduction="sum")
     _, data, progress = batch
@@ -100,7 +101,7 @@ def train_features(network, criterion, batch, device, optimizer=None):
     }
 
 
-def train_frames(network, criterion, batch, device, optimizer=None):
+def train_flat_frames(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.MSELoss(reduction="sum")
     _, frames, progress = batch
@@ -134,7 +135,6 @@ def main():
             tags=args.wandb_tags,
             config={
                 "dataset": args.dataset,
-                "data_type": args.data_type,
                 "train_split": args.train_split,
                 "test_split": args.test_split,
                 "batch_size": args.batch_size,
@@ -151,14 +151,14 @@ def main():
     # TODO: Create Datasets
     # - Feature Dataset (flat / sequential)
     # - Image Dataset (flat / sequential)
-    if args.data_type == "features":
+    if "features" in args.data_dir:
         trainset = FeatureDataset(
             data_root, args.data_dir, args.train_split, flat=args.flat
         )
         testset = FeatureDataset(
             data_root, args.data_dir, args.test_split, flat=args.flat
         )
-    elif args.data_type == "images":
+    elif "images" in args.data_dir:
         transform = [transforms.ToTensor()]
         if "tudelft" in args.root:
             # antialias not available on compute cluster
@@ -167,8 +167,21 @@ def main():
             transform.append(transforms.Resize((224, 224), antialias=True))
         transform = transforms.Compose(transform)
 
-        if "ucf" in args.dataset:
-            pass
+        if "ucf24" in args.dataset:
+            trainset = UCFDataset(
+                data_root,
+                args.data_dir,
+                args.train_split,
+                flat=args.flat,
+                transform=transform,
+            )
+            testset = UCFDataset(
+                data_root,
+                args.data_dir,
+                args.test_split,
+                flat=args.flat,
+                transform=transform,
+            )
         else:
             trainset = ImageDataset(
                 data_root,
@@ -193,12 +206,23 @@ def main():
     )
 
     # TODO: Create network
+    if args.load_backbone:
+        backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
+    else:
+        backbone_path = None
     if args.network == "progressnet" and args.flat:
-        raise NotImplementedError()
+        network = ProgressNetFlat(
+            args.pooling_layers,
+            args.roi_size,
+            args.dropout_chance,
+            args.embed_dim,
+            args.backbone,
+            backbone_path,
+        )
     elif args.network == "progressnet" and not args.flat:
         raise NotImplementedError()
     elif args.network == "rsdnet" and args.flat:
-        network = RSDNetFlat(args.backbone, args.load_backbone)
+        network = RSDNetFlat(args.backbone, backbone_path)
     elif args.network == "rsdnet" and not args.flat:
         raise NotImplementedError()
     elif args.network == "ute" and args.flat:
@@ -236,22 +260,22 @@ def main():
 
     scheduler = optim.lr_scheduler.StepLR(optimizer, args.lr_decay_every, args.lr_decay)
 
-    if args.loss == 'l2':
+    if args.loss == "l2":
         criterion = nn.MSELoss()
-    elif args.loss == 'l1':
+    elif args.loss == "l1":
         criterion = nn.L1Loss()
-    elif args.loss == 'smooth_l1':
+    elif args.loss == "smooth_l1":
         criterion = nn.SmoothL1Loss()
     else:
-        raise Exception(f'Loss {args.loss} does not exist')
+        raise Exception(f"Loss {args.loss} does not exist")
 
-    if args.data_type == "features":
-        train_fn = train_features
-    elif args.data_type == "images":
-        train_fn = train_frames
+    if "features" in args.data_dir and args.flat:
+        train_fn = train_flat_features
+    elif "images" in args.data_dir and args.flat:
+        train_fn = train_flat_frames
     else:
         raise Exception(
-            f"No train function for combination {args.data_type} and flat={args.flat}"
+            f"No train function for combination {args.data_dir} and flat={args.flat}"
         )
 
     experiment = Experiment(
