@@ -1,26 +1,15 @@
-srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
-    --seed 42 \
-    --wandb_project mscfransdeboer \
-    --wandb_tags progressnet ucf24 \
-    --dataset ucf24 \
-    --data_dir rgb-images \
-    --flat \
-    --bboxes \
-    --train_split train_telic.txt \
-    --test_split test_telic.txt \
-    --batch_size 48 \
-    --iterations 50000 \
-    --network progressnet \
-    --backbone vgg16 \
-    --embed_dim 1024 \
-    --dropout_chance 0.5 \
-    --pooling_layers 1 2 3 \
-    --roi_size 4 \
-    --optimizer adam \
-    --loss l2 \
-    --lr 1e-4 \
-    --weight_decay 1e-4 \
-    --lr_decay 0.1 \
-    --lr_decay_every 20000 \
-    --log_every 250 \
-    --test_every 1000
+#!/bin/sh
+
+#SBATCH --partition=general
+#SBATCH --qos=medium
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=5120
+#SBATCH --mail-type=ALL
+#SBATCH --gres=gpu
+
+module use /opt/insy/modulefiles
+module load cuda/10.0 cudnn/10.0-7.4.2.24
+
+wandb agent mscfransdeboer/mscfransdeboer/heq6ixir

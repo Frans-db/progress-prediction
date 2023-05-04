@@ -7,7 +7,7 @@ metric:
 parameters:
   batch_size:
     values: [4, 32, 64]
-  learning_rate:
+  lr:
     values: [1e-3, 1e-4, 1e-5, 1e-6]
   weight_decay:
     values: [1e-3, 1e-4, 1e-5, 1e-6]
