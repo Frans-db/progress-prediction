@@ -24,7 +24,7 @@ class Experiment:
         network: nn.Module,
         criterion: nn.Module,
         optimizer: optim.Optimizer,
-        scheduler: optim.lr_scheduler.LRScheduler,
+        scheduler,
         trainloader: DataLoader,
         testloader: DataLoader,
         train_fn,
