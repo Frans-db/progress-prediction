@@ -1,11 +1,16 @@
 from torch import nn, optim
 from torch.utils.data import DataLoader
+from torchvision import transforms
 import argparse
 import wandb
+import torch
 import os
 
 from networks import Linear
-from datasets import FeatureDataset
+from networks import ProgressNet, ProgressNetFlat
+from networks import RSDNet, RSDNetFlat
+from datasets import FeatureDataset, ImageDataset
+from experiment import Experiment
 
 
 def parse_args() -> argparse.Namespace:
@@ -17,6 +22,8 @@ def parse_args() -> argparse.Namespace:
     # wandb
     parser.add_argument("--wandb_project", type=str, default="mscfransdeboer")
     parser.add_argument("--wandb_name", type=str, default=None)
+    parser.add_argument("--wandb_tags", type=str, nargs="+")
+    parser.add_argument("--wandb_disable", action="store_true")
     # data
     parser.add_argument("--dataset", type=str, default="cholec80")
     parser.add_argument("--data_type", type=str, default="features")
@@ -28,9 +35,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--train_split", type=str, default="t12_0.txt")
     parser.add_argument("--test_split", type=str, default="e_0.txt")
+    parser.add_argument("--subsample", action="store_true")
     # training
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--iterations", type=int, default=503 * 60)
+    parser.add_argument(
+        "--loss", type=str, default="l2", choices=["l2", "l1", "smooth_l1"]
+    )
     # optimizer
     parser.add_argument(
         "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
@@ -44,30 +55,67 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lr_decay", type=float, default=0.1)
     parser.add_argument("--lr_decay_every", type=int, default=503 * 30)
     # network
-    parser.add_argument("--network", type=str, default="ute", choices=["ute"])
+    parser.add_argument(
+        "--network", type=str, default="ute", choices=["ute", "progressnet", "rsdnet"]
+    )
+    parser.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet18", "resnet152"],
+    )
+    parser.add_argument("--load_backbone", type=str, default=None)
+    # network loading
+    parser.add_argument("--load_experiment", type=str, default=None)
+    parser.add_argument("--load_iteration", type=int, default=None)
+    # network parameters
     parser.add_argument("--feature_dim", type=int, default=64)
     parser.add_argument("--embed_dim", type=int, default=20)
+    parser.add_argument("--dropout_chance", type=str, default=0.5)
     # logging
     parser.add_argument("--log_every", type=int, default=50)
     parser.add_argument("--test_every", type=int, default=200)
 
+    parser.add_argument("--print_only", action="store_true")
     return parser.parse_args()
 
 
-def train(network, batch, device, optimizer=None):
+def train_features(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
-    name, data, progress = batch
+    l1_loss = nn.MSELoss(reduction="sum")
+    _, data, progress = batch
     data = data.to(device)
     B, _ = data.shape
     predicted_progress = network(data).reshape(B)
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
-        l2_loss(predicted_progress, progress).backward()
+        criterion(predicted_progress, progress).backward()
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress, progress),
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
+        "l1_loss": l1_loss(predicted_progress, progress).item(),
+        "count": B,
+    }
+
+
+def train_frames(network, criterion, batch, device, optimizer=None):
+    l2_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.MSELoss(reduction="sum")
+    _, frames, progress = batch
+    frames = frames.to(device)
+    B, _, _, _ = frames.shape
+    predicted_progress = network(frames).reshape(B)
+    progress = progress.to(device)
+    if optimizer:
+        optimizer.zero_grad()
+        criterion(predicted_progress, progress).backward()
+        optimizer.step()
+
+    return {
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
+        "l1_loss": l1_loss(predicted_progress, progress).item(),
         "count": B,
     }
 
@@ -79,62 +127,148 @@ def main():
     if args.experiment_name:
         experiment_path = os.path.join(args.root, "experiments", args.experiment_name)
 
-    wandb.init(
-        project="ute",
-        name=args.wandb_name,
-        config={
-            "dataset": args.dataset,
-            "data_type": args.data_type,
-            "train_split": args.train_split,
-            "test_split": args.test_split,
-            "batch_size": args.batch_size,
-            "lr": args.lr,
-            "weight_decay": args.weight_decay,
-            "lr_decay": args.lr_decay,
-            "lr_decay_every": args.lr_decay_every,
-            "feature_dim": args.feature_dim,
-            "embed_dim": args.embed_dim,
-            "iterations": args.iterations,
-        },
-    )
+    if not args.wandb_disable and not args.print_only:
+        wandb.init(
+            project=args.wandb_project,
+            name=args.wandb_name,
+            tags=args.wandb_tags,
+            config={
+                "dataset": args.dataset,
+                "data_type": args.data_type,
+                "train_split": args.train_split,
+                "test_split": args.test_split,
+                "batch_size": args.batch_size,
+                "lr": args.lr,
+                "weight_decay": args.weight_decay,
+                "lr_decay": args.lr_decay,
+                "lr_decay_every": args.lr_decay_every,
+                "feature_dim": args.feature_dim,
+                "embed_dim": args.embed_dim,
+                "iterations": args.iterations,
+            },
+        )
 
     # TODO: Create Datasets
     # - Feature Dataset (flat / sequential)
     # - Image Dataset (flat / sequential)
     if args.data_type == "features":
-        train_set = FeatureDataset(
-            data_root, args.data_type, args.train_split, flat=args.flat
+        trainset = FeatureDataset(
+            data_root, args.data_dir, args.train_split, flat=args.flat
         )
-        test_set = FeatureDataset(
-            data_root, args.data_type, args.test_split, flat=args.flat
+        testset = FeatureDataset(
+            data_root, args.data_dir, args.test_split, flat=args.flat
         )
     elif args.data_type == "images":
+        transform = [transforms.ToTensor()]
+        if "tudelft" in args.root:
+            # antialias not available on compute cluster
+            transform.append(transforms.Resize((224, 224)))
+        else:
+            transform.append(transforms.Resize((224, 224), antialias=True))
+        transform = transforms.Compose(transform)
+
         if "ucf" in args.dataset:
             pass
         else:
-            pass
-    train_loader = DataLoader(
-        train_set, batch_size=args.batch_size, num_workers=4, shuffle=True
+            trainset = ImageDataset(
+                data_root,
+                args.data_dir,
+                args.train_split,
+                flat=args.flat,
+                transform=transform,
+            )
+            testset = ImageDataset(
+                data_root,
+                args.data_dir,
+                args.test_split,
+                flat=args.flat,
+                transform=transform,
+            )
+
+    trainloader = DataLoader(
+        trainset, batch_size=args.batch_size, num_workers=4, shuffle=True
     )
-    test_loader = DataLoader(
-        test_set, batch_size=args.batch_size, num_workers=4, shuffle=False
+    testloader = DataLoader(
+        testset, batch_size=args.batch_size, num_workers=4, shuffle=False
     )
+
     # TODO: Create network
-    # - Features: Linear (flat), RSD (sequential), ProgressNet (sequential)
-    # - Images RSD (flat), ProgressNet (flat)
-    network = Linear(args.feature_dim, args.embed_dim)
-    # TODO: Create optimizer
-    optimizer = optim.Adam(
-        network.parameters(), lr=args.lr, weight_decay=args.weight_decay
-    )
-    # TODO: Seems fine?
+    if args.network == "progressnet" and args.flat:
+        raise NotImplementedError()
+    elif args.network == "progressnet" and not args.flat:
+        raise NotImplementedError()
+    elif args.network == "rsdnet" and args.flat:
+        network = RSDNetFlat(args.backbone, args.load_backbone)
+    elif args.network == "rsdnet" and not args.flat:
+        raise NotImplementedError()
+    elif args.network == "ute" and args.flat:
+        network = Linear(args.feature_dim, args.embed_dim)
+    else:
+        raise Exception(
+            f"No network for combination {args.network} and flat={args.flat}"
+        )
+
+    if args.load_experiment and args.load_iteration:
+        network_path = os.path.join(
+            args.root,
+            "experiments",
+            args.load_experiment,
+            f"model_{args.load_iteration}",
+        )
+        network.load_state_dict(torch.load(network_path))
+
+    if args.optimizer == "sgd":
+        optimizer = optim.SGD(
+            network.parameters(),
+            lr=args.lr,
+            momentum=args.momentum,
+            weight_decay=args.weight_decay,
+        )
+    elif args.optimizer == "adam":
+        optimizer = optim.Adam(
+            network.parameters(),
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+            betas=(args.beta1, args.beta2),
+        )
+    else:
+        raise Exception(f"Optimizer {args.optimizer} does not exist")
+
     scheduler = optim.lr_scheduler.StepLR(optimizer, args.lr_decay_every, args.lr_decay)
 
-    print("--- Network ---")
-    print(network)
-    print("--- Datasets ---")
-    print(f"Train {len(train_set)} ({len(train_loader)})")
-    print(f"Test {len(test_set)} ({len(test_loader)})")
+    if args.loss == 'l2':
+        criterion = nn.MSELoss()
+    elif args.loss == 'l1':
+        criterion = nn.L1Loss()
+    elif args.loss == 'smooth_l1':
+        criterion = nn.SmoothL1Loss()
+    else:
+        raise Exception(f'Loss {args.loss} does not exist')
+
+    if args.data_type == "features":
+        train_fn = train_features
+    elif args.data_type == "images":
+        train_fn = train_frames
+    else:
+        raise Exception(
+            f"No train function for combination {args.data_type} and flat={args.flat}"
+        )
+
+    experiment = Experiment(
+        network,
+        criterion,
+        optimizer,
+        scheduler,
+        trainloader,
+        testloader,
+        train_fn,
+        experiment_path,
+        args.seed,
+        {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0},
+    )
+    experiment.print()
+    if not args.print_only:
+        experiment.run(args.iterations, args.log_every, args.test_every)
 
 
 if __name__ == "__main__":

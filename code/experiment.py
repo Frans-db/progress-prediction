@@ -1,5 +1,6 @@
 import torch
 from torch import nn, optim
+from torch.utils.data import DataLoader
 import random
 import numpy as np
 from typing import Dict
@@ -21,59 +22,74 @@ class Experiment:
     def __init__(
         self,
         network: nn.Module,
+        criterion: nn.Module,
         optimizer: optim.Optimizer,
-        scheduler,
-        trainloader,
-        testloader,
+        scheduler: optim.lr_scheduler.LRScheduler,
+        trainloader: DataLoader,
+        testloader: DataLoader,
         train_fn,
         experiment_path: str,
-        iterations: int,
-        log_every: int,
-        test_every: int,
         seed: int,
         result: Dict,
     ) -> None:
         self.device = get_device()
         self.network = network.to(self.device)
+        self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.trainloader = trainloader
         self.testloader = testloader
         self.train_fn = train_fn
         self.experiment_path = experiment_path
-        self.iterations = iterations
-        self.log_every = log_every
-        self.test_every = test_every
         self.result = result
+        print(self.result)
 
         set_seeds(seed)
         if experiment_path:
             os.mkdir(experiment_path)
 
-    def run(self) -> None:
+    def print(self) -> None:
+        print("--- Network ---")
+        print(self.network)
+        print("--- Datasets ---")
+        print(f"Train {len(self.trainloader.dataset)} ({len(self.trainloader)})")
+        print(f"Test {len(self.testloader.dataset)} ({len(self.testloader)})")
+        print("--- Optimizer & Scheduler ---")
+        print(self.optimizer)
+        print(str(self.scheduler))
+
+    def run(self, iterations: int, log_every: int, test_every: int) -> None:
         iteration = 0
         done = False
         train_result, test_result = self.result.copy(), self.result.copy()
         while not done:
             for batch in self.trainloader:
                 batch_result = self.train_fn(
-                    self.network, batch, self.device, optimizer=self.optimizer
+                    self.network,
+                    self.criterion,
+                    batch,
+                    self.device,
+                    optimizer=self.optimizer,
                 )
                 self._add_result(train_result, batch_result)
 
-                if iteration % self.log_every and iteration > 0:
+                if iteration % log_every == 0 and iteration > 0:
                     train_result = self._log(train_result, iteration, "train")
-                if iteration % self.test_every and iteration > 0:
+                if iteration % test_every == 0 and iteration > 0:
                     for batch in self.testloader:
-                        batch_result = self.train_fn(self.network, batch, self.device)
+                        batch_result = self.train_fn(
+                            self.network, self.criterion, batch, self.device
+                        )
                         self._add_result(test_result, batch_result)
                     test_result = self._log(test_result, iteration, "test")
                     if self.experiment_path:
-                        model_path = os.path.join(self.experiment_path, f"model_{iteration}.pth")
+                        model_path = os.path.join(
+                            self.experiment_path, f"model_{iteration}.pth"
+                        )
                         torch.save(self.network.state_dict(), model_path)
-                
+
                 iteration += 1
-                if iteration > self.iterations:
+                if iteration > iterations:
                     done = True
                     break
                 self.scheduler.step()
@@ -84,8 +100,7 @@ class Experiment:
             if key in batch_result:
                 result[key] += batch_result[key]
 
-    @staticmethod
-    def _log(result: Dict, iteration: int, prefix: str) -> Dict:
+    def _log(self, result: Dict, iteration: int, prefix: str) -> Dict:
         log = {
             f"{prefix}_{key}": result[key] / result["count"]
             for key in result
@@ -94,3 +109,4 @@ class Experiment:
         log[f"{prefix}_count"] = result["count"]
         log["iteration"] = iteration
         wandb.log(log)
+        return self.result.copy()

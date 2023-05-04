@@ -10,7 +10,7 @@ class FeatureDataset(Dataset):
     def __init__(
         self,
         root: str,
-        data_type: str,
+        data_dir: str,
         splitfile: str,
         flat: bool = False,
         transform=None,
@@ -20,7 +20,7 @@ class FeatureDataset(Dataset):
         split_path = os.path.join(root, "splitfiles", splitfile)
         splitnames = load_splitfile(split_path)
         self.flat = flat
-        self.data = self._get_data(os.path.join(root, data_type), splitnames, flat)
+        self.data = self._get_data(os.path.join(root, data_dir), splitnames, flat)
 
     @staticmethod
     def _get_data(root: str, splitnames: List[str], flat: bool) -> List[str]:
@@ -34,7 +34,7 @@ class FeatureDataset(Dataset):
                 [list(map(float, row.split(" "))) for row in video_data]
             )
             S, _ = video_data.shape
-            progress = torch.arange(0, S) / S
+            progress = torch.arange(1, S + 1) / S
             if flat:
                 for i, (embedding, p) in enumerate(zip(video_data, progress)):
                     data.append((f"{video_name}_{i}", embedding, p))
