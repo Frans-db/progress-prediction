@@ -54,15 +54,15 @@ def main() -> None:
     video_data = list(zip(video_names, video_lengths))
 
     print("--- random 1 ---")
-    random_folds(video_data, 1)
+    random_folds(video_data, 0)
     print("--- random 2 ---")
-    random_folds(video_data, 5)
+    random_folds(video_data, 4)
     print("--- random 3 ---")
-    random_folds(video_data, 9)
+    random_folds(video_data, 8)
     print("--- proper 1 ---")
-    proper_fold(video_data, 1)
+    proper_fold(video_data, 0)
     print("--- proper 2 ---")
-    proper_fold(video_data, 5)
+    proper_fold(video_data, 4)
 
 
 if __name__ == "__main__":
