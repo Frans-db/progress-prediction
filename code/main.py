@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset", type=str, default="cholec80")
     parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
     parser.add_argument("--flat", action="store_true")
-    parser.add_argument("--bounding_boxes", action="store_true")
+    parser.add_argument("--bboxes", action="store_true")
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
     )
@@ -172,6 +172,7 @@ def main():
                 data_root,
                 args.data_dir,
                 args.train_split,
+                args.bboxes,
                 flat=args.flat,
                 transform=transform,
             )
@@ -179,6 +180,7 @@ def main():
                 data_root,
                 args.data_dir,
                 args.test_split,
+                args.bboxes,
                 flat=args.flat,
                 transform=transform,
             )

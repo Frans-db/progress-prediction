@@ -15,7 +15,8 @@ class UCFDataset(Dataset):
         root: str,
         data_dir: str,
         splitfile: str,
-        flat: bool = False,
+        bounding_boxes: bool,
+        flat: bool,
         transform=None,
     ) -> None:
         super().__init__()
@@ -25,6 +26,7 @@ class UCFDataset(Dataset):
         splitnames = load_splitfile(split_path)
 
         self.flat = flat
+        self.bounding_boxes = bounding_boxes
         data_root = os.path.join(root, data_dir)
         database_path = os.path.join(root, "splitfiles/pyannot.pkl")
         self.data = self._load_database(data_root, database_path, splitnames, flat)
@@ -34,20 +36,26 @@ class UCFDataset(Dataset):
 
     def __getitem__(self, index: int):
         name, paths, boxes, progress = self.data[index]
-        paths = np.array(paths)
-        indices = list(range(len(paths)))
-        if self.sample_transform:
-            indices = self.sample_transform(indices)
-
-        paths, boxes, progress = paths[indices], boxes[indices], progress[indices]
-        frames = []
-        for path in paths:
-            frame = Image.open(path)
+        if self.flat:
+            frame = Image.open(paths)
             if self.transform:
                 frame = self.transform(frame)
-            frames.append(frame)
+            if self.bounding_boxes:
+                return name, frame, boxes, progress
+            else:
+                return name, frame, progress
+        else:
+            frames = []
+            for path in paths:
+                frame = Image.open(path)
+                if self.transform:
+                    frame = self.transform(frame)
+                frames.append(frame)
 
-        return name, torch.stack(frames), boxes, progress
+            if self.bounding_boxes:
+                return name, torch.stack(frames), boxes, progress
+            else:
+                return name, torch.stack(frames), progress
 
     @staticmethod
     def _load_database(
