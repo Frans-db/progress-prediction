@@ -14,7 +14,6 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/ \
     --experiment_name rsd_cnn_fold_0 \
     --wandb_project mscfransdeboer \
     --wandb_name rsd_cnn_fold_0 \
@@ -23,7 +22,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir rgb-images \
     --flat \
     --train_split t12_p0.txt \
-    --test_split v_p 0.txt \
+    --test_split v_p0.txt \
     --batch_size 48 \
     --iterations 50000 \
     --network rsdnet \

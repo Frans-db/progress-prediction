@@ -13,7 +13,7 @@ class RSDNetFlat(nn.Module):
             self.backbone = models.resnet18()
             self.backbone.fc = nn.Linear(512, 1)
         elif backbone == "resnet152":
-            self.backbone == models.resnet152()
+            self.backbone = models.resnet152()
             self.backbone.fc = nn.Linear(2048, 1)
         else:
             raise Exception(f"Backbone {backbone} cannot be used for RSDNetFlat")
