@@ -38,7 +38,7 @@ def random_folds(data: List[Tuple[str, int]], start_index: int) -> None:
 def proper_fold(data: List[Tuple[str, int]], start_index: int) -> None:
     random.shuffle(data)
     for i in range(4):
-        save_fold(data, f"p{start_index+0}")
+        save_fold(data, f"p{start_index+i}")
         data = data[20:] + data[:20]
 
 
