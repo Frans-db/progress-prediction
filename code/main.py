@@ -125,6 +125,9 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
 
 def main():
     args = parse_args()
+    pwd = os.getcwd()
+    print(pwd)
+    exit(0)
     data_root = os.path.join(args.root, args.dataset)
     experiment_path = None
     if args.experiment_name:
