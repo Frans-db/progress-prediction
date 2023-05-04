@@ -152,7 +152,7 @@ def main():
 
     data_root = os.path.join(root, args.dataset)
     experiment_path = None
-    if args.experiment_name:
+    if args.experiment_name and args.experiment_name.lower() != 'none':
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
     if not args.wandb_disable and not args.print_only:
