@@ -12,4 +12,4 @@
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-wandb agent mscfransdeboer/mscfransdeboer/heq6ixir
+srun python -m wandb agent mscfransdeboer/mscfransdeboer/heq6ixir
