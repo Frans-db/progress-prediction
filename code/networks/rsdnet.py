@@ -11,24 +11,25 @@ class RSDNetFlat(nn.Module):
         super().__init__()
         if backbone == "resnet18":
             self.backbone = models.resnet18()
-            self.backbone.fc = nn.Linear(512, 1)
+            self.backbone.fc = nn.Identity()
+            self.fc = nn.Linear(512, 1)
         elif backbone == "resnet152":
             self.backbone = models.resnet152()
-            self.backbone.fc = nn.Linear(2048, 1)
+            self.backbone.fc = nn.Identity()
+            self.fc == nn.Linear(2048, 1)
         else:
             raise Exception(f"Backbone {backbone} cannot be used for RSDNetFlat")
 
         if backbone_path:
             self.backbone.load_state_dict(torch.load(backbone_path))
 
-        self.embed = embed
-        if embed:
-            self.backbone.fc = nn.Identity()
-
     def forward(self, frames: torch.FloatTensor) -> torch.FloatTensor:
-        if self.embed:
-            return self.backbone(frames)
-        return torch.sigmoid(self.backbone(frames))
+        frames = self.backbone(frames)
+        return torch.sigmoid(self.fc(frames))
+    
+    def embed(self, frames: torch.FloatTensor) -> torch.FloatTensor:
+        return self.backbone(frames)
+    
 
 class RSDNet(nn.Module):
     def __init__(self) -> None:

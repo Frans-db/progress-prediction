@@ -139,7 +139,7 @@ def embed_frames(network, batch, device, batch_size: int):
     embeddings = []
     for samples in zip(*data):
         samples = tuple([sample.to(device) for sample in samples])
-        sample_embeddings = network(*samples)
+        sample_embeddings = network.embed(*samples)
         embeddings.extend(sample_embeddings.tolist())
 
     return batch[0][0], embeddings

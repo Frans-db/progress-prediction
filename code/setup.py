@@ -66,7 +66,7 @@ def create_cholec80_folds():
 
 def create_networks():
     resnet = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V1)
-    resnet.fc = nn.Linear(2048, 1)
+    resnet.fc = nn.Identity()
     torch.save(resnet.state_dict(), './resnet152.pth')
 
     vgg16 = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1).features

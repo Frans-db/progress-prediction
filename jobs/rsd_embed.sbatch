@@ -17,12 +17,12 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --dataset cholec80 \
     --data_dir rgb-images \
-    --train_split all_p0.txt \
-    --test_split v_p0.txt \
+    --train_split all_p${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --network rsdnet \
     --backbone resnet152 \
-    --load_experiment rsd_cnn_fold_0 \
+    --load_experiment rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
     --load_iteration 1000 \
     --embed \
-    --embed_dir rsd_embeds_p0 \
+    --embed_dir features/rsd_embeds_p${SLURM_ARRAY_TASK_ID} \
