@@ -322,10 +322,6 @@ def main():
         train_fn = train_flat_features
     elif "images" in args.data_dir and args.flat:
         train_fn = train_flat_frames
-    else:
-        raise Exception(
-            f"No train function for combination {args.data_dir} and flat={args.flat}"
-        )
 
     experiment = Experiment(
         network,
