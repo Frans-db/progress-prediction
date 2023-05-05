@@ -292,7 +292,7 @@ def main():
             root,
             "experiments",
             args.load_experiment,
-            f"model_{args.load_iteration}",
+            f"model_{args.load_iteration}.pth",
         )
         network.load_state_dict(torch.load(network_path))
 
