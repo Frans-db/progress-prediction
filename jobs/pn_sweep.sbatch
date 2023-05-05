@@ -13,4 +13,4 @@
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-srun python -m wandb agent mscfransdeboer/progressnet/31ll4a27
+srun python -m wandb agent mscfransdeboer/progressnet/k7e7t29v

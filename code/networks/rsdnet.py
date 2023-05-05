@@ -7,7 +7,7 @@ from .pyramidpooling import SpatialPyramidPooling
 
 
 class RSDNetFlat(nn.Module):
-    def __init__(self, backbone: str, backbone_path: str = None) -> None:
+    def __init__(self, backbone: str, backbone_path: str = None, embed: bool = False) -> None:
         super().__init__()
         if backbone == "resnet18":
             self.backbone = models.resnet18()
@@ -21,9 +21,14 @@ class RSDNetFlat(nn.Module):
         if backbone_path:
             self.backbone.load_state_dict(torch.load(backbone_path))
 
-    def forward(self, frames: torch.FloatTensor) -> torch.FloatTensor:
-        return torch.sigmoid(self.backbone(frames))
+        self.embed = embed
+        if embed:
+            self.backbone.fc = nn.Identity()
 
+    def forward(self, frames: torch.FloatTensor) -> torch.FloatTensor:
+        if self.embed:
+            return self.backbone(frames)
+        return torch.sigmoid(self.backbone(frames))
 
 class RSDNet(nn.Module):
     def __init__(self) -> None:

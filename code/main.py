@@ -83,6 +83,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--print_only", action="store_true")
     parser.add_argument("--embed", action="store_true")
+    parser.add_argument('--embed_batch_size', type=int, default=10)
     parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
@@ -130,13 +131,17 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
-def embed_frames(network, batch, device):
+def embed_frames(network, batch, device, batch_size: int):
     data = batch[1:-1]
-    data = tuple([d.to(device) for d in data])
+    data = tuple([torch.split(d.squeeze(dim=0), batch_size) for d in data])
 
-    B = data[0].shape[0]
-    embeddings = network.embed(*data)
-    print(embeddings.shape)
+    embeddings = []
+    for samples in zip(*data):
+        samples = tuple([sample.to(device) for sample in samples])
+        sample_embeddings = network(*samples)
+        embeddings.extend(sample_embeddings.tolist())
+
+    return data[0], embeddings
 
 def main():
     args = parse_args()
@@ -271,7 +276,7 @@ def main():
     elif args.network == "progressnet" and not args.flat:
         raise NotImplementedError()
     elif args.network == "rsdnet" and (args.flat or args.embed):
-        network = RSDNetFlat(args.backbone, backbone_path)
+        network = RSDNetFlat(args.backbone, backbone_path, args.embed)
     elif args.network == "rsdnet" and not args.flat:
         raise NotImplementedError()
     elif args.network == "ute" and args.flat:
@@ -347,9 +352,11 @@ def main():
     elif args.embed:
         if args.flat:
             raise Exception("Can't embed flat dataset")
-        for batch in trainloader:
-            print(batch.shape)
-            embed_frames(batch)
+        network.eval()
+        with torch.no_grad():
+            for batch in trainloader:
+                video_name, embeddings = embed_frames(network, batch, experiment.device, args.embed_batch_size)
+                print(video_name, len(embeddings))
     elif not args.print_only:
         experiment.run(args.iterations, args.log_every, args.test_every)
 
