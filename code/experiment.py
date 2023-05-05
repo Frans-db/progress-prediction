@@ -93,6 +93,16 @@ class Experiment:
                     break
                 self.scheduler.step()
 
+    def eval(self) -> None:
+        test_result = self.result.copy()
+        for batch in self.testloader:
+            batch_result = self.train_fn(
+                self.network, self.criterion, batch, self.device
+            )
+            self._add_result(test_result, batch_result)
+        print(test_result)
+
+
     @staticmethod
     def _add_result(result: Dict, batch_result: Dict) -> None:
         for key in result:

@@ -22,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--wandb_project", type=str, default="mscfransdeboer")
     parser.add_argument("--wandb_name", type=str, default=None)
     parser.add_argument("--wandb_tags", type=str, nargs="+")
+    parser.add_argument("--wandb_group", type=str, default=None)
     parser.add_argument("--wandb_disable", action="store_true")
     # data
     parser.add_argument("--dataset", type=str, default="cholec80")
@@ -32,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
     )
-    parser.add_argument('--fps', type=int, default=None)
+    parser.add_argument("--fps", type=int, default=None)
     parser.add_argument("--train_split", type=str, default="t12_0.txt")
     parser.add_argument("--test_split", type=str, default="v_0.txt")
     # training
@@ -40,7 +41,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--iterations", type=int, default=503 * 60)
     # network
     parser.add_argument(
-        "--network", type=str, default="progressnet", choices=["ute", "progressnet", "rsdnet"]
+        "--network",
+        type=str,
+        default="progressnet",
+        choices=["ute", "progressnet", "rsdnet"],
     )
     parser.add_argument(
         "--backbone",
@@ -78,6 +82,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--test_every", type=int, default=1000)
 
     parser.add_argument("--print_only", action="store_true")
+    parser.add_argument("--embed", action="store_true")
+    parser.add_argument("--eval", action="store_true")
 
     return parser.parse_args()
 
@@ -121,6 +127,7 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
+
 def train_flat_bbox_frames(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.MSELoss(reduction="sum")
@@ -145,53 +152,54 @@ def train_flat_bbox_frames(network, criterion, batch, device, optimizer=None):
 def main():
     args = parse_args()
     pwd = os.getcwd()
-    if 'nfs' in os.getcwd():
-        root = '/tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/'
+    if "nfs" in os.getcwd():
+        root = "/tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/"
     else:
-        root = '/home/frans/Datasets'
+        root = "/home/frans/Datasets"
 
     data_root = os.path.join(root, args.dataset)
     experiment_path = None
-    if args.experiment_name and args.experiment_name.lower() != 'none':
+    if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
-    if not args.wandb_disable and not args.print_only:
+    if not args.wandb_disable and not args.print_only and not args.eval and not args.embed:
         wandb.init(
             project=args.wandb_project,
             name=args.wandb_name,
+            group=args.wandb_group,
             tags=args.wandb_tags,
             config={
-                'seed': args.seed,
-                'experiment_name': args.experiment_name,
-                'dataset': args.dataset,
-                'data_dir': args.data_dir,
-                'flat': args.flat,
-                'bboxes': args.bboxes,
-                'subsample': args.subsample,
-                'rsd_type': args.rsd_type,
-                'fps': args.fps,
-                'train_split': args.train_split,
-                'test_split': args.test_split,
-                'batch_size': args.batch_size,
-                'iterations': args.iterations,
-                'network': args.network,
-                'backbone': args.backbone,
-                'load_backbone': args.load_backbone,
-                'feature_dim': args.feature_dim,
-                'embed_dim': args.embed_dim,
-                'dropout_chance': args.dropout_chance,
-                'pooling_layers': args.pooling_layers,
-                'roi_size': args.roi_size,
-                'load_experiment': args.load_experiment,
-                'load_iteration': args.load_iteration,
-                'optimizer': args.optimizer,
-                'loss': args.loss,
-                'momentum': args.momentum,
-                'betas': (args.beta1, args.beta2),
-                'lr': args.lr,
-                'weight_decay': args.weight_decay,
-                'lr_decay': args.lr_decay,
-                'lr_decay_every': args.lr_decay_every,
+                "seed": args.seed,
+                "experiment_name": args.experiment_name,
+                "dataset": args.dataset,
+                "data_dir": args.data_dir,
+                "flat": args.flat,
+                "bboxes": args.bboxes,
+                "subsample": args.subsample,
+                "rsd_type": args.rsd_type,
+                "fps": args.fps,
+                "train_split": args.train_split,
+                "test_split": args.test_split,
+                "batch_size": args.batch_size,
+                "iterations": args.iterations,
+                "network": args.network,
+                "backbone": args.backbone,
+                "load_backbone": args.load_backbone,
+                "feature_dim": args.feature_dim,
+                "embed_dim": args.embed_dim,
+                "dropout_chance": args.dropout_chance,
+                "pooling_layers": args.pooling_layers,
+                "roi_size": args.roi_size,
+                "load_experiment": args.load_experiment,
+                "load_iteration": args.load_iteration,
+                "optimizer": args.optimizer,
+                "loss": args.loss,
+                "momentum": args.momentum,
+                "betas": (args.beta1, args.beta2),
+                "lr": args.lr,
+                "weight_decay": args.weight_decay,
+                "lr_decay": args.lr_decay,
+                "lr_decay_every": args.lr_decay_every,
             },
         )
 
@@ -340,7 +348,11 @@ def main():
         {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0},
     )
     experiment.print()
-    if not args.print_only:
+    if args.eval:
+        pass
+    elif args.embed:
+        pass
+    elif not args.print_only:
         experiment.run(args.iterations, args.log_every, args.test_every)
 
 
