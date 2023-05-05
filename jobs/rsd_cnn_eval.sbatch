@@ -18,12 +18,11 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --dataset cholec80 \
     --data_dir rgb-images \
     --flat \
-    --train_split v_p${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split e_p${SLURM_ARRAY_TASK_ID}.txt \
+    --train_split v_p0.txt \
+    --test_split e_p0.txt \
     --batch_size 48 \
-    --iterations 50000 \
     --network rsdnet \
     --backbone resnet152 \
-    --load_experiment rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
+    --load_experiment rsd_cnn_fold_0 \
     --load_iteration 40000 \
     --eval 

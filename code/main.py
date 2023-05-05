@@ -83,6 +83,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--print_only", action="store_true")
     parser.add_argument("--embed", action="store_true")
+    parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
     return parser.parse_args()
@@ -162,7 +163,12 @@ def main():
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
-    if not args.wandb_disable and not args.print_only and not args.eval and not args.embed:
+    if (
+        not args.wandb_disable
+        and not args.print_only
+        and not args.eval
+        and not args.embed
+    ):
         wandb.init(
             project=args.wandb_project,
             name=args.wandb_name,

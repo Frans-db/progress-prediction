@@ -75,17 +75,20 @@ class Experiment:
                 if iteration % log_every == 0 and iteration > 0:
                     train_result = self._log(train_result, iteration, "train")
                 if iteration % test_every == 0 and iteration > 0:
-                    for batch in self.testloader:
-                        batch_result = self.train_fn(
-                            self.network, self.criterion, batch, self.device
-                        )
-                        self._add_result(test_result, batch_result)
+                    self.network.eval()
+                    with torch.no_grad():
+                        for batch in self.testloader:
+                            batch_result = self.train_fn(
+                                self.network, self.criterion, batch, self.device
+                            )
+                            self._add_result(test_result, batch_result)
                     test_result = self._log(test_result, iteration, "test")
                     if self.experiment_path:
                         model_path = os.path.join(
                             self.experiment_path, f"model_{iteration}.pth"
                         )
                         torch.save(self.network.state_dict(), model_path)
+                    self.network.train()
 
                 iteration += 1
                 if iteration > iterations:
@@ -94,13 +97,16 @@ class Experiment:
                 self.scheduler.step()
 
     def eval(self) -> None:
+        self.network.eval()
         test_result = self.result.copy()
-        for batch in self.testloader:
-            batch_result = self.train_fn(
-                self.network, self.criterion, batch, self.device
-            )
-            self._add_result(test_result, batch_result)
+        with torch.no_grad():
+            for batch in self.testloader:
+                batch_result = self.train_fn(
+                    self.network, self.criterion, batch, self.device
+                )
+                self._add_result(test_result, batch_result)
         print(test_result)
+        self.network.train()
 
 
     @staticmethod
