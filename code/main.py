@@ -83,7 +83,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--print_only", action="store_true")
     parser.add_argument("--embed", action="store_true")
-    parser.add_argument("--embed_dir", type=str, default=None)
+    parser.add_argument('--embed_dir', type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
     return parser.parse_args()
@@ -112,10 +112,12 @@ def train_flat_features(network, criterion, batch, device, optimizer=None):
 def train_flat_frames(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.MSELoss(reduction="sum")
-    _, frames, progress = batch
-    frames = frames.to(device)
-    B, _, _, _ = frames.shape
-    predicted_progress = network(frames).reshape(B)
+    progress = batch[-1]
+    data = batch[1:-1]
+    data = tuple([d.to(device) for d in data])
+
+    B = data[0].shape[0]
+    predicted_progress = network(*data).reshape(B)
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
@@ -128,26 +130,6 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
-
-def train_flat_bbox_frames(network, criterion, batch, device, optimizer=None):
-    l2_loss = nn.MSELoss(reduction="sum")
-    l1_loss = nn.MSELoss(reduction="sum")
-    _, frames, boxes, progress = batch
-    frames = frames.to(device)
-    boxes = boxes.to(device)
-    B, _, _, _ = frames.shape
-    predicted_progress = network(frames, boxes).reshape(B)
-    progress = progress.to(device)
-    if optimizer:
-        optimizer.zero_grad()
-        criterion(predicted_progress, progress).backward()
-        optimizer.step()
-
-    return {
-        "l2_loss": l2_loss(predicted_progress, progress).item(),
-        "l1_loss": l1_loss(predicted_progress, progress).item(),
-        "count": B,
-    }
 
 
 def main():
@@ -163,12 +145,7 @@ def main():
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
-    if (
-        not args.wandb_disable
-        and not args.print_only
-        and not args.eval
-        and not args.embed
-    ):
+    if not args.wandb_disable and not args.print_only and not args.eval and not args.embed:
         wandb.init(
             project=args.wandb_project,
             name=args.wandb_name,
@@ -332,8 +309,6 @@ def main():
 
     if "features" in args.data_dir and args.flat:
         train_fn = train_flat_features
-    elif args.bboxes and args.flat:
-        train_fn = train_flat_bbox_frames
     elif "images" in args.data_dir and args.flat:
         train_fn = train_flat_frames
     else:

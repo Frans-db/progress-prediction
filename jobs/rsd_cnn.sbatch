@@ -39,16 +39,16 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --log_every 250 \
     --test_every 1000
 
-python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
-    --seed 42 \
-    --dataset cholec80 \
-    --data_dir rgb-images \
-    --flat \
-    --train_split v_p0.txt \
-    --test_split e_p0.txt \
-    --batch_size 48 \
-    --network rsdnet \
-    --backbone resnet152 \
-    --load_experiment rsd_cnn_fold_0 \
-    --load_iteration 1000 \
-    --eval
+# python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+#     --seed 42 \
+#     --dataset cholec80 \
+#     --data_dir rgb-images \
+#     --flat \
+#     --train_split v_p0.txt \
+#     --test_split e_p0.txt \
+#     --batch_size 48 \
+#     --network rsdnet \
+#     --backbone resnet152 \
+#     --load_experiment rsd_cnn_fold_0 \
+#     --load_iteration 1000 \
+#     --eval
