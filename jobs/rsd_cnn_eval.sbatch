@@ -23,6 +23,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --batch_size 48 \
     --iterations 50000 \
     --network rsdnet \
+    --backbone resnet152 \
     --load_experiment rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
     --load_iteration 40000 \
     --eval 
