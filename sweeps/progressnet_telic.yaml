@@ -1,5 +1,5 @@
 program: ../code/main.py
-project: mscfransdeboer
+project: progressnet
 method: bayes
 metric:
   name: test_l2_loss
