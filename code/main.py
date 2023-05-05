@@ -4,6 +4,7 @@ from torchvision import transforms
 import argparse
 import wandb
 import torch
+from tqdm import tqdm
 import os
 
 from networks import Linear
@@ -141,11 +142,10 @@ def embed_frames(network, batch, device, batch_size: int):
         sample_embeddings = network(*samples)
         embeddings.extend(sample_embeddings.tolist())
 
-    return data[0], embeddings
+    return batch[0][0], embeddings
 
 def main():
     args = parse_args()
-    pwd = os.getcwd()
     if "nfs" in os.getcwd():
         root = "/tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/"
     else:
@@ -354,9 +354,17 @@ def main():
             raise Exception("Can't embed flat dataset")
         network.eval()
         with torch.no_grad():
-            for batch in trainloader:
+            save_dir = os.path.join(data_root, args.embed_dir)
+            os.mkdir(save_dir)
+            for batch in tqdm(trainloader):
                 video_name, embeddings = embed_frames(network, batch, experiment.device, args.embed_batch_size)
-                print(video_name, len(embeddings))
+                txt = []
+                for embedding in embeddings:
+                    txt.append(' '.join(map(str, embedding)))
+                save_path = os.path.join(save_dir, video_name)
+                with open(save_path, 'w+') as f:
+                    f.write('\n'.join(txt))
+                
     elif not args.print_only:
         experiment.run(args.iterations, args.log_every, args.test_every)
 
