@@ -349,7 +349,7 @@ def main():
     )
     experiment.print()
     if args.eval:
-        pass
+        experiment.eval()
     elif args.embed:
         pass
     elif not args.print_only:
