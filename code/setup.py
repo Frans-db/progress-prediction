@@ -18,6 +18,8 @@ def save_fold(data: List[Tuple[str, int]], fold_name: str) -> None:
     t12 = names[: 27 + 27]
     v = names[27 + 27 : 27 + 27 + 6]
     e = names[27 + 27 + 6 : 27 + 27 + 6 + 20]
+    with open(os.path.join(root, "splitfiles", f"all_{fold_name}.txt"), "w+") as f:
+        f.write("\n".join(names))
     with open(os.path.join(root, "splitfiles", f"t1_{fold_name}.txt"), "w+") as f:
         f.write("\n".join(t1))
     with open(os.path.join(root, "splitfiles", f"t2_{fold_name}.txt"), "w+") as f:

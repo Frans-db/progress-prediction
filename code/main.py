@@ -83,7 +83,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--print_only", action="store_true")
     parser.add_argument("--embed", action="store_true")
-    parser.add_argument('--embed_dir', type=str, default=None)
+    parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
     return parser.parse_args()
@@ -130,7 +130,13 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
+def embed_frames(network, batch, device):
+    data = batch[1:-1]
+    data = tuple([d.to(device) for d in data])
 
+    B = data[0].shape[0]
+    embeddings = network.embed(*data)
+    print(embeddings.shape)
 
 def main():
     args = parse_args()
@@ -145,7 +151,12 @@ def main():
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
-    if not args.wandb_disable and not args.print_only and not args.eval and not args.embed:
+    if (
+        not args.wandb_disable
+        and not args.print_only
+        and not args.eval
+        and not args.embed
+    ):
         wandb.init(
             project=args.wandb_project,
             name=args.wandb_name,
@@ -332,7 +343,11 @@ def main():
     if args.eval:
         experiment.eval()
     elif args.embed:
-        pass
+        if args.flat:
+            raise Exception("Can't embed flat dataset")
+        for batch in trainloader:
+            print(batch.shape)
+            embed_frames(batch)
     elif not args.print_only:
         experiment.run(args.iterations, args.log_every, args.test_every)
 
