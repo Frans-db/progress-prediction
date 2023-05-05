@@ -17,6 +17,7 @@ class UCFDataset(Dataset):
         splitfile: str,
         bounding_boxes: bool,
         flat: bool,
+        indices: bool,
         transform=None,
     ) -> None:
         super().__init__()

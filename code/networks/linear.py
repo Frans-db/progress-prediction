@@ -9,7 +9,7 @@ class Linear(nn.Module):
         self.fc1 = nn.Linear(feature_dim, embed_dim * 2)
         self.fc2 = nn.Linear(2 * embed_dim, embed_dim)
         self.fc_last = nn.Linear(embed_dim, 1)
-        self._init_weights()
+        # self._init_weights()
 
     def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
         x = F.sigmoid(self.fc1(x))

@@ -1,0 +1,1261 @@
+# all
+for i in 1 2 3 4
+do
+    for activity in coffee cereals tea milk juice sandwich scrambledegg friedegg salat pancake
+    do
+        python ../code/main.py \
+            --seed 42 \
+            --wandb_group ${activity} \
+            --wandb_tags individual \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --train_split train_${activity}_s${i}.txt \
+            --test_split test_${activity}_s${i}.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000 \
+    done
+done
+
+# individual
+for activity in coffee cereals tea milk juice sandwich scrambledegg friedegg salat pancake
+do
+        python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_${activity} \
+            --wandb_tags all \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --train_split all_${activity}.txt \
+            --test_split all_${activity}.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+
+done
+
+# all - indices
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_coffee \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 587 \
+            --train_split all_coffee.txt \
+            --test_split all_coffee.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_cereals \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 704 \
+            --train_split all_cereals.txt \
+            --test_split all_cereals.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_tea \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 716 \
+            --train_split all_tea.txt \
+            --test_split all_tea.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_milk \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 949 \
+            --train_split all_milk.txt \
+            --test_split all_milk.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_juice \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1491 \
+            --train_split all_juice.txt \
+            --test_split all_juice.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_sandwich \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1535 \
+            --train_split all_sandwich.txt \
+            --test_split all_sandwich.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_scrambledegg \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3117 \
+            --train_split all_scrambledegg.txt \
+            --test_split all_scrambledegg.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_friedegg \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3120 \
+            --train_split all_friedegg.txt \
+            --test_split all_friedegg.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_salat \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3429 \
+            --train_split all_salat.txt \
+            --test_split all_salat.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group all_pancake \
+            --wandb_tags all indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 5969 \
+            --train_split all_pancake.txt \
+            --test_split all_pancake.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+
+# individual - indices
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group coffee \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 583 \
+            --train_split train_coffee_s1.txt \
+            --test_split test_coffee_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group cereals \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 709 \
+            --train_split train_cereals_s1.txt \
+            --test_split test_cereals_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group tea \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 742 \
+            --train_split train_tea_s1.txt \
+            --test_split test_tea_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group milk \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 969 \
+            --train_split train_milk_s1.txt \
+            --test_split test_milk_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group juice \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1480 \
+            --train_split train_juice_s1.txt \
+            --test_split test_juice_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group sandwich \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1478 \
+            --train_split train_sandwich_s1.txt \
+            --test_split test_sandwich_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group scrambledegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3288 \
+            --train_split train_scrambledegg_s1.txt \
+            --test_split test_scrambledegg_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group friedegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3024 \
+            --train_split train_friedegg_s1.txt \
+            --test_split test_friedegg_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group salat \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3461 \
+            --train_split train_salat_s1.txt \
+            --test_split test_salat_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group pancake \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 6038 \
+            --train_split train_pancake_s1.txt \
+            --test_split test_pancake_s1.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group coffee \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 615 \
+            --train_split train_coffee_s2.txt \
+            --test_split test_coffee_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group cereals \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 688 \
+            --train_split train_cereals_s2.txt \
+            --test_split test_cereals_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group tea \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 737 \
+            --train_split train_tea_s2.txt \
+            --test_split test_tea_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group milk \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 904 \
+            --train_split train_milk_s2.txt \
+            --test_split test_milk_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group juice \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1508 \
+            --train_split train_juice_s2.txt \
+            --test_split test_juice_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group sandwich \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1507 \
+            --train_split train_sandwich_s2.txt \
+            --test_split test_sandwich_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group scrambledegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 2936 \
+            --train_split train_scrambledegg_s2.txt \
+            --test_split test_scrambledegg_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group friedegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3063 \
+            --train_split train_friedegg_s2.txt \
+            --test_split test_friedegg_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group salat \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3462 \
+            --train_split train_salat_s2.txt \
+            --test_split test_salat_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group pancake \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 5853 \
+            --train_split train_pancake_s2.txt \
+            --test_split test_pancake_s2.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group coffee \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 565 \
+            --train_split train_coffee_s3.txt \
+            --test_split test_coffee_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group cereals \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 723 \
+            --train_split train_cereals_s3.txt \
+            --test_split test_cereals_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group tea \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 705 \
+            --train_split train_tea_s3.txt \
+            --test_split test_tea_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group milk \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 957 \
+            --train_split train_milk_s3.txt \
+            --test_split test_milk_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group juice \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1513 \
+            --train_split train_juice_s3.txt \
+            --test_split test_juice_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group sandwich \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1561 \
+            --train_split train_sandwich_s3.txt \
+            --test_split test_sandwich_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group scrambledegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3177 \
+            --train_split train_scrambledegg_s3.txt \
+            --test_split test_scrambledegg_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group friedegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3118 \
+            --train_split train_friedegg_s3.txt \
+            --test_split test_friedegg_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group salat \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3516 \
+            --train_split train_salat_s3.txt \
+            --test_split test_salat_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group pancake \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 5911 \
+            --train_split train_pancake_s3.txt \
+            --test_split test_pancake_s3.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group coffee \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 585 \
+            --train_split train_coffee_s4.txt \
+            --test_split test_coffee_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group cereals \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 694 \
+            --train_split train_cereals_s4.txt \
+            --test_split test_cereals_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group tea \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 674 \
+            --train_split train_tea_s4.txt \
+            --test_split test_tea_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group milk \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 963 \
+            --train_split train_milk_s4.txt \
+            --test_split test_milk_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group juice \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1459 \
+            --train_split train_juice_s4.txt \
+            --test_split test_juice_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group sandwich \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 1609 \
+            --train_split train_sandwich_s4.txt \
+            --test_split test_sandwich_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group scrambledegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3047 \
+            --train_split train_scrambledegg_s4.txt \
+            --test_split test_scrambledegg_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group friedegg \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3309 \
+            --train_split train_friedegg_s4.txt \
+            --test_split test_friedegg_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group salat \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 3253 \
+            --train_split train_salat_s4.txt \
+            --test_split test_salat_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000
+python ../code/main.py \
+            --seed 42 \
+            --wandb_group pancake \
+            --wandb_tags individual indices \
+            --wandb_project ute \
+            --dataset breakfast \
+            --data_dir features/dense_trajectories \
+            --flat \
+            --indices \
+            --indices_normalizer 6079 \
+            --train_split train_pancake_s4.txt \
+            --test_split test_pancake_s4.txt \
+            --batch_size 256 \
+            --iterations 30000 \
+            --network ute \
+            --feature_dim 64 \
+            --embed_dim 20 \
+            --optimizer adam \
+            --lr 1e-3 \
+            --weight_decay 0 \
+            --lr_decay 0.5 \
+            --lr_decay_every 10000 \
+            --log_every 500 \
+            --test_every 1000

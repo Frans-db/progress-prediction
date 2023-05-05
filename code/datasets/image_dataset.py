@@ -13,7 +13,8 @@ class ImageDataset(Dataset):
         root: str,
         data_dir: str,
         splitfile: str,
-        flat: bool = False,
+        flat: bool,
+        indices: bool,
         transform=None,
     ) -> None:
         super().__init__()

@@ -30,6 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
     parser.add_argument("--flat", action="store_true")
     parser.add_argument("--bboxes", action="store_true")
+    parser.add_argument("--indices", action="store_true")
+    parser.add_argument('--indices_normalizer', type=int, default=1)
     parser.add_argument("--subsample", action="store_true")
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
@@ -84,7 +86,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--print_only", action="store_true")
     parser.add_argument("--embed", action="store_true")
-    parser.add_argument('--embed_batch_size', type=int, default=10)
+    parser.add_argument("--embed_batch_size", type=int, default=10)
     parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
@@ -132,6 +134,7 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
+
 def embed_frames(network, batch, device, batch_size: int):
     data = batch[1:-1]
     data = tuple([torch.split(d.squeeze(dim=0), batch_size) for d in data])
@@ -143,6 +146,7 @@ def embed_frames(network, batch, device, batch_size: int):
         embeddings.extend(sample_embeddings.tolist())
 
     return batch[0][0], embeddings
+
 
 def main():
     args = parse_args()
@@ -173,6 +177,8 @@ def main():
                 "dataset": args.dataset,
                 "data_dir": args.data_dir,
                 "flat": args.flat,
+                'indices': args.indices,
+                'indices_normalizer': args.indices_normalizer,
                 "bboxes": args.bboxes,
                 "subsample": args.subsample,
                 "rsd_type": args.rsd_type,
@@ -205,10 +211,10 @@ def main():
     # TODO: Subsampling
     if "features" in args.data_dir:
         trainset = FeatureDataset(
-            data_root, args.data_dir, args.train_split, flat=args.flat
+            data_root, args.data_dir, args.train_split, args.flat, args.indices, args.indices_normalizer
         )
         testset = FeatureDataset(
-            data_root, args.data_dir, args.test_split, flat=args.flat
+            data_root, args.data_dir, args.test_split, args.flat, args.indices, args.indices_normalizer
         )
     elif "images" in args.data_dir:
         transform = [transforms.ToTensor()]
@@ -225,7 +231,8 @@ def main():
                 args.data_dir,
                 args.train_split,
                 args.bboxes,
-                flat=args.flat,
+                args.flat,
+                args.indices,
                 transform=transform,
             )
             testset = UCFDataset(
@@ -233,7 +240,8 @@ def main():
                 args.data_dir,
                 args.test_split,
                 args.bboxes,
-                flat=args.flat,
+                args.flat,
+                args.indices,
                 transform=transform,
             )
         else:
@@ -241,14 +249,16 @@ def main():
                 data_root,
                 args.data_dir,
                 args.train_split,
-                flat=args.flat,
+                args.flat,
+                args.indices,
                 transform=transform,
             )
             testset = ImageDataset(
                 data_root,
                 args.data_dir,
                 args.test_split,
-                flat=args.flat,
+                args.flat,
+                args.indices,
                 transform=transform,
             )
 
@@ -357,14 +367,16 @@ def main():
             save_dir = os.path.join(data_root, args.embed_dir)
             os.mkdir(save_dir)
             for batch in tqdm(trainloader):
-                video_name, embeddings = embed_frames(network, batch, experiment.device, args.embed_batch_size)
+                video_name, embeddings = embed_frames(
+                    network, batch, experiment.device, args.embed_batch_size
+                )
                 txt = []
                 for embedding in embeddings:
-                    txt.append(' '.join(map(str, embedding)))
+                    txt.append(" ".join(map(str, embedding)))
                 save_path = os.path.join(save_dir, video_name)
-                with open(save_path, 'w+') as f:
-                    f.write('\n'.join(txt))
-                
+                with open(save_path, "w+") as f:
+                    f.write("\n".join(txt))
+
     elif not args.print_only:
         experiment.run(args.iterations, args.log_every, args.test_every)
 
