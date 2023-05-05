@@ -8,6 +8,7 @@ import os
 import wandb
 from tqdm import tqdm
 
+
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -105,9 +106,11 @@ class Experiment:
                     self.network, self.criterion, batch, self.device
                 )
                 self._add_result(test_result, batch_result)
-        print(test_result)
+        for key in test_result:
+            if key == "count":
+                continue
+            print(f'{key}: {test_result[key] / test_result["count"]}')
         self.network.train()
-
 
     @staticmethod
     def _add_result(result: Dict, batch_result: Dict) -> None:
