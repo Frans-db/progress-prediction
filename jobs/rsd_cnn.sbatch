@@ -16,9 +16,9 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
-    --wandb_project mscfransdeboer \
+    --wandb_project rsdnet \
     --wandb_name rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags rsdnet cholec80 \
+    --wandb_tags rsdnet cnn cholec80 \
     --dataset cholec80 \
     --data_dir rgb-images \
     --flat \
