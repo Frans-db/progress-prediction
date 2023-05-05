@@ -6,7 +6,7 @@ import numpy as np
 from typing import Dict
 import os
 import wandb
-
+from tqdm import tqdm
 
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -100,7 +100,7 @@ class Experiment:
         self.network.eval()
         test_result = self.result.copy()
         with torch.no_grad():
-            for batch in self.testloader:
+            for batch in tqdm(self.testloader):
                 batch_result = self.train_fn(
                     self.network, self.criterion, batch, self.device
                 )
