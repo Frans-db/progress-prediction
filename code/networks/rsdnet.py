@@ -22,7 +22,6 @@ class RSDNetFlat(nn.Module):
             self.backbone.load_state_dict(torch.load(backbone_path))
 
     def forward(self, frames: torch.FloatTensor) -> torch.FloatTensor:
-        print(frames.shape)
         return torch.sigmoid(self.backbone(frames))
 
 
