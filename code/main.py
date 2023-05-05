@@ -259,7 +259,7 @@ def main():
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
     else:
         backbone_path = None
-    if args.network == "progressnet" and args.flat:
+    if args.network == "progressnet" and (args.flat or args.embed):
         network = ProgressNetFlat(
             args.pooling_layers,
             args.roi_size,
@@ -270,7 +270,7 @@ def main():
         )
     elif args.network == "progressnet" and not args.flat:
         raise NotImplementedError()
-    elif args.network == "rsdnet" and args.flat:
+    elif args.network == "rsdnet" and (args.flat or args.embed):
         network = RSDNetFlat(args.backbone, backbone_path)
     elif args.network == "rsdnet" and not args.flat:
         raise NotImplementedError()
