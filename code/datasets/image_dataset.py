@@ -19,14 +19,16 @@ class ImageDataset(Dataset):
     ) -> None:
         super().__init__()
         self.transform = transform
+        self.splitfile = splitfile
         split_path = os.path.join(root, "splitfiles", splitfile)
         splitnames = load_splitfile(split_path)
         self.flat = flat
-        self.data = self._get_data(os.path.join(root, data_dir), splitnames, flat)
+        self.data, self.lengths = self._get_data(os.path.join(root, data_dir), splitnames, flat)
 
     @staticmethod
     def _get_data(root: str, splitnames: List[str], flat: bool) -> List[str]:
         data = []
+        lengths = []
         for video_name in splitnames:
             video_path = os.path.join(root, video_name)
             frame_names = sorted(os.listdir(video_path))
@@ -34,13 +36,15 @@ class ImageDataset(Dataset):
             num_frames = len(frame_paths)
             progress = torch.arange(1, num_frames + 1) / num_frames
 
+            lengths.append(num_frames)
+
             if flat:
                 for i, (path, p) in enumerate(zip(frame_paths, progress)):
                     data.append((f"{video_name}_{i}", path, p))
             else:
                 data.append((video_name, frame_paths, progress))
 
-        return data
+        return data, lengths
 
     def __len__(self) -> int:
         return len(self.data)
