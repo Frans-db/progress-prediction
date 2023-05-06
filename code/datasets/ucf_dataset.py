@@ -32,13 +32,14 @@ class UCFDataset(Dataset):
         self.rsd_type = rsd_type
         self.fps = fps
         self.transform = transform
+        self.splitfile = splitfile
 
         split_path = os.path.join(root, "splitfiles", splitfile)
         self.splitnames = load_splitfile(split_path)
 
         data_root = os.path.join(root, data_dir)
         database_path = os.path.join(root, "splitfiles/pyannot.pkl")
-        self.data = self._load_database(data_root, database_path)
+        self.data, self.lengths = = self._load_database(data_root, database_path)
 
     def __len__(self) -> int:
         return len(self.data)
@@ -80,6 +81,7 @@ class UCFDataset(Dataset):
             database = pickle.load(f)
 
         data = []
+        lengths = []
         for video_name in database:
             if video_name not in self.splitnames:
                 continue
@@ -95,6 +97,7 @@ class UCFDataset(Dataset):
                 boxes[:, 3] *= 224 / 240
 
                 num_frames = boxes.shape[0]
+                lengths.append(num_frames)
                 paths = []
                 for frame_index in range(tube["sf"], tube["ef"]):
                     frame_path = os.path.join(
@@ -119,4 +122,4 @@ class UCFDataset(Dataset):
                 else:
                     data.append((f"{video_name}_{tube_index}", paths, boxes, progress, rsd))
 
-        return data
+        return data, lengths
