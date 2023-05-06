@@ -29,6 +29,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
+    --network rsdnet \
     --backbone resnet152 \
     --optimizer sgd \
     --loss smooth_l1 \
