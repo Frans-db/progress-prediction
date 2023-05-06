@@ -440,7 +440,7 @@ def main():
                 txt = []
                 for embedding in embeddings:
                     txt.append(" ".join(map(str, embedding)))
-                save_path = os.path.join(save_dir, video_name)
+                save_path = os.path.join(save_dir, f'{video_name}.txt')
                 with open(save_path, "w+") as f:
                     f.write("\n".join(txt))
 
