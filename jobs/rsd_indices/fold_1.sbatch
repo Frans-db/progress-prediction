@@ -29,7 +29,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --test_split v_p1.txt \
     --batch_size 1 \
     --indices \
-    --indices_normalizer 2445 \
+    --indices_normalizer 2244 \
     --iterations 30000 \
     --network rsdnet \
     --optimizer sgd \
