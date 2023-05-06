@@ -22,6 +22,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --rsd_type seconds \
     --fps 25 \
     --rsd_normalizer 1 \
+    --subsample \
     --indices \
     --indices_normalizer 128 \
     --train_split train_tubes.txt \
