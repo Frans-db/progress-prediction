@@ -20,7 +20,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --wandb_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_tags rsdnet lstm cholec80 \
     --dataset cholec80 \
-    --data_dir features/rsd_embeds_${SLURM_ARRAY_TASK_ID} \
+    --data_dir features/i3d_embeddings \
     --feature_dim 2048 \
     --rsd_type minutes \
     --fps 1 \
