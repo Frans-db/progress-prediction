@@ -11,6 +11,7 @@ from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
 from networks import RSDNet, RSDNetFlat
 from datasets import FeatureDataset, ImageDataset, UCFDataset
+from datasets import Subsample, Subsection
 from experiment import Experiment
 
 
@@ -248,6 +249,11 @@ def main():
             },
         )
 
+    subsample = []
+    if args.subsample:
+        subsample = [Subsection(), Subsample()]
+    subsample = transforms.Compose(subsample)
+
     # TODO: Subsampling
     if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
@@ -310,6 +316,7 @@ def main():
             args.indices_normalizer,
             args.rsd_type,
             args.fps,
+            sample_transform=subsample
         )
         testset = FeatureDataset(
             data_root,
@@ -320,6 +327,7 @@ def main():
             args.indices_normalizer,
             args.rsd_type,
             args.fps,
+            sample_transform=subsample
         )
 
     trainloader = DataLoader(
