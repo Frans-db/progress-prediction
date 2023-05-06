@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=4:00:00
+#SBATCH --time=2:30:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16384
@@ -23,7 +23,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --network rsdnet \
     --backbone resnet152 \
     --load_experiment rsd_cnn_fold_${SLURM_ARRAY_TASK_ID} \
-    --load_iteration 1000 \
+    --load_iteration 50000 \
     --num_workers 1 \
     --embed \
     --embed_batch_size 25 \
