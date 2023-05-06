@@ -148,7 +148,7 @@ def train_rsd(network, criterion, batch, device, optimizer=None):
 
     data = batch[1:-2]
     data = tuple([d.to(device) for d in data])
-    S = data[0].shape[1]
+    S = progress.shape[1]
 
     predicted_rsd, predicted_progress = network(*data)
 

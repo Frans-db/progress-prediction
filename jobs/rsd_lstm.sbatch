@@ -1,8 +1,8 @@
 #!/bin/sh
 
 #SBATCH --partition=general
-#SBATCH --qos=medium
-#SBATCH --time=15:00:00
+#SBATCH --qos=short
+#SBATCH --time=3:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16384
@@ -30,7 +30,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --batch_size 1 \
     --iterations 30000 \
     --network rsdnet \
-    --backbone resnet152 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \
