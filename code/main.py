@@ -391,9 +391,9 @@ def main():
     result = {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0}
     if args.embed:
         train_fn = None
-    elif "features" in args.data_dir and args.flat:
+    elif "images" not in args.data_dir and args.flat:
         train_fn = train_flat_features
-    elif "features" in args.data_dir and args.rsd_type != "none" and not args.flat:
+    elif "images" not in args.data_dir and args.rsd_type != "none" and not args.flat:
         train_fn = train_rsd
         result = {
             "rsd_l1_loss": 0.0,
