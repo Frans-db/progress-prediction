@@ -16,7 +16,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name rsd_ucf_cnn \
     --wandb_project rsdnet \
-    --wandb_name aaaaaa \
+    --wandb_name rsd_ucf_cnn \
     --wandb_tags rsdnet cnn ucf \
     --dataset ucf24 \
     --data_dir rgb-images \
