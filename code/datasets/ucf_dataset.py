@@ -39,7 +39,7 @@ class UCFDataset(Dataset):
 
         data_root = os.path.join(root, data_dir)
         database_path = os.path.join(root, "splitfiles/pyannot.pkl")
-        self.data, self.lengths = = self._load_database(data_root, database_path)
+        self.data, self.lengths = self._load_database(data_root, database_path)
 
     def __len__(self) -> int:
         return len(self.data)
