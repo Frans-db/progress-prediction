@@ -266,6 +266,9 @@ def main():
                 args.bboxes,
                 args.flat,
                 args.indices,
+                args.indices_normalizer,
+                args.rsd_type,
+                args.fps,
                 transform=transform,
             )
             testset = UCFDataset(
@@ -284,6 +287,9 @@ def main():
                 args.train_split,
                 args.flat,
                 args.indices,
+                args.indices_normalizer,
+                args.rsd_type,
+                args.fps,
                 transform=transform,
             )
             testset = ImageDataset(
