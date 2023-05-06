@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=medium
-#SBATCH --time=15:00:00
+#SBATCH --time=18:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8192
@@ -14,6 +14,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
+    --experiment_name rsd_ucf_cnn \
     --wandb_project rsdnet \
     --wandb_name aaaaaa \
     --wandb_tags rsdnet cnn ucf \
