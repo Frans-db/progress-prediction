@@ -140,15 +140,15 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
 
 def train_rsd(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
-    l1_loss = nn.MSELoss(reduction="sum")
-    smooth_l1_loss = nn.MSELoss(reduction="sum")
-
+    l1_loss = nn.L1Loss(reduction="sum")
+    smooth_l1_loss = nn.SmoothL1Loss(reduction="sum")
+    
     rsd = batch[-2] / network.rsd_normalizer
     progress = batch[-1]
+    S = progress.shape[1]
 
     data = batch[1:-2]
     data = tuple([d.to(device) for d in data])
-    S = progress.shape[1]
 
     predicted_rsd, predicted_progress = network(*data)
 
@@ -156,9 +156,8 @@ def train_rsd(network, criterion, batch, device, optimizer=None):
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
-        (
-            criterion(predicted_rsd, rsd) + criterion(predicted_progress, progress)
-        ).backward()
+        loss = criterion(predicted_rsd, rsd) + criterion(predicted_progress, progress)
+        loss.backward()
         optimizer.step()
 
     return {
