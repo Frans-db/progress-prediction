@@ -250,28 +250,7 @@ def main():
         )
 
     # TODO: Subsampling
-    if "features" in args.data_dir:
-        trainset = FeatureDataset(
-            data_root,
-            args.data_dir,
-            args.train_split,
-            args.flat,
-            args.indices,
-            args.indices_normalizer,
-            args.rsd_type,
-            args.fps,
-        )
-        testset = FeatureDataset(
-            data_root,
-            args.data_dir,
-            args.test_split,
-            args.flat,
-            args.indices,
-            args.indices_normalizer,
-            args.rsd_type,
-            args.fps,
-        )
-    elif "images" in args.data_dir:
+    if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
         if "tudelft" in root:
             # antialias not available on compute cluster
@@ -316,6 +295,27 @@ def main():
                 args.indices,
                 transform=transform,
             )
+    else:
+        trainset = FeatureDataset(
+            data_root,
+            args.data_dir,
+            args.train_split,
+            args.flat,
+            args.indices,
+            args.indices_normalizer,
+            args.rsd_type,
+            args.fps,
+        )
+        testset = FeatureDataset(
+            data_root,
+            args.data_dir,
+            args.test_split,
+            args.flat,
+            args.indices,
+            args.indices_normalizer,
+            args.rsd_type,
+            args.fps,
+        )
 
     trainloader = DataLoader(
         trainset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True
