@@ -15,9 +15,9 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
+    --experiment_name i3d_lstm_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_project rsdnet \
-    --wandb_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
+    --wandb_name i3d_lstm_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_tags rsdnet lstm cholec80 \
     --dataset cholec80 \
     --data_dir features/i3d_embeddings \
