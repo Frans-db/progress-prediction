@@ -21,7 +21,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --wandb_tags rsdnet lstm cholec80 \
     --dataset cholec80 \
     --data_dir features/i3d_embeddings \
-    --feature_dim 2048 \
+    --feature_dim 1024 \
     --rsd_type minutes \
     --fps 1 \
     --rsd_normalizer 5 \
