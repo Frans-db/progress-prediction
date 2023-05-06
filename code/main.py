@@ -338,7 +338,7 @@ def main():
     elif args.network == "progressnet" and not args.flat:
         raise NotImplementedError()
     elif args.network == "rsdnet" and (args.flat or args.embed):
-        network = RSDNetFlat(args.backbone, backbone_path, args.embed)
+        network = RSDNetFlat(args.backbone, backbone_path)
     elif args.network == "rsdnet" and not args.flat:
         network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
     elif args.network == "ute" and args.flat:
