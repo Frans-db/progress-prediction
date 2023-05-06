@@ -34,6 +34,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --loss smooth_l1 \
     --momentum 0.9 \
     --lr 1e-3 \
+    --dropout_chance 0.3 \
     --weight_decay 1e-2 \
     --lr_decay 0.1 \
     --lr_decay_every 10000 \

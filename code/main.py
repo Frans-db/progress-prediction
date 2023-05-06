@@ -60,7 +60,7 @@ def parse_args() -> argparse.Namespace:
     # network parameters
     parser.add_argument("--feature_dim", type=int, default=64)
     parser.add_argument("--embed_dim", type=int, default=1024)
-    parser.add_argument("--dropout_chance", type=float, default=0.5)
+    parser.add_argument("--dropout_chance", type=float, default=0.0)
     parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
     parser.add_argument("--roi_size", type=int, default=4)
     # network loading
@@ -342,7 +342,7 @@ def main():
     elif args.network == "rsdnet" and not args.flat:
         network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
     elif args.network == "ute" and args.flat:
-        network = Linear(args.feature_dim, args.embed_dim)
+        network = Linear(args.feature_dim, args.embed_dim, args.dropout_chance)
     else:
         raise Exception(
             f"No network for combination {args.network} and flat={args.flat}"
