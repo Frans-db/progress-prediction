@@ -90,6 +90,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
+    parser.add_argument('--num_workers', type=int, default=4)
+
     return parser.parse_args()
 
 
@@ -263,10 +265,10 @@ def main():
             )
 
     trainloader = DataLoader(
-        trainset, batch_size=args.batch_size, num_workers=4, shuffle=True
+        trainset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True
     )
     testloader = DataLoader(
-        testset, batch_size=args.batch_size, num_workers=4, shuffle=False
+        testset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False
     )
 
     # TODO: Sequential RSDNet and ProgressNet

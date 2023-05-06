@@ -26,4 +26,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --load_iteration 1000 \
     --embed \
     --embed_batch_size 100 \
-    --embed_dir features/rsd_embeds_p${SLURM_ARRAY_TASK_ID} \
+    --embed_dir features/rsd_embeds_${SLURM_ARRAY_TASK_ID}
