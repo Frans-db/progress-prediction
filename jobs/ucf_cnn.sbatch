@@ -36,4 +36,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
     --log_every 250 \
-    --test_every 1000
+    --test_every 5000
