@@ -31,12 +31,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--flat", action="store_true")
     parser.add_argument("--bboxes", action="store_true")
     parser.add_argument("--indices", action="store_true")
-    parser.add_argument('--indices_normalizer', type=int, default=1)
+    parser.add_argument("--indices_normalizer", type=float, default=1.0)
     parser.add_argument("--subsample", action="store_true")
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
     )
-    parser.add_argument("--fps", type=int, default=None)
+    parser.add_argument("--rsd_normalizer", type=float, default=1.0)
+    parser.add_argument("--fps", type=float, default=1.0)
     parser.add_argument("--train_split", type=str, default="t12_0.txt")
     parser.add_argument("--test_split", type=str, default="v_0.txt")
     # training
@@ -90,7 +91,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
 
-    parser.add_argument('--num_workers', type=int, default=4)
+    parser.add_argument("--num_workers", type=int, default=4)
 
     return parser.parse_args()
 
@@ -136,6 +137,40 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
+def train_rsd(network, criterion, batch, device, optimizer=None):
+    l2_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.MSELoss(reduction="sum")
+    smooth_l1_loss = nn.MSELoss(reduction='sum')
+
+    rsd = batch[-2] / network.rsd_normalizer
+    progress = batch[-1]
+
+    data = batch[1:-2]
+    data = tuple([d.to(device) for d in data])
+    S = data[0].shape[1]
+
+    predicted_rsd, predicted_progress = network(*data)
+
+    rsd = rsd.to(device)
+    progress = progress.to(device)
+    if optimizer:
+        optimizer.zero_grad()
+        (criterion(predicted_rsd, rsd) + criterion(predicted_progress, progress)).backward()
+        optimizer.step()
+
+    return {
+            "rsd_l1_loss": l1_loss(predicted_rsd, rsd), 
+            'rsd_smooth_l1_loss': smooth_l1_loss(predicted_rsd, rsd),
+            "rsd_l2_loss": l2_loss(predicted_rsd, rsd),
+            'rsd_normal_l1_loss': l1_loss(predicted_rsd * network.rsd_normalizer, rsd * network.rsd_normalizer),
+
+            "progress_l1_loss": l1_loss(predicted_progress, progress), 
+            'progress_smooth_l1_loss': smooth_l1_loss(predicted_progress, progress),
+            "progress_l2_loss": l2_loss(predicted_progress, progress),
+
+            "count": S,
+    }
+
 
 def embed_frames(network, batch, device, batch_size: int):
     data = batch[1:-1]
@@ -179,11 +214,12 @@ def main():
                 "dataset": args.dataset,
                 "data_dir": args.data_dir,
                 "flat": args.flat,
-                'indices': args.indices,
-                'indices_normalizer': args.indices_normalizer,
+                "indices": args.indices,
+                "indices_normalizer": args.indices_normalizer,
                 "bboxes": args.bboxes,
                 "subsample": args.subsample,
                 "rsd_type": args.rsd_type,
+                "rsd_normalizer": args.rsd_normalizer,
                 "fps": args.fps,
                 "train_split": args.train_split,
                 "test_split": args.test_split,
@@ -213,10 +249,24 @@ def main():
     # TODO: Subsampling
     if "features" in args.data_dir:
         trainset = FeatureDataset(
-            data_root, args.data_dir, args.train_split, args.flat, args.indices, args.indices_normalizer
+            data_root,
+            args.data_dir,
+            args.train_split,
+            args.flat,
+            args.indices,
+            args.indices_normalizer,
+            args.rsd_type,
+            args.fps,
         )
         testset = FeatureDataset(
-            data_root, args.data_dir, args.test_split, args.flat, args.indices, args.indices_normalizer
+            data_root,
+            args.data_dir,
+            args.test_split,
+            args.flat,
+            args.indices,
+            args.indices_normalizer,
+            args.rsd_type,
+            args.fps,
         )
     elif "images" in args.data_dir:
         transform = [transforms.ToTensor()]
@@ -290,7 +340,7 @@ def main():
     elif args.network == "rsdnet" and (args.flat or args.embed):
         network = RSDNetFlat(args.backbone, backbone_path, args.embed)
     elif args.network == "rsdnet" and not args.flat:
-        raise NotImplementedError()
+        network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
     elif args.network == "ute" and args.flat:
         network = Linear(args.feature_dim, args.embed_dim)
     else:
@@ -335,10 +385,25 @@ def main():
     else:
         raise Exception(f"Loss {args.loss} does not exist")
 
+    result = {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0}
     if args.embed:
         train_fn = None
     elif "features" in args.data_dir and args.flat:
         train_fn = train_flat_features
+    elif 'features' in args.data_dir and args.rsd_type != 'none' and not args.flat:
+        train_fn = train_rsd
+        result = {
+            "rsd_l1_loss": 0.0, 
+            'rsd_smooth_l1_loss': 0.0,
+            "rsd_l2_loss": 0.0, 
+            'rsd_normal_l1_loss': 0.0,
+
+            "progress_l1_loss": 0.0, 
+            'progress_smooth_l1_loss': 0.0,
+            "progress_l2_loss": 0.0, 
+
+            "count": 0
+        }
     elif "images" in args.data_dir and args.flat:
         train_fn = train_flat_frames
     else:

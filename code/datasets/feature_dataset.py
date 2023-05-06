@@ -13,23 +13,33 @@ class FeatureDataset(Dataset):
         data_dir: str,
         splitfile: str,
         flat: bool,
+
         indices: bool,
         indices_normalizer: int,
+
+        rsd_type: str,
+        fps: float,
+
         transform=None,
     ) -> None:
         super().__init__()
-        self.transform = transform
         self.splitfile = splitfile
-        split_path = os.path.join(root, "splitfiles", splitfile)
-        splitnames = load_splitfile(split_path)
         self.flat = flat
-        self.data, self.lengths = self._get_data(os.path.join(root, data_dir), splitnames, flat, indices, indices_normalizer)
+        self.indices = indices
+        self.indices_normalizer = indices_normalizer
+        self.rsd_type = rsd_type
+        self.fps = fps
+        self.transform = transform
 
-    @staticmethod
-    def _get_data(root: str, splitnames: List[str], flat: bool, indices: bool, indices_normalizer: int) -> List[str]:
+        split_path = os.path.join(root, "splitfiles", splitfile)
+        self.splitnames = load_splitfile(split_path)
+
+        self.data, self.lengths = self._get_data(os.path.join(root, data_dir))
+
+    def _get_data(self, root: str) -> List[str]:
         data = []
         lengths = []
-        for video_name in splitnames:
+        for video_name in self.splitnames:
             path = os.path.join(root, f"{video_name}.txt")
             with open(path) as f:
                 video_data = f.readlines()
@@ -37,20 +47,33 @@ class FeatureDataset(Dataset):
             video_data = torch.FloatTensor(
                 [list(map(float, row.split(" "))) for row in video_data]
             )
+
             S, F = video_data.shape
             lengths.append(S)
-            if indices:
-                video_data = torch.arange(0, S, dtype=torch.float32).reshape(S, 1).repeat(1, F) / indices_normalizer
+
+            if self.indices:
+                video_data = torch.arange(0, S, dtype=torch.float32).reshape(S, 1).repeat(1, F) / self.indices_normalizer
+
             progress = torch.arange(1, S + 1) / S
-            if flat:
-                for i, (embedding, p) in enumerate(zip(video_data, progress)):
-                    data.append((f"{video_name}_{i}", embedding, p))
+
+            video_length = (S / self.fps)
+            if self.rsd_type == 'minutes':
+                video_length = video_length / 60
+            rsd = progress * video_length
+            rsd = torch.flip(rsd, dims=(0, ))
+
+            if self.flat:
+                for i, (embedding, p, rsd_val) in enumerate(zip(video_data, progress, rsd)):
+                    data.append((f"{video_name}_{i}", embedding, p, rsd_val))
             else:
-                data.append((video_name, video_data, progress))
+                data.append((video_name, video_data, progress, rsd))
         return data, lengths
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, index):
-        return self.data[index]
+        name, data, progress, rsd = self.data[index]
+        if self.rsd_type != "none":
+            return name, data, torch.flip(rsd, dims=(0, )), rsd, progress
+        return name, data, progress
