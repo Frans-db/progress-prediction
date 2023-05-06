@@ -24,7 +24,7 @@ do
             --lr_decay 0.5 \
             --lr_decay_every 10000 \
             --log_every 500 \
-            --test_every 1000 \
+            --test_every 1000
     done
 done
 

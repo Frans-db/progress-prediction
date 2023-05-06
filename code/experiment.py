@@ -50,16 +50,16 @@ class Experiment:
             os.mkdir(experiment_path)
 
     def print(self) -> None:
-        # print("--- Network ---")
-        # print(self.network)
+        print("--- Network ---")
+        print(self.network)
         print("--- Datasets ---")
         print(f"Train {self.trainloader.dataset.splitfile} - {len(self.trainloader.dataset)} ({len(self.trainloader)})")
         print(f'- {statistics.mean(self.trainloader.dataset.lengths)} / {statistics.stdev(self.trainloader.dataset.lengths)}')
-        # print(f"Test {self.testloader.dataset.splitfile} - {len(self.testloader.dataset)} ({len(self.testloader)})")
-        # print(f'- {statistics.mean(self.testloader.dataset.lengths)} / {statistics.stdev(self.testloader.dataset.lengths)}')
-        # print("--- Optimizer & Scheduler ---")
-        # print(self.optimizer)
-        # print(self.scheduler)
+        print(f"Test {self.testloader.dataset.splitfile} - {len(self.testloader.dataset)} ({len(self.testloader)})")
+        print(f'- {statistics.mean(self.testloader.dataset.lengths)} / {statistics.stdev(self.testloader.dataset.lengths)}')
+        print("--- Optimizer & Scheduler ---")
+        print(self.optimizer)
+        print(self.scheduler)
 
     def run(self, iterations: int, log_every: int, test_every: int) -> None:
         iteration = 0
