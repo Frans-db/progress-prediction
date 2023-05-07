@@ -30,7 +30,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
-    --indices \
     --network rsdnet \
     --optimizer sgd \
     --loss smooth_l1 \
@@ -42,3 +41,21 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 10000 \
     --log_every 250 \
     --test_every 1000
+
+# python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+#     --seed 42 \
+#     --dataset cholec80 \
+#     --feature_dim 2048 \
+#     --rsd_type minutes \
+#     --subsample \
+#     --fps 1 \
+#     --rsd_normalizer 5 \
+#     --test_split v_p0.txt \
+#     --batch_size 1 \
+#     --iterations 30000 \
+#     --indices \
+#     --network rsdnet \
+#     --data_dir features/rsd_embeds_${SLURM_ARRAY_TASK_ID} \
+#     --train_split t12_p${SLURM_ARRAY_TASK_ID}.txt \
+#     --load_experiment rsd_lstm_fold_${SLURM_ARRAY_TASK_ID}_sampled \
+#     --load_iteration 30000
