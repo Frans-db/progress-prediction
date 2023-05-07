@@ -14,7 +14,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name rsd_lstm_fold_0_indices \
+    --experiment_name rsd_lstm_fold_0_indices_sampled \
     --wandb_project rsdnet \
     --wandb_name rsd_lstm_fold_0_indices \
     --wandb_tags rsdnet lstm cholec80 indices \
@@ -28,6 +28,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --test_split v_p0.txt \
     --batch_size 1 \
     --indices \
+    --subsample \
     --indices_normalizer 2445 \
     --iterations 30000 \
     --network rsdnet \
