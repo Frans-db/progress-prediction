@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=2:00:00
+#SBATCH --time=4:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8192
@@ -16,15 +16,17 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --wandb_project rsdnet \
-    --wandb_tags rsdnet lstm breakfast coffee \
+    --wandb_tags rsdnet lstm breakfast cereals \
     --dataset breakfast \
     --data_dir features/dense_trajectories \
     --feature_dim 64 \
     --rsd_type minutes \
     --fps 1 \
     --rsd_normalizer 1 \
-    --train_split train_coffee_s${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split test_coffee_s${SLURM_ARRAY_TASK_ID}.txt \
+    --indices \
+    --indices_normalizer 704 \
+    --train_split train_cereals_s${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split test_cereals_s${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
     --network rsdnet \
