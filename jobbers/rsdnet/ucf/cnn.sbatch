@@ -28,7 +28,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --network rsdnet \
     --backbone resnet152 \
     --load_backbone resnet152.pth \
-    -dropout_chance 0.0 \
+    --dropout_chance 0.0 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \
