@@ -23,6 +23,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir features/rsd_embeds_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
     --rsd_type minutes \
+    --subsample \
     --fps 1 \
     --rsd_normalizer 5 \
     --train_split t12_p${SLURM_ARRAY_TASK_ID}.txt \
