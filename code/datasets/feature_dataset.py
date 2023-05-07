@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 import os
 import torch
 from typing import List
+from tqdm import tqdm
 
 from .utils import load_splitfile
 
@@ -41,7 +42,7 @@ class FeatureDataset(Dataset):
     def _get_data(self, root: str) -> List[str]:
         data = []
         lengths = []
-        for video_name in self.splitnames:
+        for video_name in tqdm(self.splitnames):
             path = os.path.join(root, f"{video_name}.txt")
             with open(path) as f:
                 video_data = f.readlines()
