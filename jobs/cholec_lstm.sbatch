@@ -15,7 +15,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
+    --experiment_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID}_sampled \
     --wandb_project rsdnet \
     --wandb_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_tags rsdnet lstm cholec80 \
@@ -29,6 +29,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
+    --indices \
     --network rsdnet \
     --optimizer sgd \
     --loss smooth_l1 \
