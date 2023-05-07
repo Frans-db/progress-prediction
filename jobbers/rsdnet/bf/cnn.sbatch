@@ -24,7 +24,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --flat \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
-    --batch_size 64 \
+    --batch_size 48 \
     --iterations 100000 \
     --network rsdnet \
     --backbone resnet152 \
