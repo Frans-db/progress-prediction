@@ -77,19 +77,141 @@ First line of institution2 address\\
 \section{Introduction}
 \label{sec:intro}
 
+
 \section{Related Work}
 \label{sec:related}
 
-\textbf{Progress Prediction}
-\cite{becattini2017}
+\textbf{Progress Prediction.} Activity progress, how complete an acitivity is, was first introduced by \cite{becattini2017}. They introduce ProgressNet, an LSTM based network, to predict activity progress on the ucf24 dataset.
 
-\textbf{Remaining Surgery Duration}
+\textbf{Phase Prediction.} The current phase an activity is in is often correlated to the progress of the activity, especially in linear activities. 
+
+\textbf{Remaining Surgery Duration.} The remaining time left in a surgery, or any other activity, is directly correlated to the progress of the activity. \cite{twinanda2019} use this to jointly predict surgery progress and remaining surgery duration. 
 
 \section{Method}
 \label{sec:method}
 
+\subsection{Definition of Progress}
+\label{sec:method:progress}
+
+\subsection{Networks}
+We implemented 3 different networks. ProgressNet \cite{becattini2017}, RSDNet \cite{twinanda2019}, and UTE \cite{kukleva2019}.
+
+\subsection{Data}
+We use the following datasets: Breakfast (BF) \cite{kuehne2014,kuehne2016}, UCF101-24 \cite{soomro2012}, and cholec80 \cite{nwoye2022}. For BF we have dense trajectories, RSDNet embeddings, and ProgressNet embeddings. For UCF101-24 and Cholec80 we have i3d embeddings, RSDNet embeddings, and ProgressNet embeddings.
+
+
 \section{Experiments}
 \label{sec:experiments}
+
+\begin{table}
+   \centering
+   \begin{tabular}{@{}lc@{}}
+     \toprule
+     Data & MSE Loss \\
+     \midrule
+     BF train/test (Dense Trajectories) & 0.114 \\
+     BF train/test (ResNet embeddings) & - \\
+     BF train/test (Indices) & 0.019 \\
+
+     BF all (Dense Trajectories) & 0.041 \\
+     BF all (ResNet embeddings) & - \\
+     BF all (Indices) & 0.017 \\
+
+     \midrule
+     Cholec80 (i3d embeddings) & 0.050 \\
+     Cholec80 (ResNet embeddings) & - \\
+     Cholec80 (Indices) & 0.024 \\
+
+     \midrule
+     UCF101-24 (i3d embeddings) & 0.103 \\
+     UCF101-24 (ResNet embeddings) & - \\
+     UCF101-24 (Indices) & 0.034\\
+
+     \bottomrule
+   \end{tabular}
+   \caption{UTE}
+   \label{tab:ute}
+ \end{table}
+
+ \begin{table}
+   \centering
+   \begin{tabular}{@{}lc@{}}
+     \toprule
+     Data & MSE Loss \\
+     \midrule
+     BF train/test (Dense Trajectories) & - \\
+     BF train/test (ResNet embeddings) & - \\
+     BF train/test (Indices) & - \\
+
+     BF all (Dense Trajectories) & - \\
+     BF all (RResNetSD embeddings) & - \\
+     BF all (Indices) & - \\
+
+     \midrule
+     Cholec80 (i3d embeddings) & 0.112 \\
+     Cholec80 (ResNet embeddings) & 0.019 \\
+     Cholec80 (Indices) & 0.018 \\
+
+     \midrule
+     UCF101-24 (i3d embeddings) & 0.060 \\
+     UCF101-24 (RSD embeddings) & -\\
+     UCF101-24 (Indices) & 0.033 \\
+
+     \bottomrule
+   \end{tabular}
+   \caption{RSDNet}
+   \label{tab:rsdnet}
+ \end{table}
+
+ \begin{table}
+  \centering
+  \begin{tabular}{@{}lc@{}}
+    \toprule
+    Data & MSE Loss \\
+    \midrule
+    BF train/test (Dense Trajectories) & - \\
+    BF train/test (ResNet embeddings) & - \\
+    BF train/test (Indices) & - \\
+
+    BF all (Dense Trajectories) & - \\
+    BF all (RResNetSD embeddings) & - \\
+    BF all (Indices) & - \\
+
+    \midrule
+    Cholec80 (i3d embeddings) & - \\
+    Cholec80 (ResNet embeddings) & - \\
+    Cholec80 (Indices) & - \\
+
+    \midrule
+    UCF101-24 (i3d embeddings) & - \\
+    UCF101-24 (RSD embeddings) & -\\
+    UCF101-24 (Indices) & - \\
+
+    \midrule
+    UCF101-24 (Frames \& Boxes) & - \\
+
+    \bottomrule
+  \end{tabular}
+  \caption{ProgressNet}
+  \label{tab:progressnet}
+\end{table}
+
+Why is this interesting!?
+\begin{table}
+  \centering
+  \begin{tabular}{@{}lc@{}}
+    \toprule
+    Data & MAE (minutes) \\
+    \midrule
+    Cholec80 (i3d embeddings) & 17.78 \\
+    Cholec80 (RSD embeddings) & 8.64 \\
+    Cholec80 (Indices) & 7.35 \\
+
+    \bottomrule
+  \end{tabular}
+  \caption{RSD Predictions}
+  \label{tab:rsd_values}
+\end{table}
 
 \section{Conclusion}
 \label{sec:conclusion}
