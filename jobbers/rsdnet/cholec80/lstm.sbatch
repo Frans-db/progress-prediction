@@ -15,7 +15,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID}_sampled \
+    --experiment_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_project rsdnet \
     --wandb_name rsd_lstm_fold_${SLURM_ARRAY_TASK_ID} \
     --wandb_tags rsdnet lstm cholec80 \

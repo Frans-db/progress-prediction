@@ -28,6 +28,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --network rsdnet \
     --backbone resnet152 \
     --load_backbone resnet152.pth \
+    -dropout_chance 0.0 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \
@@ -36,4 +37,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
     --log_every 250 \
-    --test_every 5000
+    --test_every 1000
