@@ -138,6 +138,26 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
+def train_progress(network, criterion, batch, device, optimizer=None):
+    l2_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.MSELoss(reduction="sum")
+    progress = batch[-1]
+    data = batch[1:-1]
+    data = tuple([d.to(device) for d in data])
+
+    S = data[0].shape[1]
+    predicted_progress = network(*data)
+    progress = progress.to(device)
+    if optimizer:
+        optimizer.zero_grad()
+        criterion(predicted_progress, progress).backward()
+        optimizer.step()
+
+    return {
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
+        "l1_loss": l1_loss(predicted_progress, progress).item(),
+        "count": S,
+    }
 
 def train_rsd(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
@@ -405,6 +425,8 @@ def main():
         train_fn = None
     elif "images" not in args.data_dir and args.flat:
         train_fn = train_flat_features
+    elif "images" not in args.data_dir and not args.flat:
+        train_fn = train_progress
     elif "images" not in args.data_dir and args.rsd_type != "none" and not args.flat:
         train_fn = train_rsd
         result = {
