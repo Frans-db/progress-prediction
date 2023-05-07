@@ -18,31 +18,44 @@ class UCFDataset(Dataset):
         bounding_boxes: bool,
         flat: bool,
         indices: bool,
+        indices_normalizer: int,
+        rsd_type: str,
+        fps: float,
         transform=None,
     ) -> None:
         super().__init__()
 
-        self.transform = transform
-        split_path = os.path.join(root, "splitfiles", splitfile)
-        splitnames = load_splitfile(split_path)
-
-        self.flat = flat
         self.bounding_boxes = bounding_boxes
+        self.flat = flat
+        self.indices = indices
+        self.indices_normalizer = indices_normalizer
+        self.rsd_type = rsd_type
+        self.fps = fps
+        self.transform = transform
+        self.splitfile = splitfile
+
+        split_path = os.path.join(root, "splitfiles", splitfile)
+        self.splitnames = load_splitfile(split_path)
+
         data_root = os.path.join(root, data_dir)
         database_path = os.path.join(root, "splitfiles/pyannot.pkl")
-        self.data = self._load_database(data_root, database_path, splitnames, flat)
+        self.data, self.lengths = self._load_database(data_root, database_path)
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, index: int):
-        name, paths, boxes, progress = self.data[index]
+        name, paths, boxes, progress, rsd = self.data[index]
         if self.flat:
             frame = Image.open(paths)
             if self.transform:
                 frame = self.transform(frame)
-            if self.bounding_boxes:
+            if self.bounding_boxes and self.rsd_type != 'none':
+                return name, frame, boxes, rsd, progress
+            elif self.bounding_boxes:
                 return name, frame, boxes, progress
+            elif self.rsd_type != 'none':
+                return name, frame, rsd, progress
             else:
                 return name, frame, progress
         else:
@@ -53,21 +66,24 @@ class UCFDataset(Dataset):
                     frame = self.transform(frame)
                 frames.append(frame)
 
-            if self.bounding_boxes:
-                return name, torch.stack(frames), boxes, progress
+            frames = torch.stack(frames)
+            if self.bounding_boxes and self.rsd_type != 'none':
+                return name, frames, boxes, rsd, progress
+            elif self.bounding_boxes:
+                return name, frames, boxes, progress
+            elif self.rsd_type != 'none':
+                return name, frames, rsd, progress
             else:
-                return name, torch.stack(frames), progress
+                return name, frames, progress
 
-    @staticmethod
-    def _load_database(
-        data_root: str, database_path: str, splitnames: List[str], flat: bool
-    ):
+    def _load_database(self, data_root: str, database_path: str):
         with open(database_path, "rb") as f:
             database = pickle.load(f)
 
         data = []
+        lengths = []
         for video_name in database:
-            if video_name not in splitnames:
+            if video_name not in self.splitnames:
                 continue
             for tube_index, tube in enumerate(database[video_name]["annotations"]):
                 boxes = tube["boxes"]
@@ -81,6 +97,7 @@ class UCFDataset(Dataset):
                 boxes[:, 3] *= 224 / 240
 
                 num_frames = boxes.shape[0]
+                lengths.append(num_frames)
                 paths = []
                 for frame_index in range(tube["sf"], tube["ef"]):
                     frame_path = os.path.join(
@@ -89,12 +106,20 @@ class UCFDataset(Dataset):
                     paths.append(frame_path)
                 progress = torch.arange(1, num_frames + 1) / num_frames
 
-                if flat:
-                    for i, (frame_path, box, p) in enumerate(
-                        zip(paths, boxes, progress)
-                    ):
-                        data.append((f"{video_name}_{tube_index}_{i}", frame_path, box, p))
-                else:
-                    data.append((f"{video_name}_{tube_index}", paths, boxes, progress))
+                video_length = (num_frames / self.fps)
+                if self.rsd_type == 'minutes':
+                    video_length = video_length / 60
+                rsd = progress * video_length
+                rsd = torch.flip(rsd, dims=(0, ))
 
-        return data
+                if self.flat:
+                    for i, (frame_path, box, p, rsd_val) in enumerate(
+                        zip(paths, boxes, progress, rsd)
+                    ):
+                        data.append(
+                            (f"{video_name}_{tube_index}_{i}", frame_path, box, p, rsd_val)
+                        )
+                else:
+                    data.append((f"{video_name}_{tube_index}", paths, boxes, progress, rsd))
+
+        return data, lengths

@@ -2,33 +2,33 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=medium
-#SBATCH --time=15:00:00
+#SBATCH --time=18:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=16384
+#SBATCH --mem=8192
 #SBATCH --mail-type=ALL
 #SBATCH --gres=gpu
-#SBATCH --array=1,2,3,4
 
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name bf_cnn_fold_${SLURM_ARRAY_TASK_ID} \
+    --experiment_name rsd_ucf_cnn \
     --wandb_project rsdnet \
-    --wandb_name bf_cnn_fold_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags rsdnet cnn breakfast \
-    --dataset breakfast \
+    --wandb_name rsd_ucf_cnn \
+    --wandb_tags rsdnet cnn ucf \
+    --dataset ucf24 \
     --data_dir rgb-images \
     --flat \
-    --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
+    --train_split train.txt \
+    --test_split test.txt \
     --batch_size 48 \
     --iterations 50000 \
     --network rsdnet \
     --backbone resnet152 \
     --load_backbone resnet152.pth \
+    --dropout_chance 0.0 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \

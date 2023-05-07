@@ -54,6 +54,6 @@ class RSDNet(nn.Module):
         frames = frames.reshape(B*S, -1)
 
         rsd = self.fc_rsd(frames)
-        progress = self.fc_progress(frames)
+        progress = torch.sigmoid(self.fc_progress(frames))
 
         return rsd.reshape(B, S), progress.reshape(B, S)

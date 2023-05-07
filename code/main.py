@@ -11,6 +11,7 @@ from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
 from networks import RSDNet, RSDNetFlat
 from datasets import FeatureDataset, ImageDataset, UCFDataset
+from datasets import Subsample, Subsection
 from experiment import Experiment
 
 
@@ -60,7 +61,7 @@ def parse_args() -> argparse.Namespace:
     # network parameters
     parser.add_argument("--feature_dim", type=int, default=64)
     parser.add_argument("--embed_dim", type=int, default=1024)
-    parser.add_argument("--dropout_chance", type=float, default=0.5)
+    parser.add_argument("--dropout_chance", type=float, default=0.0)
     parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
     parser.add_argument("--roi_size", type=int, default=4)
     # network loading
@@ -137,17 +138,18 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         "count": B,
     }
 
+
 def train_rsd(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
-    l1_loss = nn.MSELoss(reduction="sum")
-    smooth_l1_loss = nn.MSELoss(reduction='sum')
-
+    l1_loss = nn.L1Loss(reduction="sum")
+    smooth_l1_loss = nn.SmoothL1Loss(reduction="sum")
+    
     rsd = batch[-2] / network.rsd_normalizer
     progress = batch[-1]
+    S = progress.shape[1]
 
     data = batch[1:-2]
     data = tuple([d.to(device) for d in data])
-    S = data[0].shape[1]
 
     predicted_rsd, predicted_progress = network(*data)
 
@@ -155,20 +157,21 @@ def train_rsd(network, criterion, batch, device, optimizer=None):
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
-        (criterion(predicted_rsd, rsd) + criterion(predicted_progress, progress)).backward()
+        loss = criterion(predicted_rsd, rsd) + criterion(predicted_progress, progress)
+        loss.backward()
         optimizer.step()
 
     return {
-            "rsd_l1_loss": l1_loss(predicted_rsd, rsd), 
-            'rsd_smooth_l1_loss': smooth_l1_loss(predicted_rsd, rsd),
-            "rsd_l2_loss": l2_loss(predicted_rsd, rsd),
-            'rsd_normal_l1_loss': l1_loss(predicted_rsd * network.rsd_normalizer, rsd * network.rsd_normalizer),
-
-            "progress_l1_loss": l1_loss(predicted_progress, progress), 
-            'progress_smooth_l1_loss': smooth_l1_loss(predicted_progress, progress),
-            "progress_l2_loss": l2_loss(predicted_progress, progress),
-
-            "count": S,
+        "rsd_l1_loss": l1_loss(predicted_rsd, rsd),
+        "rsd_smooth_l1_loss": smooth_l1_loss(predicted_rsd, rsd),
+        "rsd_l2_loss": l2_loss(predicted_rsd, rsd),
+        "rsd_normal_l1_loss": l1_loss(
+            predicted_rsd * network.rsd_normalizer, rsd * network.rsd_normalizer
+        ),
+        "progress_l1_loss": l1_loss(predicted_progress, progress),
+        "progress_smooth_l1_loss": smooth_l1_loss(predicted_progress, progress),
+        "progress_l2_loss": l2_loss(predicted_progress, progress),
+        "count": S,
     }
 
 
@@ -246,29 +249,13 @@ def main():
             },
         )
 
+    subsample = []
+    if args.subsample:
+        subsample = [Subsection(), Subsample()]
+    subsample = transforms.Compose(subsample)
+
     # TODO: Subsampling
-    if "features" in args.data_dir:
-        trainset = FeatureDataset(
-            data_root,
-            args.data_dir,
-            args.train_split,
-            args.flat,
-            args.indices,
-            args.indices_normalizer,
-            args.rsd_type,
-            args.fps,
-        )
-        testset = FeatureDataset(
-            data_root,
-            args.data_dir,
-            args.test_split,
-            args.flat,
-            args.indices,
-            args.indices_normalizer,
-            args.rsd_type,
-            args.fps,
-        )
-    elif "images" in args.data_dir:
+    if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
         if "tudelft" in root:
             # antialias not available on compute cluster
@@ -285,6 +272,9 @@ def main():
                 args.bboxes,
                 args.flat,
                 args.indices,
+                args.indices_normalizer,
+                args.rsd_type,
+                args.fps,
                 transform=transform,
             )
             testset = UCFDataset(
@@ -294,6 +284,9 @@ def main():
                 args.bboxes,
                 args.flat,
                 args.indices,
+                args.indices_normalizer,
+                args.rsd_type,
+                args.fps,
                 transform=transform,
             )
         else:
@@ -313,6 +306,28 @@ def main():
                 args.indices,
                 transform=transform,
             )
+    else:
+        trainset = FeatureDataset(
+            data_root,
+            args.data_dir,
+            args.train_split,
+            args.flat,
+            args.indices,
+            args.indices_normalizer,
+            args.rsd_type,
+            args.fps,
+            sample_transform=subsample
+        )
+        testset = FeatureDataset(
+            data_root,
+            args.data_dir,
+            args.test_split,
+            args.flat,
+            args.indices,
+            args.indices_normalizer,
+            args.rsd_type,
+            args.fps
+        )
 
     trainloader = DataLoader(
         trainset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True
@@ -336,13 +351,13 @@ def main():
             backbone_path,
         )
     elif args.network == "progressnet" and not args.flat:
-        raise NotImplementedError()
+        network = ProgressNet(args.feature_dim, args.dropout_chance)
     elif args.network == "rsdnet" and (args.flat or args.embed):
         network = RSDNetFlat(args.backbone, backbone_path)
     elif args.network == "rsdnet" and not args.flat:
         network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
     elif args.network == "ute" and args.flat:
-        network = Linear(args.feature_dim, args.embed_dim)
+        network = Linear(args.feature_dim, args.embed_dim, args.dropout_chance)
     else:
         raise Exception(
             f"No network for combination {args.network} and flat={args.flat}"
@@ -388,21 +403,19 @@ def main():
     result = {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0}
     if args.embed:
         train_fn = None
-    elif "features" in args.data_dir and args.flat:
+    elif "images" not in args.data_dir and args.flat:
         train_fn = train_flat_features
-    elif 'features' in args.data_dir and args.rsd_type != 'none' and not args.flat:
+    elif "images" not in args.data_dir and args.rsd_type != "none" and not args.flat:
         train_fn = train_rsd
         result = {
-            "rsd_l1_loss": 0.0, 
-            'rsd_smooth_l1_loss': 0.0,
-            "rsd_l2_loss": 0.0, 
-            'rsd_normal_l1_loss': 0.0,
-
-            "progress_l1_loss": 0.0, 
-            'progress_smooth_l1_loss': 0.0,
-            "progress_l2_loss": 0.0, 
-
-            "count": 0
+            "rsd_l1_loss": 0.0,
+            "rsd_smooth_l1_loss": 0.0,
+            "rsd_l2_loss": 0.0,
+            "rsd_normal_l1_loss": 0.0,
+            "progress_l1_loss": 0.0,
+            "progress_smooth_l1_loss": 0.0,
+            "progress_l2_loss": 0.0,
+            "count": 0,
         }
     elif "images" in args.data_dir and args.flat:
         train_fn = train_flat_frames
@@ -421,7 +434,7 @@ def main():
         train_fn,
         experiment_path,
         args.seed,
-        {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0},
+        result,
     )
     experiment.print()
     if args.eval:
@@ -440,7 +453,7 @@ def main():
                 txt = []
                 for embedding in embeddings:
                     txt.append(" ".join(map(str, embedding)))
-                save_path = os.path.join(save_dir, f'{video_name}.txt')
+                save_path = os.path.join(save_dir, f"{video_name}.txt")
                 with open(save_path, "w+") as f:
                     f.write("\n".join(txt))
 

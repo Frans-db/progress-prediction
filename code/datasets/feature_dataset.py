@@ -21,6 +21,7 @@ class FeatureDataset(Dataset):
         fps: float,
 
         transform=None,
+        sample_transform = None
     ) -> None:
         super().__init__()
         self.splitfile = splitfile
@@ -30,6 +31,7 @@ class FeatureDataset(Dataset):
         self.rsd_type = rsd_type
         self.fps = fps
         self.transform = transform
+        self.sample_transform = sample_transform
 
         split_path = os.path.join(root, "splitfiles", splitfile)
         self.splitnames = load_splitfile(split_path)
@@ -61,6 +63,13 @@ class FeatureDataset(Dataset):
                 video_length = video_length / 60
             rsd = progress * video_length
             rsd = torch.flip(rsd, dims=(0, ))
+
+            indices = list(range(S))
+            if self.sample_transform:
+                indices = self.sample_transform(indices)
+            video_data = video_data[indices]
+            progress = progress[indices]
+            rsd = rsd[indices]
 
             if self.flat:
                 for i, (embedding, p, rsd_val) in enumerate(zip(video_data, progress, rsd)):

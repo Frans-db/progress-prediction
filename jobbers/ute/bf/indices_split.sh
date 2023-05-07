@@ -1,305 +1,4 @@
-# all
-for i in 1 2 3 4
-do
-    for activity in coffee cereals tea milk juice sandwich scrambledegg friedegg salat pancake
-    do
-        python ../code/main.py \
-            --seed 42 \
-            --wandb_group ${activity} \
-            --wandb_tags individual \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --train_split train_${activity}_s${i}.txt \
-            --test_split test_${activity}_s${i}.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-    done
-done
-
-# individual
-for activity in coffee cereals tea milk juice sandwich scrambledegg friedegg salat pancake
-do
-        python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_${activity} \
-            --wandb_tags all \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --train_split all_${activity}.txt \
-            --test_split all_${activity}.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-
-done
-
-# all - indices
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_coffee \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 587 \
-            --train_split all_coffee.txt \
-            --test_split all_coffee.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_cereals \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 704 \
-            --train_split all_cereals.txt \
-            --test_split all_cereals.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_tea \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 716 \
-            --train_split all_tea.txt \
-            --test_split all_tea.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_milk \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 949 \
-            --train_split all_milk.txt \
-            --test_split all_milk.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_juice \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 1491 \
-            --train_split all_juice.txt \
-            --test_split all_juice.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_sandwich \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 1535 \
-            --train_split all_sandwich.txt \
-            --test_split all_sandwich.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_scrambledegg \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 3117 \
-            --train_split all_scrambledegg.txt \
-            --test_split all_scrambledegg.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_friedegg \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 3120 \
-            --train_split all_friedegg.txt \
-            --test_split all_friedegg.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_salat \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 3429 \
-            --train_split all_salat.txt \
-            --test_split all_salat.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-python ../code/main.py \
-            --seed 42 \
-            --wandb_group all_pancake \
-            --wandb_tags all indices \
-            --wandb_project ute \
-            --dataset breakfast \
-            --data_dir features/dense_trajectories \
-            --flat \
-            --indices \
-            --indices_normalizer 5969 \
-            --train_split all_pancake.txt \
-            --test_split all_pancake.txt \
-            --batch_size 256 \
-            --iterations 30000 \
-            --network ute \
-            --feature_dim 64 \
-            --embed_dim 20 \
-            --optimizer adam \
-            --lr 1e-3 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
-            --lr_decay_every 10000 \
-            --log_every 500 \
-            --test_every 1000
-
-# individual - indices
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group coffee \
             --wandb_tags individual indices \
@@ -323,7 +22,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group cereals \
             --wandb_tags individual indices \
@@ -347,7 +46,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group tea \
             --wandb_tags individual indices \
@@ -371,7 +70,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group milk \
             --wandb_tags individual indices \
@@ -395,7 +94,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group juice \
             --wandb_tags individual indices \
@@ -419,7 +118,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group sandwich \
             --wandb_tags individual indices \
@@ -443,7 +142,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group scrambledegg \
             --wandb_tags individual indices \
@@ -467,7 +166,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group friedegg \
             --wandb_tags individual indices \
@@ -491,7 +190,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group salat \
             --wandb_tags individual indices \
@@ -515,7 +214,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group pancake \
             --wandb_tags individual indices \
@@ -539,7 +238,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group coffee \
             --wandb_tags individual indices \
@@ -563,7 +262,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group cereals \
             --wandb_tags individual indices \
@@ -587,7 +286,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group tea \
             --wandb_tags individual indices \
@@ -611,7 +310,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group milk \
             --wandb_tags individual indices \
@@ -635,7 +334,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group juice \
             --wandb_tags individual indices \
@@ -659,7 +358,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group sandwich \
             --wandb_tags individual indices \
@@ -683,7 +382,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group scrambledegg \
             --wandb_tags individual indices \
@@ -707,7 +406,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group friedegg \
             --wandb_tags individual indices \
@@ -731,7 +430,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group salat \
             --wandb_tags individual indices \
@@ -755,7 +454,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group pancake \
             --wandb_tags individual indices \
@@ -779,7 +478,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group coffee \
             --wandb_tags individual indices \
@@ -803,7 +502,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group cereals \
             --wandb_tags individual indices \
@@ -827,7 +526,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group tea \
             --wandb_tags individual indices \
@@ -851,7 +550,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group milk \
             --wandb_tags individual indices \
@@ -875,7 +574,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group juice \
             --wandb_tags individual indices \
@@ -899,7 +598,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group sandwich \
             --wandb_tags individual indices \
@@ -923,7 +622,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group scrambledegg \
             --wandb_tags individual indices \
@@ -947,7 +646,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group friedegg \
             --wandb_tags individual indices \
@@ -971,7 +670,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group salat \
             --wandb_tags individual indices \
@@ -995,7 +694,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group pancake \
             --wandb_tags individual indices \
@@ -1019,7 +718,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group coffee \
             --wandb_tags individual indices \
@@ -1043,7 +742,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group cereals \
             --wandb_tags individual indices \
@@ -1067,7 +766,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group tea \
             --wandb_tags individual indices \
@@ -1091,7 +790,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group milk \
             --wandb_tags individual indices \
@@ -1115,7 +814,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group juice \
             --wandb_tags individual indices \
@@ -1139,7 +838,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group sandwich \
             --wandb_tags individual indices \
@@ -1163,7 +862,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group scrambledegg \
             --wandb_tags individual indices \
@@ -1187,7 +886,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group friedegg \
             --wandb_tags individual indices \
@@ -1211,7 +910,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group salat \
             --wandb_tags individual indices \
@@ -1235,7 +934,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group pancake \
             --wandb_tags individual indices \
