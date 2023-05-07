@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=medium
-#SBATCH --time=15:00:00
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16384
@@ -24,8 +24,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --flat \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
-    --batch_size 48 \
-    --iterations 50000 \
+    --batch_size 128 \
+    --iterations 100000 \
     --network rsdnet \
     --backbone resnet152 \
     --load_backbone resnet152.pth \
@@ -36,6 +36,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr 1e-3 \
     --weight_decay 5e-4 \
     --lr_decay 0.1 \
-    --lr_decay_every 20000 \
+    --lr_decay_every 40000 \
     --log_every 250 \
     --test_every 1000
