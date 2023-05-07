@@ -15,20 +15,21 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name bf_cnn_fold_1 \
+    --experiment_name bf_cnn_fold_s${SLURM_ARRAY_TASK_ID} \
     --wandb_project rsdnet \
-    --wandb_name bf_cnn_fold_1 \
+    --wandb_name bf_cnn_fold_s${SLURM_ARRAY_TASK_ID} \
     --wandb_tags rsdnet cnn breakfast \
     --dataset breakfast \
     --data_dir rgb-images \
     --flat \
-    --train_split train_s1.txt \
-    --test_split test_s1.txt \
+    --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 48 \
     --iterations 50000 \
     --network rsdnet \
     --backbone resnet152 \
     --load_backbone resnet152.pth \
+    --dropout_chance 0.0 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \
