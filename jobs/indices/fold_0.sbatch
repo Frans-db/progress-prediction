@@ -42,3 +42,23 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 10000 \
     --log_every 250 \
     --test_every 1000
+
+
+srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+    --seed 42 \
+    --dataset cholec80 \
+    --feature_dim 2048 \
+    --rsd_type minutes \
+    --fps 1 \
+    --rsd_normalizer 5 \
+    --batch_size 1 \
+    --indices \
+    --network rsdnet \
+    --load_experiment rsd_lstm_fold_0_indices_sampled \
+    --data_dir features/rsd_embeds_0 \
+    --train_split e_p0.txt \
+    --test_split v_p0.txt \
+    --indices_normalizer 2445
+
+
+

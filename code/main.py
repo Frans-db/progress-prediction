@@ -326,8 +326,7 @@ def main():
             args.indices,
             args.indices_normalizer,
             args.rsd_type,
-            args.fps,
-            sample_transform=subsample
+            args.fps
         )
 
     trainloader = DataLoader(
