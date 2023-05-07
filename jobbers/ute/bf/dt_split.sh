@@ -2,7 +2,7 @@ for i in 1 2 3 4
 do
     for activity in coffee cereals tea milk juice sandwich scrambledegg friedegg salat pancake
     do
-        python ../code/main.py \
+        python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group ${activity} \
             --wandb_tags individual \

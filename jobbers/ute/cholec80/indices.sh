@@ -1,5 +1,5 @@
 # cholec indices
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
         --seed 42 \
         --wandb_group i3d \
         --wandb_tags cholec80 i3d indices \
@@ -23,7 +23,7 @@ python ../code/main.py \
         --lr_decay_every 2000 \
         --log_every 500 \
         --test_every 500
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
         --seed 42 \
         --wandb_group i3d \
         --wandb_tags cholec80 i3d indices \
@@ -47,7 +47,7 @@ python ../code/main.py \
         --lr_decay_every 2000 \
         --log_every 500 \
         --test_every 500
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
         --seed 42 \
         --wandb_group i3d \
         --wandb_tags cholec80 i3d indices \
@@ -71,7 +71,7 @@ python ../code/main.py \
         --lr_decay_every 2000 \
         --log_every 500 \
         --test_every 500
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
         --seed 42 \
         --wandb_group i3d \
         --wandb_tags cholec80 i3d indices \

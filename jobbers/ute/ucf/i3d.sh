@@ -1,4 +1,4 @@
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group ucf24 \
             --wandb_project ute \

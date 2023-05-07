@@ -1,6 +1,6 @@
 for activity in coffee cereals tea milk juice sandwich scrambledegg friedegg salat pancake
 do
-        python ../code/main.py \
+        python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_${activity} \
             --wandb_tags all \

@@ -1,4 +1,4 @@
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_coffee \
             --wandb_tags all indices \
@@ -22,7 +22,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_cereals \
             --wandb_tags all indices \
@@ -46,7 +46,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_tea \
             --wandb_tags all indices \
@@ -70,7 +70,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_milk \
             --wandb_tags all indices \
@@ -94,7 +94,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_juice \
             --wandb_tags all indices \
@@ -118,7 +118,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_sandwich \
             --wandb_tags all indices \
@@ -142,7 +142,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_scrambledegg \
             --wandb_tags all indices \
@@ -166,7 +166,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_friedegg \
             --wandb_tags all indices \
@@ -190,7 +190,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_salat \
             --wandb_tags all indices \
@@ -214,7 +214,7 @@ python ../code/main.py \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
-python ../code/main.py \
+python /home/frans/Projects/mscfransdeboer/code/main.py \
             --seed 42 \
             --wandb_group all_pancake \
             --wandb_tags all indices \
