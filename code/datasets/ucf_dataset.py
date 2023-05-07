@@ -5,6 +5,7 @@ from typing import List
 from PIL import Image
 import pickle
 import numpy as np
+from tqdm import tqdm
 
 from .utils import load_splitfile
 
@@ -82,7 +83,7 @@ class UCFDataset(Dataset):
 
         data = []
         lengths = []
-        for video_name in database:
+        for video_name in tqdm(database):
             if video_name not in self.splitnames:
                 continue
             for tube_index, tube in enumerate(database[video_name]["annotations"]):
