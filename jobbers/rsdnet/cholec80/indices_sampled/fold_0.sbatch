@@ -19,7 +19,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --wandb_name rsd_lstm_fold_0_indices_sampled \
     --wandb_tags rsdnet lstm cholec80 indices \
     --dataset cholec80 \
-    --data_dir features/rsd_embeds_0 \
+    --data_dir features/i3d_embeddings \
     --feature_dim 2048 \
     --rsd_type minutes \
     --fps 1 \

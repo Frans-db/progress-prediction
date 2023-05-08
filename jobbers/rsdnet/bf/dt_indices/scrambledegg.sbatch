@@ -21,7 +21,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir features/dense_trajectories \
     --feature_dim 64 \
     --rsd_type minutes \
-    --fps 1 \
+    --fps 15 \
     --rsd_normalizer 1 \
     --indices \
     --indices_normalizer 3117 \

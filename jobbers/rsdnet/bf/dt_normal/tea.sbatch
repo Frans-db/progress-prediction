@@ -21,7 +21,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir features/dense_trajectories \
     --feature_dim 64 \
     --rsd_type minutes \
-    --fps 1 \
+    --fps 15 \
     --rsd_normalizer 1 \
     --train_split train_tea_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_tea_s${SLURM_ARRAY_TASK_ID}.txt \
