@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=4:00:00
+#SBATCH --time=1:30:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8192
@@ -29,7 +29,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --loss l2 \
     --lr 1e-4 \
     --dropout_chance 0.5 \
-    --weight_decay 0 \
+    --weight_decay 1e-2 \
     --lr_decay 1.0 \
     --lr_decay_every 10000 \
     --log_every 250 \

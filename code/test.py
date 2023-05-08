@@ -16,7 +16,7 @@ def calc_baseline(trainset, testset):
     test_lengths = get_datasetset_lengths(testset)
     
     max_length = max(train_lengths)
-    loss = nn.MSELoss(reduction='sum')
+    loss = nn.L1Loss(reduction='sum')
     averages = torch.zeros(max(train_lengths))
     counts = torch.zeros(max(train_lengths))
     for length in train_lengths:
@@ -96,11 +96,11 @@ def cholec_baseline():
             1,
         )
         for i, loss in enumerate(calc_baseline(trainset, testset)):
-            losses[i] += loss
-        print(f'--- cholec ---')
-        print('average', losses[0])
-        print('0.5', losses[1])
-        print('random', losses[2])
+            losses[i] += loss / 4
+    print(f'--- cholec ---')
+    print('average', losses[0])
+    print('0.5', losses[1])
+    print('random', losses[2])
 
 
 def bf_baseline():
@@ -128,13 +128,9 @@ def bf_baseline():
                 1,
             )
             for i, loss in enumerate(calc_baseline(trainset, testset)):
-                losses[i] += loss
-            print(f'--- cholec ---')
-            print('average', losses[0])
-            print('0.5', losses[1])
-            print('random', losses[2])
+                losses[i] += loss / 40
         
-    print(f'--- ucf ---')
+    print(f'--- bf ---')
     print('average', losses[0])
     print('0.5', losses[1])
     print('random', losses[2])

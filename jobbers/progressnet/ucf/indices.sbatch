@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=4:00:00
+#SBATCH --time=1:30:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8192
@@ -19,7 +19,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --dataset ucf24 \
     --data_dir features/i3d_embeddings \
     --feature_dim 1024 \
-    --subsample \
     --indices \
     --indices_normalizer 128 \
     --train_split train_tubes.txt \

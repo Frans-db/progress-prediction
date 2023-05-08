@@ -99,7 +99,7 @@ def parse_args() -> argparse.Namespace:
 
 def train_flat_features(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
-    l1_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.L1Loss(reduction="sum")
     _, data, progress = batch
     data = data.to(device)
     B, _ = data.shape
@@ -119,7 +119,7 @@ def train_flat_features(network, criterion, batch, device, optimizer=None):
 
 def train_flat_frames(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
-    l1_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
     data = batch[1:-1]
     data = tuple([d.to(device) for d in data])
@@ -140,7 +140,7 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
 
 def train_progress(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
-    l1_loss = nn.MSELoss(reduction="sum")
+    l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
     data = batch[1:-1]
     data = tuple([d.to(device) for d in data])

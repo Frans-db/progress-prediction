@@ -13,7 +13,7 @@ python /home/frans/Projects/mscfransdeboer/code/main.py \
             --batch_size 256 \
             --iterations 30000 \
             --network ute \
-            --feature_dim 1024 \
+            --feature_dim 2048 \
             --embed_dim 20 \
             --optimizer adam \
             --lr 1e-3 \
