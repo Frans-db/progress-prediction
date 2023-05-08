@@ -21,7 +21,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --feature_dim 1024 \
     --subsample \
     --train_split t12_p0.txt \
-    --test_split v_p0.txt \
+    --test_split e_p0.txt \
     --batch_size 1 \
     --iterations 30000 \
     --network progressnet \
