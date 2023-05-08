@@ -53,7 +53,7 @@ python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --network rsdnet \
     --eval \
     --load_iteration 30000 \
-    --load_experiment rsd_lstm_fold_1 \
-    --data_dir features/rsd_embeds_1 \
-    --train_split v_p1.txt \
-    --test_split e_p1.txt
+    --load_experiment rsd_lstm_fold_2 \
+    --data_dir features/rsd_embeds_2 \
+    --train_split v_p2.txt \
+    --test_split e_p2.txt
