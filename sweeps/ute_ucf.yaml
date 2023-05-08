@@ -5,8 +5,6 @@ metric:
   name: test_l2_loss
   goal: minimize
 parameters:
-  batch_size:
-    values: [4, 32, 64]
   weight_decay:
     min: 0.0
     max: 1.0
