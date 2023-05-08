@@ -25,7 +25,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --train_split train_tubes.txt \
     --test_split test_tubes.txt \
     --batch_size 1 \
-    --iterations 50000 \
+    --iterations 100000 \
     --network progressnet \
     --optimizer adam \
     --loss l2 \
