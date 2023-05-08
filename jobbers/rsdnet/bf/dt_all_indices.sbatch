@@ -25,8 +25,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --rsd_normalizer 1 \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
-    --indices AAAAA \
-    --indices_normalizer 
+    --indices \
+    --indices_normalizer 2096 \
     --batch_size 1 \
     --iterations 30000 \
     --network rsdnet \
