@@ -19,8 +19,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --wandb_name rsd_lstm_fold_0_indices \
     --wandb_tags rsdnet lstm cholec80 indices \
     --dataset cholec80 \
-    --data_dir features/rsd_embeds_0 \
-    --feature_dim 2048 \
+    --data_dir features/i3d_embeddings \
+    --feature_dim 1024 \
     --rsd_type minutes \
     --fps 1 \
     --rsd_normalizer 5 \
@@ -42,4 +42,20 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --log_every 250 \
     --test_every 1000
 
-
+# python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+#     --seed 42 \
+#     --dataset cholec80 \
+#     --data_dir features/i3d_embeddings \
+#     --feature_dim 1024 \
+#     --rsd_type minutes \
+#     --fps 1 \
+#     --rsd_normalizer 5 \
+#     --batch_size 1 \
+#     --indices \
+#     --indices_normalizer 2445 \
+#     --network rsdnet \
+#     --eval \
+#     --load_iteration 30000 \
+#     --load_experiment rsd_lstm_fold_0_indices \
+#     --train_split v_p0.txt \
+#     --test_split e_p0.txt

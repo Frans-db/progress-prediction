@@ -8,33 +8,30 @@
 #SBATCH --mem=8192
 #SBATCH --mail-type=ALL
 #SBATCH --gres=gpu
+#SBATCH --array=0,1,2,3
 
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --wandb_project rsdnet \
-    --wandb_tags rsdnet lstm ucf24 \
-    --dataset ucf24 \
+    --wandb_project progressnet \
+    --wandb_tags progressnet lstm ucf24 \
+    --dataset cholec80 \
     --data_dir features/i3d_embeddings \
     --feature_dim 1024 \
-    --rsd_type seconds \
-    --fps 25 \
     --subsample \
-    --rsd_normalizer 1 \
-    --train_split train_tubes.txt \
-    --test_split test_tubes.txt \
+    --train_split t12_p${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split e_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
-    --network rsdnet \
-    --optimizer sgd \
-    --loss smooth_l1 \
-    --momentum 0.9 \
-    --lr 1e-3 \
-    --dropout_chance 0.3 \
-    --weight_decay 1e-2 \
-    --lr_decay 0.1 \
+    --network progressnet \
+    --optimizer adam \
+    --loss l2 \
+    --lr 1e-4 \
+    --dropout_chance 0.5 \
+    --weight_decay 0 \
+    --lr_decay 1.0 \
     --lr_decay_every 10000 \
     --log_every 250 \
     --test_every 1000

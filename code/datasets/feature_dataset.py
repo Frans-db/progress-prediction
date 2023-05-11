@@ -54,7 +54,8 @@ class FeatureDataset(Dataset):
             lengths.append(S)
 
             if self.indices:
-                video_data = torch.arange(0, S, dtype=torch.float32).reshape(S, 1).repeat(1, F) / self.indices_normalizer
+                indices = torch.arange(0, S, dtype=torch.float32).reshape(S, 1).repeat(1, F) / self.indices_normalizer
+                video_data = torch.cat((video_data, indices), dim=-1)
 
             progress = torch.arange(1, S + 1) / S
 

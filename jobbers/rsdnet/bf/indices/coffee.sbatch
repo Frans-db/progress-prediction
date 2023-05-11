@@ -8,6 +8,7 @@
 #SBATCH --mem=8192
 #SBATCH --mail-type=ALL
 #SBATCH --gres=gpu
+#SBATCH --array=1,2,3,4
 
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
@@ -15,16 +16,17 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --wandb_project rsdnet \
-    --wandb_tags rsdnet lstm ucf24 \
-    --dataset ucf24 \
-    --data_dir features/i3d_embeddings \
-    --feature_dim 1024 \
-    --rsd_type seconds \
-    --fps 25 \
-    --subsample \
+    --wandb_tags rsdnet lstm breakfast coffee \
+    --dataset breakfast \
+    --data_dir features/dense_trajectories \
+    --feature_dim 64 \
+    --rsd_type minutes \
+    --fps 15 \
     --rsd_normalizer 1 \
-    --train_split train_tubes.txt \
-    --test_split test_tubes.txt \
+    --indices \
+    --indices_normalizer 587 \
+    --train_split train_coffee_s${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split test_coffee_s${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
     --network rsdnet \

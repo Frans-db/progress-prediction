@@ -69,9 +69,6 @@ class ProgressNet(nn.Module):
     def __init__(self, feature_dim: int, dropout_chance: float) -> None:
         super().__init__()
 
-        self.cnn_dropout = nn.Dropout(p=dropout_chance)
-        self.lstm_dropout = nn.Dropout(p=dropout_chance)
-
         self.fc7 = nn.Linear(feature_dim, 64)
         self.fc7_dropout = nn.Dropout(p=dropout_chance)
         self.lstm1 = nn.LSTM(64, 32, batch_first=True)
@@ -80,11 +77,8 @@ class ProgressNet(nn.Module):
 
     def forward(self, data: torch.FloatTensor):
         B, S, F = data.shape
-        data = data.reshape(B*S, -1)
         data = torch.relu(self.fc7_dropout(self.fc7(data)))
-        data = data.reshape(B, S, -1)
         data, _ = self.lstm1(data)
         data, _ = self.lstm2(data)
-        data = data.reshape(B*S, -1)
         data = torch.sigmoid(self.fc8(data))
         return data.reshape(B, S)

@@ -8,15 +8,15 @@ python /home/frans/Projects/mscfransdeboer/code/main.py \
             --train_split train_tubes.txt \
             --test_split test_tubes.txt \
             --batch_size 256 \
-            --iterations 30000 \
+            --iterations 100000 \
             --network ute \
             --feature_dim 1024 \
             --embed_dim 20 \
             --optimizer adam \
             --lr 1e-3 \
-            --dropout_chance 0.0 \
-            --weight_decay 0 \
-            --lr_decay 0.5 \
+            --dropout_chance 0.5 \
+            --weight_decay 5e-6 \
+            --lr_decay 1 \
             --lr_decay_every 10000 \
             --log_every 500 \
             --test_every 1000
