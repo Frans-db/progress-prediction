@@ -103,6 +103,27 @@ We use the following datasets: Breakfast (BF) \cite{kuehne2014,kuehne2016}, UCF1
 \section{Experiments}
 \label{sec:experiments}
 
+\begin{table*}
+  \centering
+  \begin{tabular}{l|ll|ll|ll}
+    \toprule
+     & \multicolumn{2}{|c|}{breakfast} & \multicolumn{2}{|c|}{cholec80} & \multicolumn{2}{|c}{ucf101-24} \\
+     & Normal & Indices & Normal & Indices & Normal & Indices \\
+    \midrule
+    UTE & 0.114 & 0.019 & 0.050 & 0.024 & 0.103 & 0.034 \\
+    RSDNet & 0.067 & 0.058 & 0.024 & 0.024\footnote{Learning to count?}  & 0.195 & 0.097\footnote{Can't train properly on progress due to RSD} \\
+    ProgressNet & 0.070 & 0.054 & 0.078 & 0.031 & 0.103 & 0.054\footnote{Implementation not 100\% correct} \\
+    \midrule
+    Average & \multicolumn{2}{|c|}{0.019} & \multicolumn{2}{|c|}{0.025} & \multicolumn{2}{|c}{0.034} \\
+    0.5 & \multicolumn{2}{|c|}{0.083} & \multicolumn{2}{|c|}{0.083} & \multicolumn{2}{|c}{0.083} \\
+    Random & \multicolumn{2}{|c|}{0.166} & \multicolumn{2}{|c|}{0.166} & \multicolumn{2}{|c}{0.166} \\
+
+    \bottomrule
+  \end{tabular}
+  \caption{Normal Data vs. Indices (MSE Loss)}
+  \label{tab:overview}
+\end{table*}
+
 \begin{table}
    \centering
    \begin{tabular}{@{}lc@{}}
@@ -113,14 +134,14 @@ We use the following datasets: Breakfast (BF) \cite{kuehne2014,kuehne2016}, UCF1
      BF train/test (ResNet embeddings) & - \\
      BF train/test (Indices) & 0.019 \\
 
-     BF all (Dense Trajectories) & 0.041 \\
-     BF all (ResNet embeddings) & - \\
-     BF all (Indices) & 0.017 \\
+     BF train/train (Dense Trajectories) & 0.041 \\
+     BF train/train (ResNet embeddings) & - \\
+     BF train/train (Indices) & 0.017 \\
 
      \midrule
      Cholec80 (i3d embeddings) & 0.050 \\
      Cholec80 (ResNet embeddings) & - \\
-     Cholec80 (Indices) & 0.024 \\
+     Cholec80 (Indices) & 0.024 \\ 
 
      \midrule
      UCF101-24 (i3d embeddings) & 0.103 \\
@@ -139,23 +160,23 @@ We use the following datasets: Breakfast (BF) \cite{kuehne2014,kuehne2016}, UCF1
      \toprule
      Data & MSE Loss \\
      \midrule
-     BF train/test (Dense Trajectories) & - \\
+     BF train/test (Dense Trajectories) & 0.067 \\
      BF train/test (ResNet embeddings) & - \\
-     BF train/test (Indices) & - \\
-
-     BF all (Dense Trajectories) & - \\
-     BF all (RResNetSD embeddings) & - \\
-     BF all (Indices) & - \\
+     BF train/test (Indices) & 0.058 \\
 
      \midrule
-     Cholec80 (i3d embeddings) & 0.112 \\
-     Cholec80 (ResNet embeddings) & 0.019 \\
-     Cholec80 (Indices) & 0.018 \\
+     Cholec80 (i3d embeddings) & 0.031 \\
+     Cholec80 (ResNet embeddings) & 0.024 \\
+     Cholec80 (Indices) & 0.024 \\
 
+     Cholec80 sampled (i3d embeddings) & 0.116 \\
+     Cholec80 sampled (ResNet embeddings) & 0.05 \\
+     Cholec80 sampled (Indices) & 0.070 \\
+     
      \midrule
-     UCF101-24 (i3d embeddings) & 0.060 \\
+     UCF101-24 (i3d embeddings) & 0.195* \\
      UCF101-24 (RSD embeddings) & -\\
-     UCF101-24 (Indices) & 0.033 \\
+     UCF101-24 (Indices) & 0.097* \\
 
      \bottomrule
    \end{tabular}
@@ -169,23 +190,19 @@ We use the following datasets: Breakfast (BF) \cite{kuehne2014,kuehne2016}, UCF1
     \toprule
     Data & MSE Loss \\
     \midrule
-    BF train/test (Dense Trajectories) & - \\
+    BF train/test (Dense Trajectories) & 0.070 \\
     BF train/test (ResNet embeddings) & - \\
-    BF train/test (Indices) & - \\
-
-    BF all (Dense Trajectories) & - \\
-    BF all (RResNetSD embeddings) & - \\
-    BF all (Indices) & - \\
+    BF train/test (Indices) & 0.054 \\
 
     \midrule
-    Cholec80 (i3d embeddings) & - \\
+    Cholec80 (i3d embeddings) & 0.078 \\
     Cholec80 (ResNet embeddings) & - \\
-    Cholec80 (Indices) & - \\
+    Cholec80 (Indices) & 0.031 \\
 
     \midrule
-    UCF101-24 (i3d embeddings) & - \\
+    UCF101-24 (i3d embeddings) & 0.103 \\
     UCF101-24 (RSD embeddings) & -\\
-    UCF101-24 (Indices) & - \\
+    UCF101-24 (Indices) & 0.054 \\
 
     \midrule
     UCF101-24 (Frames \& Boxes) & - \\
@@ -203,14 +220,34 @@ Why is this interesting!?
     \toprule
     Data & MAE (minutes) \\
     \midrule
-    Cholec80 (i3d embeddings) & 17.78 \\
-    Cholec80 (RSD embeddings) & 8.64 \\
-    Cholec80 (Indices) & 7.35 \\
-
+    Cholec80 (i3d embeddings) & 12.58 \\
+    Cholec80 (RSD embeddings) & 11.06 \\
+    Cholec80 (Indices) & 11.21 \\
+    \midrule
+    Cholec80 sampled (i3d embeddings) & 16.30 \\
+    Cholec80 sampled (RSD embeddings) & 12.95 \\
+    Cholec80 sampled (Indices) & 18.13 \\
     \bottomrule
   \end{tabular}
   \caption{RSD Predictions}
   \label{tab:rsd_values}
+\end{table}
+
+\begin{table}
+  \centering
+  \begin{tabular}{lllll}
+    \toprule
+    Dataset & MoF & iou & Mean F1 \\
+    \midrule
+    Dense Trajectories & 45.1 & 12.7 & 26.5 \\
+    Indices & 24.3 & 12.8 & 24.0 \\
+    Raw Indices & 25.2 & 12.4 & 24.7 \\
+    \midrule
+
+    \bottomrule
+  \end{tabular}
+  \caption{Unsupervised Action Classes}
+  \label{tab:unsup}
 \end{table}
 
 \section{Conclusion}
