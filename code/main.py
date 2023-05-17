@@ -10,6 +10,7 @@ import os
 from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
 from networks import RSDNet, RSDNetFlat
+from networks import ToyNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 from datasets import Subsample, Subsection
 from experiment import Experiment
@@ -39,8 +40,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--rsd_normalizer", type=float, default=1.0)
     parser.add_argument("--fps", type=float, default=1.0)
-    parser.add_argument("--train_split", type=str, default="t12_0.txt")
-    parser.add_argument("--test_split", type=str, default="v_0.txt")
+    parser.add_argument("--train_split", type=str, default="train.txt")
+    parser.add_argument("--test_split", type=str, default="test.txt")
     # training
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--iterations", type=int, default=503 * 60)
@@ -78,7 +79,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--beta1", type=float, default=0.9)
     parser.add_argument("--beta2", type=float, default=0.999)
     parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--weight_decay", type=float, default=1e-4)
+    parser.add_argument("--weight_decay", type=float, default=0)
     # scheduler
     parser.add_argument("--lr_decay", type=float, default=0.1)
     parser.add_argument("--lr_decay_every", type=int, default=503 * 30)
@@ -277,11 +278,11 @@ def main():
     # TODO: Subsampling
     if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
-        if "tudelft" in root:
-            # antialias not available on compute cluster
-            transform.append(transforms.Resize((224, 224)))
-        else:
-            transform.append(transforms.Resize((224, 224), antialias=True))
+        # if "tudelft" in root:
+        #     # antialias not available on compute cluster
+        #     transform.append(transforms.Resize((224, 224)))
+        # else:
+        #     transform.append(transforms.Resize((224, 224), antialias=True))
         transform = transforms.Compose(transform)
 
         if "ucf24" in args.dataset:
@@ -315,15 +316,14 @@ def main():
                 args.data_dir,
                 args.train_split,
                 args.flat,
-                args.indices,
                 transform=transform,
+                sample_transform=subsample,
             )
             testset = ImageDataset(
                 data_root,
                 args.data_dir,
                 args.test_split,
                 args.flat,
-                args.indices,
                 transform=transform,
             )
     else:
@@ -361,6 +361,7 @@ def main():
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
     else:
         backbone_path = None
+    # network = ToyNet(args.dropout_chance)
     if args.network == "progressnet" and (args.flat or args.embed):
         network = ProgressNetFlat(
             args.pooling_layers,

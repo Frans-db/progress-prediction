@@ -3,6 +3,7 @@ import os
 import torch
 from typing import List
 from PIL import Image
+import numpy as np
 
 from .utils import load_splitfile
 
@@ -14,11 +15,12 @@ class ImageDataset(Dataset):
         data_dir: str,
         splitfile: str,
         flat: bool,
-        indices: bool,
         transform=None,
+        sample_transform=None,
     ) -> None:
         super().__init__()
         self.transform = transform
+        self.sample_transform = sample_transform
         self.splitfile = splitfile
         split_path = os.path.join(root, "splitfiles", splitfile)
         splitnames = load_splitfile(split_path)
@@ -58,6 +60,14 @@ class ImageDataset(Dataset):
             return video_name, frame, progress
         else: # TODO: Subsampling
             frames = []
+
+            indices = list(range(len(frame_paths)))
+            if self.sample_transform:
+                indices = self.sample_transform(indices)
+
+            frame_paths = np.array(frame_paths)[indices]
+            progress = progress[indices]
+
             for frame_path in frame_paths:
                 frame = Image.open(frame_path)
                 if self.transform:
