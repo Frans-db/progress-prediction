@@ -23,11 +23,8 @@ def calc_baseline(trainset, testset, plot_name = None):
     averages = torch.zeros(max(train_lengths))
     counts = torch.zeros(max(train_lengths))
     for length in train_lengths:
-        time_length = (length / 60)
         progress = torch.arange(1, length + 1) / length
-        elapsed = progress * time_length
-        rsd = torch.flip(elapsed, (0, ))
-        averages[:length] += rsd
+        averages[:length] += progress
         counts[:length] += 1
     averages = averages / counts
 
@@ -37,32 +34,28 @@ def calc_baseline(trainset, testset, plot_name = None):
     random_loss = 0.5
     for length in test_lengths:
         l = min(length, max_length)
-        time_length = (length / 60)
         progress = torch.arange(1, length + 1) / length
-        elapsed = progress * time_length
-        rsd = torch.flip(elapsed, (0, ))
 
         average_predictions = torch.ones(length)
         average_predictions[:l] = averages[:l]
-        average_loss += loss(average_predictions, rsd).item()
-
-        mid_loss += loss(torch.full_like(progress, 0.5), progress).item()
-        random_loss += loss(torch.rand_like(progress), progress).item()
+        average_loss += loss(average_predictions * 100, progress * 100).item()
+        mid_loss += loss(torch.full_like(progress, 0.5) * 100, progress * 100).item()
+        random_loss += loss(torch.rand_like(progress) * 100, progress * 100).item()
 
         count += length
 
-    if plot_name:
-        predictions = torch.ones(max(max(test_lengths), max(train_lengths)))
-        predictions[:max_length] = averages[:max_length]
-        plt.plot(predictions, label='progress')
-        plt.legend(loc='best')
-        plt.title(f'Average Progress {plot_name}')
-        plt.xlabel('Frame')
-        plt.ylabel('Progress (%)')
-        plt.savefig(f'./plots/{plot_name}.png')
-        plt.clf()
+    # if plot_name:
+    #     predictions = torch.ones(max(max(test_lengths), max(train_lengths)))
+    #     predictions[:max_length] = averages[:max_length]
+    #     plt.plot(predictions, label='progress')
+    #     plt.legend(loc='best')
+    #     plt.title(f'Average Progress {plot_name}')
+    #     plt.xlabel('Frame')
+    #     plt.ylabel('Progress (%)')
+    #     plt.savefig(f'./plots/{plot_name}.png')
+    #     plt.clf()
 
-    return average_loss / count, 0, 0
+    return average_loss / count, mid_loss / count, random_loss / count
 
 
 def ucf_baseline():
@@ -98,7 +91,7 @@ def cholec_baseline():
         trainset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/i3d_embeddings",
-            f"t12_p{i}.txt",
+            f"t1_p{i}.txt",
             False,
             False,
             1,
@@ -108,7 +101,7 @@ def cholec_baseline():
         testset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/i3d_embeddings",
-            f"e_p{i}.txt",
+            f"v_p{i}.txt",
             False,
             False,
             1,
@@ -117,34 +110,33 @@ def cholec_baseline():
         )
         for i, loss in enumerate(calc_baseline(trainset, testset, plot_name=f'cholec_{i}')):
             losses[i] += loss / 4
-            print(losses[0])
     print(f'--- cholec ---')
     print('average', losses[0])
     print('0.5', losses[1])
     print('random', losses[2])
 
 
-def toy_baseline():
+def toy_baseline(dataset: str):
 
     transform = [transforms.ToTensor()]
     transform = transforms.Compose(transform)
 
     trainset = ImageDataset(
-        os.path.join(DATA_ROOT, "toy"),
+        os.path.join(DATA_ROOT, dataset),
         "rgb-images",
         "train.txt",
         False,
         transform=transform
     )
     testset = ImageDataset(
-        os.path.join(DATA_ROOT, "toy"),
+        os.path.join(DATA_ROOT, dataset),
         "rgb-images",
         "test.txt",
         False,
         transform=transform
     )
-    losses = calc_baseline(trainset, testset, plot_name='ucf101-24')
-    print(f'--- ucf ---')
+    losses = calc_baseline(trainset, testset, plot_name=dataset)
+    print(f'--- {dataset} ---')
     print('average', losses[0])
     print('0.5', losses[1])
     print('random', losses[2])
@@ -183,7 +175,8 @@ def bf_baseline():
     print('random', losses[2])
 
 def main():
-    # toy_baseline()
+    # toy_baseline('bars')
+    # toy_baseline('bars_speed')
     # ucf_baseline()
     cholec_baseline()
     # bf_baseline()

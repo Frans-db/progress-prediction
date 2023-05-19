@@ -1,11 +1,11 @@
 #!/bin/sh
 
 #SBATCH --partition=general
-#SBATCH --qos=medium
-#SBATCH --time=15:00:00
+#SBATCH --qos=short
+#SBATCH --time=2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=16384
+#SBATCH --mem=512
 #SBATCH --mail-type=ALL
 #SBATCH --gres=gpu
 #SBATCH --array=0,1,2,3
@@ -37,5 +37,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --weight_decay 5e-4 \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
-    --log_every 250 \
-    --test_every 1000
+    --log_every 50 \
+    --test_every 50

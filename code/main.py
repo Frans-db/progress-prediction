@@ -10,7 +10,7 @@ import os
 from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
 from networks import RSDNet, RSDNetFlat
-from networks import ToyNet
+from networks import ToyNet, ResNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 from datasets import Subsample, Subsection
 from experiment import Experiment
@@ -32,25 +32,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
     parser.add_argument("--flat", action="store_true")
     parser.add_argument("--bboxes", action="store_true")
+    parser.add_argument('--shuffle', action='store_true')
     parser.add_argument("--indices", action="store_true")
     parser.add_argument("--indices_normalizer", type=float, default=1.0)
     parser.add_argument("--subsample", action="store_true")
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
     )
+    parser.add_argument('--no_resize', action='store_true')
     parser.add_argument("--rsd_normalizer", type=float, default=1.0)
     parser.add_argument("--fps", type=float, default=1.0)
     parser.add_argument("--train_split", type=str, default="train.txt")
     parser.add_argument("--test_split", type=str, default="test.txt")
     # training
-    parser.add_argument("--batch_size", type=int, default=256)
-    parser.add_argument("--iterations", type=int, default=503 * 60)
+    parser.add_argument("--batch_size", type=int, default=1)
+    parser.add_argument("--iterations", type=int, default=10000)
     # network
     parser.add_argument(
         "--network",
         type=str,
         default="progressnet",
-        choices=["ute", "progressnet", "rsdnet"],
     )
     parser.add_argument(
         "--backbone",
@@ -112,8 +113,8 @@ def train_flat_features(network, criterion, batch, device, optimizer=None):
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress, progress).item(),
-        "l1_loss": l1_loss(predicted_progress, progress).item(),
+        "l2_loss": l2_loss(predicted_progress * 100, progress * 100).item(),
+        "l1_loss": l1_loss(predicted_progress * 100, progress * 100).item(),
         "count": B,
     }
 
@@ -134,10 +135,11 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress, progress).item(),
-        "l1_loss": l1_loss(predicted_progress, progress).item(),
+        "l2_loss": l2_loss(predicted_progress * 100, progress * 100).item(),
+        "l1_loss": l1_loss(predicted_progress * 100, progress * 100).item(),
         "count": B,
     }
+
 
 def train_progress(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
@@ -155,16 +157,17 @@ def train_progress(network, criterion, batch, device, optimizer=None):
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress, progress).item(),
-        "l1_loss": l1_loss(predicted_progress, progress).item(),
+        "l2_loss": l2_loss(predicted_progress * 100, progress * 100).item(),
+        "l1_loss": l1_loss(predicted_progress * 100, progress * 100).item(),
         "count": S,
     }
+
 
 def train_rsd(network, criterion, batch, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     smooth_l1_loss = nn.SmoothL1Loss(reduction="sum")
-    
+
     rsd = batch[-2] / network.rsd_normalizer
     progress = batch[-1]
     S = progress.shape[1]
@@ -278,11 +281,12 @@ def main():
     # TODO: Subsampling
     if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
-        # if "tudelft" in root:
-        #     # antialias not available on compute cluster
-        #     transform.append(transforms.Resize((224, 224)))
-        # else:
-        #     transform.append(transforms.Resize((224, 224), antialias=True))
+        if not args.no_resize:
+            if "tudelft" in root:
+                # antialias not available on compute cluster
+                transform.append(transforms.Resize((224, 224)))
+            else:
+                transform.append(transforms.Resize((224, 224), antialias=True))
         transform = transforms.Compose(transform)
 
         if "ucf24" in args.dataset:
@@ -316,6 +320,9 @@ def main():
                 args.data_dir,
                 args.train_split,
                 args.flat,
+                args.indices,
+                args.indices_normalizer,
+                args.shuffle,
                 transform=transform,
                 sample_transform=subsample,
             )
@@ -324,6 +331,9 @@ def main():
                 args.data_dir,
                 args.test_split,
                 args.flat,
+                args.indices,
+                args.indices_normalizer,
+                args.shuffle,
                 transform=transform,
             )
     else:
@@ -336,7 +346,7 @@ def main():
             args.indices_normalizer,
             args.rsd_type,
             args.fps,
-            sample_transform=subsample
+            sample_transform=subsample,
         )
         testset = FeatureDataset(
             data_root,
@@ -346,7 +356,7 @@ def main():
             args.indices,
             args.indices_normalizer,
             args.rsd_type,
-            args.fps
+            args.fps,
         )
 
     trainloader = DataLoader(
@@ -361,8 +371,7 @@ def main():
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
     else:
         backbone_path = None
-    # network = ToyNet(args.dropout_chance)
-    if args.network == "progressnet" and (args.flat or args.embed):
+    if args.network == "progressnet_flat":
         network = ProgressNetFlat(
             args.pooling_layers,
             args.roi_size,
@@ -371,18 +380,20 @@ def main():
             args.backbone,
             backbone_path,
         )
-    elif args.network == "progressnet" and not args.flat:
+    elif args.network == "progressnet":
         network = ProgressNet(args.feature_dim, args.dropout_chance)
-    elif args.network == "rsdnet" and (args.flat or args.embed):
+    elif args.network == "rsdnet_flat":
         network = RSDNetFlat(args.backbone, backbone_path)
-    elif args.network == "rsdnet" and not args.flat:
+    elif args.network == "rsdnet":
         network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
-    elif args.network == "ute" and args.flat:
+    elif args.network == "ute":
         network = Linear(args.feature_dim, args.embed_dim, args.dropout_chance)
+    elif args.network == "toynet":
+        network = ToyNet(dropout_chance=args.dropout_chance)
+    elif args.network == 'resnet':
+        network = ResNet(args.backbone, backbone_path, args.dropout_chance)
     else:
-        raise Exception(
-            f"No network for combination {args.network} and flat={args.flat}"
-        )
+        raise Exception(f"Network {args.network} does not exist")
 
     if args.load_experiment and args.load_iteration:
         network_path = os.path.join(
