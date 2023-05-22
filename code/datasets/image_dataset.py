@@ -30,7 +30,7 @@ class ImageDataset(Dataset):
         self.splitfile = splitfile
         self.shuffle = shuffle
         split_path = os.path.join(root, "splitfiles", splitfile)
-        splitnames = load_splitfile(split_path)
+        splitnames = sorted(load_splitfile(split_path))
         self.flat = flat
         self.indices = indices
         self.indices_normalizer = indices_normalizer
@@ -58,6 +58,12 @@ class ImageDataset(Dataset):
 
         return data, lengths
 
+    def print_statistics(self):
+        for video_name, frames, _ in self:
+            print(frames.shape)
+            print(torch.sum(frames, (0, 2, 3)))
+
+
     def __len__(self) -> int:
         return len(self.data)
 
@@ -68,13 +74,16 @@ class ImageDataset(Dataset):
             if self.transform:
                 frame = self.transform(frame)
             return video_name, frame, progress
-        else: # TODO: Subsampling
+        else: # TODO: Better Subsampling
             frames = []
+            num_frames = len(frame_paths)
 
-            indices = list(range(len(frame_paths)))
+            indices = list(range(num_frames))
             if self.sample_transform:
                 indices = self.sample_transform(indices)
 
+            frame_paths = np.array(frame_paths)
+            frame_paths = frame_paths[indices]
             for frame_path in frame_paths:
                 frame = Image.open(frame_path)
                 if self.transform:
@@ -83,9 +92,8 @@ class ImageDataset(Dataset):
             
             frames = torch.stack(frames)
             if self.indices:
-                S = len(frames)
                 C, H, W = frames[0].shape
-                frames = torch.arange(0, S, dtype=torch.float32).reshape(S, 1, 1, 1).repeat(1, C, H, W)
+                frames = torch.arange(0, num_frames, dtype=torch.float32).reshape(num_frames, 1, 1, 1).repeat(1, C, H, W)
 
             frames = frames[indices]
             progress = progress[indices]

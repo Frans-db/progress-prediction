@@ -212,12 +212,12 @@ def bf_baseline_all():
     print('random', losses[2])
 
 def main():
-    # toy_baseline('bars')
-    # toy_baseline('bars_speed')
+    toy_baseline('bars')
+    toy_baseline('bars_speed')
     # ucf_baseline()
     # cholec_baseline()
     # bf_baseline()
-    bf_baseline_all()
+    # bf_baseline_all()
 
 
 if __name__ == "__main__":

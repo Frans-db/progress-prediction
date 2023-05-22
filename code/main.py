@@ -366,6 +366,10 @@ def main():
         testset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False
     )
 
+    # trainset.print_statistics()
+    # testset.print_statistics()
+
+
     # TODO: Sequential RSDNet and ProgressNet
     if args.load_backbone:
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
