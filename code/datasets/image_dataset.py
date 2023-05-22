@@ -95,7 +95,6 @@ class ImageDataset(Dataset):
                 C, H, W = frames[0].shape
                 frames = torch.arange(0, num_frames, dtype=torch.float32).reshape(num_frames, 1, 1, 1).repeat(1, C, H, W)
 
-            frames = frames[indices]
             progress = progress[indices]
 
             return video_name, frames, progress
