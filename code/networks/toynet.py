@@ -51,7 +51,7 @@ class ResNet(nn.Module):
             self.backbone.load_state_dict(torch.load(backbone_path))
 
         self.backbone_dropout = nn.Dropout(p=dropout_chance)
-        self.fc7 = nn.Linear(2048, 32)
+        self.fc7 = nn.Linear(512, 32)
         self.fc7_dropout = nn.Dropout(p=dropout_chance)
         self.lstm = nn.LSTM(32, 32, batch_first=True)
         self.fc8 = nn.Linear(32, 1)

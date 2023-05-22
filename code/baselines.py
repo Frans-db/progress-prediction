@@ -126,12 +126,18 @@ def toy_baseline(dataset: str):
         "rgb-images",
         "train.txt",
         False,
+        False,
+        1,
+        False,
         transform=transform
     )
     testset = ImageDataset(
         os.path.join(DATA_ROOT, dataset),
         "rgb-images",
         "test.txt",
+        False,
+        False,
+        1,
         False,
         transform=transform
     )
@@ -174,12 +180,44 @@ def bf_baseline():
     print('0.5', losses[1])
     print('random', losses[2])
 
+def bf_baseline_all():
+    losses = [0, 0, 0]
+    for i in range(1, 5):
+        trainset = FeatureDataset(
+            os.path.join(DATA_ROOT, "breakfast"),
+            "features/dense_trajectories",
+            f"train_s{i}.txt",
+            False,
+            False,
+            1,
+            "none",
+            1,
+        )
+        testset = FeatureDataset(
+            os.path.join(DATA_ROOT, "breakfast"),
+            "features/dense_trajectories",
+            f"test_s{i}.txt",
+            False,
+            False,
+            1,
+            "none",
+            1,
+        )
+        for i, loss in enumerate(calc_baseline(trainset, testset, plot_name=f'bf_{i}')):
+            losses[i] += loss / 4
+        
+    print(f'--- bf all ---')
+    print('average', losses[0])
+    print('0.5', losses[1])
+    print('random', losses[2])
+
 def main():
     # toy_baseline('bars')
     # toy_baseline('bars_speed')
     # ucf_baseline()
-    cholec_baseline()
+    # cholec_baseline()
     # bf_baseline()
+    bf_baseline_all()
 
 
 if __name__ == "__main__":

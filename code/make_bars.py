@@ -111,7 +111,7 @@ def visualise(args):
         plt.clf()
 
     subprocess.call([
-        'ffmpeg', '-framerate', '15', '-i', './plots/%03d.jpg', '-r', '30', '-pix_fmt', 'yuv420p',
+        'ffmpeg', '-framerate', '3', '-i', './plots/%03d.jpg', '-r', '30', '-pix_fmt', 'yuv420p',
         './plots/out.mp4'
     ])
 
