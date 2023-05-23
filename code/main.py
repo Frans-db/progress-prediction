@@ -284,9 +284,15 @@ def main():
         if not args.no_resize:
             if "tudelft" in root:
                 # antialias not available on compute cluster
-                transform.append(transforms.Resize((224, 224)))
+                transform.append(transforms.Resize((112, 112)))
             else:
-                transform.append(transforms.Resize((224, 224), antialias=True))
+                transform.append(transforms.Resize((112, 112), antialias=True))
+            transform.append(transforms.RandomCrop((112, 112)))
+            if "tudelft" in root:
+                # antialias not available on compute cluster
+                transform.append(transforms.Resize((112, 112)))
+            else:
+                transform.append(transforms.Resize((112, 112), antialias=True))
         transform = transforms.Compose(transform)
 
         if "ucf24" in args.dataset:
