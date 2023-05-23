@@ -287,7 +287,7 @@ def main():
                 transform.append(transforms.Resize((112, 112)))
             else:
                 transform.append(transforms.Resize((112, 112), antialias=True))
-            transform.append(transforms.RandomCrop((112, 112)))
+            transform.append(transforms.RandomCrop((56, 56)))
             if "tudelft" in root:
                 # antialias not available on compute cluster
                 transform.append(transforms.Resize((112, 112)))
