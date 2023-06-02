@@ -7,6 +7,7 @@ import torch
 from tqdm import tqdm
 import os
 
+from arguments import parse_args, wandb_init
 from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
 from networks import RSDNet, RSDNetFlat
@@ -14,89 +15,6 @@ from networks import ToyNet, ResNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 from datasets import Subsample, Subsection
 from experiment import Experiment
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    # experiment
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--experiment_name", type=str, default=None)
-    # wandb
-    parser.add_argument("--wandb_project", type=str, default="mscfransdeboer")
-    parser.add_argument("--wandb_name", type=str, default=None)
-    parser.add_argument("--wandb_tags", type=str, nargs="+")
-    parser.add_argument("--wandb_group", type=str, default=None)
-    parser.add_argument("--wandb_disable", action="store_true")
-    # data
-    parser.add_argument("--dataset", type=str, default="cholec80")
-    parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
-    parser.add_argument("--flat", action="store_true")
-    parser.add_argument("--bboxes", action="store_true")
-    parser.add_argument('--shuffle', action='store_true')
-    parser.add_argument("--indices", action="store_true")
-    parser.add_argument("--indices_normalizer", type=float, default=1.0)
-    parser.add_argument("--subsample", action="store_true")
-    parser.add_argument(
-        "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
-    )
-    parser.add_argument('--no_resize', action='store_true')
-    parser.add_argument("--rsd_normalizer", type=float, default=1.0)
-    parser.add_argument("--fps", type=float, default=1.0)
-    parser.add_argument("--train_split", type=str, default="train.txt")
-    parser.add_argument("--test_split", type=str, default="test.txt")
-    # training
-    parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--iterations", type=int, default=10000)
-    # network
-    parser.add_argument(
-        "--network",
-        type=str,
-        default="progressnet",
-    )
-    parser.add_argument(
-        "--backbone",
-        type=str,
-        default=None,
-        choices=["vgg16", "resnet18", "resnet152"],
-    )
-    parser.add_argument("--load_backbone", type=str, default=None)
-    # network parameters
-    parser.add_argument("--feature_dim", type=int, default=64)
-    parser.add_argument("--embed_dim", type=int, default=1024)
-    parser.add_argument("--dropout_chance", type=float, default=0.0)
-    parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
-    parser.add_argument("--roi_size", type=int, default=4)
-    # network loading
-    parser.add_argument("--load_experiment", type=str, default=None)
-    parser.add_argument("--load_iteration", type=int, default=None)
-    # optimizer
-    parser.add_argument(
-        "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
-    )
-    parser.add_argument(
-        "--loss", type=str, default="l2", choices=["l2", "l1", "smooth_l1"]
-    )
-    parser.add_argument("--momentum", type=float, default=0.9)
-    parser.add_argument("--beta1", type=float, default=0.9)
-    parser.add_argument("--beta2", type=float, default=0.999)
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--weight_decay", type=float, default=0)
-    # scheduler
-    parser.add_argument("--lr_decay", type=float, default=0.1)
-    parser.add_argument("--lr_decay_every", type=int, default=503 * 30)
-    # logging
-    parser.add_argument("--log_every", type=int, default=250)
-    parser.add_argument("--test_every", type=int, default=1000)
-
-    parser.add_argument("--print_only", action="store_true")
-    parser.add_argument("--embed", action="store_true")
-    parser.add_argument("--embed_batch_size", type=int, default=10)
-    parser.add_argument("--embed_dir", type=str, default=None)
-    parser.add_argument("--eval", action="store_true")
-
-    parser.add_argument("--num_workers", type=int, default=4)
-
-    return parser.parse_args()
 
 
 def train_flat_features(network, criterion, batch, device, optimizer=None):
@@ -113,7 +31,7 @@ def train_flat_features(network, criterion, batch, device, optimizer=None):
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress * 100, progress * 100).item(),
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
         "l1_loss": l1_loss(predicted_progress * 100, progress * 100).item(),
         "count": B,
     }
@@ -135,7 +53,7 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress * 100, progress * 100).item(),
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
         "l1_loss": l1_loss(predicted_progress * 100, progress * 100).item(),
         "count": B,
     }
@@ -157,7 +75,7 @@ def train_progress(network, criterion, batch, device, optimizer=None):
         optimizer.step()
 
     return {
-        "l2_loss": l2_loss(predicted_progress * 100, progress * 100).item(),
+        "l2_loss": l2_loss(predicted_progress, progress).item(),
         "l1_loss": l1_loss(predicted_progress * 100, progress * 100).item(),
         "count": S,
     }
@@ -214,7 +132,12 @@ def embed_frames(network, batch, device, batch_size: int):
 
 def main():
     args = parse_args()
-    if "nfs" in os.getcwd():
+    wandb_init(args)
+
+    # root can be set manually, but can also be obtained automatically so wandb sweeps work properly
+    if args.root is not None:
+        root = args.root
+    elif "nfs" in os.getcwd():
         root = "/tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/"
     else:
         root = "/home/frans/Datasets"
@@ -224,75 +147,19 @@ def main():
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
-    if (
-        not args.wandb_disable
-        and not args.print_only
-        and not args.eval
-        and not args.embed
-    ):
-        wandb.init(
-            project=args.wandb_project,
-            name=args.wandb_name,
-            group=args.wandb_group,
-            tags=args.wandb_tags,
-            config={
-                "seed": args.seed,
-                "experiment_name": args.experiment_name,
-                "dataset": args.dataset,
-                "data_dir": args.data_dir,
-                "flat": args.flat,
-                "indices": args.indices,
-                "indices_normalizer": args.indices_normalizer,
-                "bboxes": args.bboxes,
-                "subsample": args.subsample,
-                "rsd_type": args.rsd_type,
-                "rsd_normalizer": args.rsd_normalizer,
-                "fps": args.fps,
-                "train_split": args.train_split,
-                "test_split": args.test_split,
-                "batch_size": args.batch_size,
-                "iterations": args.iterations,
-                "network": args.network,
-                "backbone": args.backbone,
-                "load_backbone": args.load_backbone,
-                "feature_dim": args.feature_dim,
-                "embed_dim": args.embed_dim,
-                "dropout_chance": args.dropout_chance,
-                "pooling_layers": args.pooling_layers,
-                "roi_size": args.roi_size,
-                "load_experiment": args.load_experiment,
-                "load_iteration": args.load_iteration,
-                "optimizer": args.optimizer,
-                "loss": args.loss,
-                "momentum": args.momentum,
-                "betas": (args.beta1, args.beta2),
-                "lr": args.lr,
-                "weight_decay": args.weight_decay,
-                "lr_decay": args.lr_decay,
-                "lr_decay_every": args.lr_decay_every,
-            },
-        )
+    subsample = transforms.Compose(
+        [Subsection(), Subsample()] if args.subsample else []
+    )
 
-    subsample = []
-    if args.subsample:
-        subsample = [Subsection(), Subsample()]
-    subsample = transforms.Compose(subsample)
-
-    # TODO: Subsampling
+    # TODO: Combine datasets
     if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
         if not args.no_resize:
             if "tudelft" in root:
                 # antialias not available on compute cluster
-                transform.append(transforms.Resize((112, 112)))
+                transform.append(transforms.Resize((224, 224)))
             else:
-                transform.append(transforms.Resize((112, 112), antialias=True))
-            transform.append(transforms.RandomCrop((56, 56)))
-            if "tudelft" in root:
-                # antialias not available on compute cluster
-                transform.append(transforms.Resize((112, 112)))
-            else:
-                transform.append(transforms.Resize((112, 112), antialias=True))
+                transform.append(transforms.Resize((224, 224), antialias=True))
         transform = transforms.Compose(transform)
 
         if "ucf24" in args.dataset:
@@ -372,11 +239,7 @@ def main():
         testset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False
     )
 
-    # trainset.print_statistics()
-    # testset.print_statistics()
-
-
-    # TODO: Sequential RSDNet and ProgressNet
+    # TODO: Reorganise networks
     if args.load_backbone:
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
     else:
@@ -400,7 +263,7 @@ def main():
         network = Linear(args.feature_dim, args.embed_dim, args.dropout_chance)
     elif args.network == "toynet":
         network = ToyNet(dropout_chance=args.dropout_chance)
-    elif args.network == 'resnet':
+    elif args.network == "resnet":
         network = ResNet(args.backbone, backbone_path, args.dropout_chance)
     else:
         raise Exception(f"Network {args.network} does not exist")
@@ -442,6 +305,7 @@ def main():
     else:
         raise Exception(f"Loss {args.loss} does not exist")
 
+    # TODO: Redo
     result = {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0}
     if args.embed:
         train_fn = None

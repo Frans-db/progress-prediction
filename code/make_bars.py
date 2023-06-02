@@ -99,10 +99,13 @@ def visualise(args):
 
     for i in range(max_num_frames):
         frames = []
+        print(f'--- {i} ---')
         for video_name in video_names:
             frame_index = min(i, frames_per_video[video_name] - 1)
             frame_path = os.path.join(data_dir, video_name, f'{frame_index:05d}.jpg')
             frames.append(read_image(frame_path))
+            if 27 <= i <= 31:
+                print((frame_index + 1) / frames_per_video[video_name])
         grid = make_grid(frames, nrow=4, padding=2, pad_value=255)
         plt.figure(figsize=(8, 8))
         plt.imshow(np.transpose(grid, [1, 2, 0]))
