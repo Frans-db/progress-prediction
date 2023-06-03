@@ -132,7 +132,6 @@ def embed_frames(network, batch, device, batch_size: int):
 
 def main():
     args = parse_args()
-    wandb_init(args)
 
     # root can be set manually, but can also be obtained automatically so wandb sweeps work properly
     if args.root is not None:
@@ -141,8 +140,8 @@ def main():
         root = "/tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/"
     else:
         root = "/home/frans/Datasets"
-
     data_root = os.path.join(root, args.dataset)
+
     experiment_path = None
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
@@ -244,6 +243,7 @@ def main():
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
     else:
         backbone_path = None
+
     if args.network == "progressnet_flat":
         network = ProgressNetFlat(
             args.pooling_layers,
@@ -328,6 +328,7 @@ def main():
     else:
         train_fn = train_progress
 
+    wandb_init(args)
     experiment = Experiment(
         network,
         criterion,
