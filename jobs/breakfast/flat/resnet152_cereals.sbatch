@@ -16,7 +16,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name resnet152_bf_cereals_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} cereals \
+    --wandb_tags fold_s${SLURM_ARRAY_TASK_ID} cereals \
     --dataset breakfast \
     --data_dir rgb-images \
     --flat \
