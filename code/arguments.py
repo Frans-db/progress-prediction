@@ -26,9 +26,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
     )
-    parser.add_argument("--no_resize", action="store_true")
     parser.add_argument("--rsd_normalizer", type=float, default=1.0)
     parser.add_argument("--fps", type=float, default=1.0)
+    parser.add_argument("--no_resize", action="store_true")
     parser.add_argument("--train_split", type=str, default="train.txt")
     parser.add_argument("--test_split", type=str, default="test.txt")
     # training
@@ -97,39 +97,48 @@ def wandb_init(args):
         group=args.wandb_group,
         tags=args.wandb_tags,
         config={
-            "seed": args.seed,
-            "experiment_name": args.experiment_name,
-            "dataset": args.dataset,
-            "data_dir": args.data_dir,
-            "flat": args.flat,
-            "indices": args.indices,
-            "indices_normalizer": args.indices_normalizer,
-            "bboxes": args.bboxes,
-            "subsample": args.subsample,
-            "rsd_type": args.rsd_type,
-            "rsd_normalizer": args.rsd_normalizer,
-            "fps": args.fps,
-            "train_split": args.train_split,
-            "test_split": args.test_split,
-            "batch_size": args.batch_size,
-            "iterations": args.iterations,
-            "network": args.network,
-            "backbone": args.backbone,
-            "load_backbone": args.load_backbone,
-            "feature_dim": args.feature_dim,
-            "embed_dim": args.embed_dim,
-            "dropout_chance": args.dropout_chance,
-            "pooling_layers": args.pooling_layers,
-            "roi_size": args.roi_size,
-            "load_experiment": args.load_experiment,
-            "load_iteration": args.load_iteration,
-            "optimizer": args.optimizer,
-            "loss": args.loss,
-            "momentum": args.momentum,
-            "betas": (args.beta1, args.beta2),
-            "lr": args.lr,
-            "weight_decay": args.weight_decay,
-            "lr_decay": args.lr_decay,
-            "lr_decay_every": args.lr_decay_every,
+            # experiment
+            'seed': args.seed,
+            # data
+            'dataset': args.dataset,
+            'data_dir': args.data_dir,
+            'flat': args.flat,
+            'bboxes': args.bboxes,
+            'shuffle': args.shuffle,
+            'indices': args.indices,
+            'indices_normalizer': args.indices_normalizer,
+            'subsample': args.subsample,
+            'rsd_type': args.rsd_type,
+            'rsd_normalizer': args.rsd_normalizer,
+            'fps': args.fps,
+            'no_resize': args.no_resize,
+            'train_split': args.train_split,
+            'test_split': args.test_split,
+            # training
+            'batch_size': args.batch_size,
+            'iterations': args.iterations,
+            # network
+            'network': args.network,
+            'backbone': args.backbone,
+            'load_backbone': args.load_backbone,
+            # network parameters
+            'feature_dim': args.feature_dim,
+            'embed_dim': args.embed_dim,
+            'dropout_chance': args.dropout_chance,
+            'pooling_layers': args.pooling_layers,
+            'roi_size': args.roi_size,
+            # network loading
+            'load_experiment': args.load_experiment,
+            'load_iteration': args.load_iteration,
+            # optimizer
+            'optimizer': args.optimizer,
+            'loss': args.loss,
+            'momentum': args.momentum,
+            'betas': (args.beta1, args.beta2),
+            'lr': args.lr,
+            'weight_decay': args.weight_decay,
+            # scheduler
+            'lr_deday': args.lr_decay,
+            'lr_decay_every': args.lr_decay_every,
         },
     )
