@@ -91,10 +91,10 @@ class UCFDataset(Dataset):
                 boxes[:, 3] += boxes[:, 1]
                 boxes = torch.FloatTensor(boxes.astype(float))
 
-                boxes[:, 0] *= 224 / 320
-                boxes[:, 2] *= 224 / 240
-                boxes[:, 1] *= 224 / 320
-                boxes[:, 3] *= 224 / 240
+                boxes[:, 0] *= (224 / 320)
+                boxes[:, 2] *= (224 / 240)
+                boxes[:, 1] *= (224 / 320)
+                boxes[:, 3] *= (224 / 240)
 
                 num_frames = boxes.shape[0]
                 lengths.append(num_frames)

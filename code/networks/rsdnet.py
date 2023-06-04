@@ -29,7 +29,28 @@ class RSDNetFlat(nn.Module):
     
     def embed(self, frames: torch.FloatTensor) -> torch.FloatTensor:
         return self.backbone(frames)
-    
+
+class LSTMNet(nn.Module):
+    def __init__(self, feature_dim: int, dropout_chance: float) -> None:
+        super().__init__()
+
+        self.cnn_dropout = nn.Dropout(p=dropout_chance)
+        self.lstm_dropout = nn.Dropout(p=dropout_chance)
+
+        self.lstm1 = nn.LSTM(feature_dim, 512, batch_first=True)
+        self.fc_progress = nn.Linear(512, 1)
+
+    def forward(self, data: torch.FloatTensor) -> torch.FloatTensor:
+        B, S, _ = data.shape
+        data = self.cnn_dropout(data)
+        data, _ = self.lstm1(data)
+        data = self.lstm_dropout(data)
+
+        data = data.reshape(B*S, -1)
+
+        progress = torch.sigmoid(self.fc_progress(data))
+
+        return progress.reshape(B, S)    
 
 class RSDNet(nn.Module):
     def __init__(self, feature_dim: int, rsd_normalizer: float, dropout_chance: float) -> None:

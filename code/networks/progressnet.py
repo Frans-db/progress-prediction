@@ -40,8 +40,13 @@ class ProgressNetFlat(nn.Module):
 
         self.fc7 = nn.Linear(embed_dim * 2, 1)
 
-    def forward(self, frames: torch.FloatTensor, boxes: torch.Tensor) -> torch.FloatTensor:
+    def forward(self, frames: torch.FloatTensor, boxes: torch.Tensor = None) -> torch.FloatTensor:
         B, C, H, W = frames.shape
+
+        if boxes is None:
+            boxes = torch.FloatTensor([0, 0, 224, 224])
+            boxes = boxes.repeat(B, 1)
+            boxes = boxes.to(self.device)
 
         frames = self.backbone(frames)
         spp_pooled = self.spp(frames)

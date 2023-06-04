@@ -15,19 +15,18 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name resnet152_bf_pancake_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} pancake \
+    --experiment_name lstmnet_bf_friedegg_segment_${SLURM_ARRAY_TASK_ID} \
+    --wandb_tags fold_s${SLURM_ARRAY_TASK_ID} friedegg \
     --dataset breakfast \
-    --data_dir rgb-images \
-    --flat \
-    --train_split train_pancake_s${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split test_pancake_s${SLURM_ARRAY_TASK_ID}.txt \
-    --batch_size 32 \
-    --iterations 50000 \
-    --network rsdnet_flat \
-    --backbone resnet152 \
-    --load_backbone resnet152.pth \
-    --dropout_chance 0.0 \
+    --data_dir features/resnet152_friedegg_${SLURM_ARRAY_TASK_ID} \
+    --train_split train_friedegg_s${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split test_friedegg_s${SLURM_ARRAY_TASK_ID}.txt \
+    --feature_dim 2048 \
+    --subsample \
+    --batch_size 1 \
+    --iterations 30000 \
+    --network lstmnet \
+    --dropout_chance 0.3 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \

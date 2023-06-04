@@ -10,7 +10,7 @@ import os
 from arguments import parse_args, wandb_init
 from networks import Linear
 from networks import ProgressNet, ProgressNetFlat
-from networks import RSDNet, RSDNetFlat
+from networks import RSDNet, RSDNetFlat, LSTMNet
 from networks import ToyNet, ResNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 from datasets import Subsample, Subsection
@@ -110,7 +110,7 @@ def train_rsd(network, criterion, batch, device, optimizer=None):
         "rsd_normal_l1_loss": l1_loss(
             predicted_rsd * network.rsd_normalizer, rsd * network.rsd_normalizer
         ),
-        "progress_l1_loss": l1_loss(predicted_progress, progress),
+        "progress_l1_loss": l1_loss(predicted_progress * 100, progress * 100),
         "progress_smooth_l1_loss": smooth_l1_loss(predicted_progress, progress),
         "progress_l2_loss": l2_loss(predicted_progress, progress),
         "count": S,
@@ -257,6 +257,8 @@ def main():
         network = ProgressNet(args.feature_dim, args.dropout_chance)
     elif args.network == "rsdnet_flat":
         network = RSDNetFlat(args.backbone, backbone_path)
+    elif args.network == 'lstmnet':
+        network = LSTMNet(args.feature_dim, args.dropout_chance)
     elif args.network == "rsdnet":
         network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
     elif args.network == "ute":
@@ -350,7 +352,7 @@ def main():
         network.eval()
         with torch.no_grad():
             save_dir = os.path.join(data_root, args.embed_dir)
-            os.mkdir(save_dir)
+            os.makedirs(save_dir, exist_ok=True)
             for batch in tqdm(trainloader):
                 video_name, embeddings = embed_frames(
                     network, batch, experiment.device, args.embed_batch_size
@@ -359,6 +361,8 @@ def main():
                 for embedding in embeddings:
                     txt.append(" ".join(map(str, embedding)))
                 save_path = os.path.join(save_dir, f"{video_name}.txt")
+                recursive_dir = '/'.join(save_path.split('/')[:-1])
+                os.makedirs(recursive_dir, exist_ok=True)
                 with open(save_path, "w+") as f:
                     f.write("\n".join(txt))
 

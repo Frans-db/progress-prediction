@@ -52,8 +52,8 @@ def calc_baseline(trainset, testset, plot_name=None):
     length = max(max(test_lengths), max_length)
     predictions = torch.ones(length)
     predictions[:max_length] = averages[:max_length]
-    with open(f"./data/{plot_name}.txt", "w+") as f:
-        f.write("\n".join(map(str, predictions.tolist())))
+    # with open(f"./data/{plot_name}.txt", "w+") as f:
+    #     f.write("\n".join(map(str, predictions.tolist())))
 
     return average_loss / count, mid_loss / count, random_loss / count
 
@@ -116,7 +116,7 @@ def ucf_telic_baseline():
 
 def cholec_baseline():
     losses = [0, 0, 0]
-    for i in range(4):
+    for i in range(1):
         trainset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/i3d_embeddings",
@@ -137,11 +137,12 @@ def cholec_baseline():
             "none",
             1,
         )
-        print(max(trainset.lengths), max(testset.lengths))
-        # for i, loss in enumerate(
-        #     calc_baseline(trainset, testset, plot_name=f"cholec_{i}")
-        # ):
-        #     losses[i] += loss / 4
+
+        for i, loss in enumerate(
+            calc_baseline(trainset, testset, plot_name=f"cholec_{i}")
+        ):
+            losses[i] += loss
+        print(losses)
     print(f"--- cholec ---")
     print("average", losses[0])
     print("0.5", losses[1])
@@ -193,7 +194,7 @@ def bf_baseline():
         "salat",
         "pancake",
     ]:
-        for i in range(1, 5):
+        for i in range(1, 2):
             trainset = FeatureDataset(
                 os.path.join(DATA_ROOT, "breakfast"),
                 "features/dense_trajectories",
@@ -217,7 +218,8 @@ def bf_baseline():
             for i, loss in enumerate(
                 calc_baseline(trainset, testset, plot_name=f"bf_{activity}_{i}")
             ):
-                losses[i] += loss / 40
+                losses[i] += loss / 10
+            print(losses)
 
     print(f"--- bf ---")
     print("average", losses[0])
@@ -386,11 +388,11 @@ def main():
     # with open('./test.txt', 'w+') as f:
         # f.write('\n'.join(map(lambda x: f'{x:04d}', sorted(vids[:2326 // 2]))))
     # visualisation()
-    toy_baseline('Penn_Action')
+    # toy_baseline('Penn_Action')
     # toy_baseline('bars_speed')
     # ucf_baseline()
-    # cholec_baseline()
-    # bf_baseline()
+    cholec_baseline()
+    bf_baseline()
     # bf_baseline_all()
 
 
