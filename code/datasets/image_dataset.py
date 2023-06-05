@@ -33,6 +33,7 @@ class ImageDataset(Dataset):
         splitnames = sorted(load_splitfile(split_path))
         self.flat = flat
         self.indices = indices
+        self.index_to_index = []
         self.indices_normalizer = indices_normalizer
         self.data, self.lengths = self._get_data(os.path.join(root, data_dir), splitnames, flat)
 
@@ -51,6 +52,7 @@ class ImageDataset(Dataset):
             if flat:
                 for i, (path, p) in enumerate(zip(frame_paths, progress)):
                     data.append((f"{video_name}_{i}", path, p))
+                    self.index_to_index.append(i)
             else:
                 if self.shuffle:
                     random.shuffle(frame_paths)
@@ -73,6 +75,9 @@ class ImageDataset(Dataset):
             frame = Image.open(frame_paths)
             if self.transform:
                 frame = self.transform(frame)
+            if self.indices:
+                frame_index = self.index_to_index[index]
+                frame = torch.full_like(frame, frame_index) / self.indices_normalizer
             return video_name, frame, progress
         else: # TODO: Better Subsampling
             frames = []

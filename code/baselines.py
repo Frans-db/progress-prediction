@@ -116,7 +116,7 @@ def ucf_telic_baseline():
 
 def cholec_baseline():
     losses = [0, 0, 0]
-    for i in range(1):
+    for i in range(4):
         trainset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/resnet152_0",
@@ -365,21 +365,21 @@ def visualisation():
     plt.savefig('./plots/visualisation.png')
 
 def main():
-    for i in range(20):
-        with open(f'./data/{i}.txt') as f:
-            predictions = list(map(lambda x: float(x.strip()), f.readlines()))
-        with open(f'./data/baseline.txt') as f:
-            baseline = list(map(lambda x: float(x.strip()), f.readlines()))
+    # for i in range(20):
+    #     with open(f'./data/{i}.txt') as f:
+    #         predictions = list(map(lambda x: float(x.strip()), f.readlines()))
+    #     with open(f'./data/baseline.txt') as f:
+    #         baseline = list(map(lambda x: float(x.strip()), f.readlines()))
         
-        plt.plot(predictions, label='predictions')
-        plt.plot(baseline, label='baseline')
-        plt.legend(loc='best')
-        plt.xlabel('Frame')
-        plt.ylabel('Progress')
-        plt.title(f'Video {i}')
-        plt.savefig(f'./plots/{i}.png')
-        plt.clf()
-    return
+    #     plt.plot(predictions, label='predictions')
+    #     plt.plot(baseline, label='baseline')
+    #     plt.legend(loc='best')
+    #     plt.xlabel('Frame')
+    #     plt.ylabel('Progress')
+    #     plt.title(f'Video {i}')
+    #     plt.savefig(f'./plots/{i}.png')
+    #     plt.clf()
+    # return
     # vids = map(lambda x: f'{x:04d}', range(1, 2326 + 1))
     # train, test = [], []
     # for video_name in vids:
@@ -406,7 +406,7 @@ def main():
     # toy_baseline('Penn_Action')
     # toy_baseline('bars_speed')
     # ucf_baseline()
-    # cholec_baseline()
+    cholec_baseline()
     # bf_baseline()
     # bf_baseline_all()
 
