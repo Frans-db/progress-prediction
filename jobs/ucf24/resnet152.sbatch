@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=medium
-#SBATCH --time=14:00:00
+#SBATCH --time=32:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
@@ -14,7 +14,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name resnet152_ucf_24 \
+    --experiment_name resnet152_ucf24 \
     --dataset ucf24 \
     --data_dir rgb-images \
     --flat \
@@ -34,4 +34,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
     --log_every 100 \
-    --test_every 2500
+    --test_every 5000
