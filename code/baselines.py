@@ -120,7 +120,7 @@ def cholec_baseline():
         trainset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/resnet152_0",
-            f"t12_p{i}.txt",
+            f"t1_p{i}.txt",
             False,
             False,
             1,
@@ -130,7 +130,7 @@ def cholec_baseline():
         testset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/resnet152_0",
-            f"v_p{i}.txt",
+            f"e_p{i}.txt",
             False,
             False,
             1,
@@ -141,7 +141,7 @@ def cholec_baseline():
         for i, loss in enumerate(
             calc_baseline(trainset, testset, plot_name=f"cholec_{i}")
         ):
-            losses[i] += loss
+            losses[i] += loss / 4
         print(losses)
     print(f"--- cholec ---")
     print("average", losses[0])

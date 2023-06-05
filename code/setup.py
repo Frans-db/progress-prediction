@@ -19,17 +19,17 @@ def save_fold(data: List[Tuple[str, int]], fold_name: str) -> None:
     v = names[27 + 27 : 27 + 27 + 6]
     e = names[27 + 27 + 6 : 27 + 27 + 6 + 20]
     with open(os.path.join(root, "splitfiles", f"all_{fold_name}.txt"), "w+") as f:
-        f.write("\n".join(names))
+        f.write("\n".join(sorted(names)))
     with open(os.path.join(root, "splitfiles", f"t1_{fold_name}.txt"), "w+") as f:
-        f.write("\n".join(t1))
+        f.write("\n".join(sorted(t1)))
     with open(os.path.join(root, "splitfiles", f"t2_{fold_name}.txt"), "w+") as f:
-        f.write("\n".join(t2))
+        f.write("\n".join(sorted(t2)))
     with open(os.path.join(root, "splitfiles", f"t12_{fold_name}.txt"), "w+") as f:
-        f.write("\n".join(t12))
+        f.write("\n".join(sorted(t12)))
     with open(os.path.join(root, "splitfiles", f"v_{fold_name}.txt"), "w+") as f:
-        f.write("\n".join(v))
+        f.write("\n".join(sorted(v)))
     with open(os.path.join(root, "splitfiles", f"e_{fold_name}.txt"), "w+") as f:
-        f.write("\n".join(e))
+        f.write("\n".join(sorted(e)))
 
 
 def random_folds(data: List[Tuple[str, int]], start_index: int) -> None:
@@ -41,7 +41,7 @@ def random_folds(data: List[Tuple[str, int]], start_index: int) -> None:
 def proper_fold(data: List[Tuple[str, int]], start_index: int) -> None:
     random.shuffle(data)
     for i in range(4):
-        save_fold(data, f"p{start_index+i}")
+        save_fold(data, f"{start_index+i}")
         data = data[20:] + data[:20]
 
 def create_cholec80_folds():
@@ -53,21 +53,17 @@ def create_cholec80_folds():
         video_lengths.append(num_frames)
     video_data = list(zip(video_names, video_lengths))
 
-    print("--- random 1 ---")
-    random_folds(video_data, 0)
-    print("--- random 2 ---")
-    random_folds(video_data, 4)
-    print("--- random 3 ---")
-    random_folds(video_data, 8)
-    print("--- proper 1 ---")
-    proper_fold(video_data, 0)
     print("--- proper 2 ---")
-    proper_fold(video_data, 4)
+    proper_fold(video_data, 0)
 
 def create_networks():
     resnet = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V1)
     resnet.fc = nn.Identity()
     torch.save(resnet.state_dict(), './resnet152.pth')
+
+    resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    resnet.fc = nn.Identity()
+    torch.save(resnet.state_dict(), './resnet18.pth')
 
     vgg16 = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1).features
     torch.save(vgg16.state_dict(), './vgg16.pth')
