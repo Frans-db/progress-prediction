@@ -45,7 +45,7 @@ def main():
     if args.splitfile.endswith(".txt"):
         split_path = os.path.join(data_root, "splitfiles", args.splitfile)
         splitnames = load_splitfile(split_path)
-        for video_name in splitnames:
+        for video_name in tqdm(splitnames):
             video_path = os.path.join(data_root, "rgb-images", video_name)
             frame_paths = [
                 os.path.join(video_path, frame_name)
@@ -56,7 +56,7 @@ def main():
         pickle_path = os.path.join(data_root, "splitfiles", args.splitfile)
         with open(pickle_path, "rb") as f:
             database = pickle.load(f)
-        for video_name in database:
+        for video_name in tqdm(database):
             annotations = database[video_name]["annotations"]
             for tube_index, tube in enumerate(annotations):
                 frame_paths = []
