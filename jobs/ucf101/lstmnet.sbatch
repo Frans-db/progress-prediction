@@ -14,18 +14,16 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name resnet152_ucf24 \
+    --experiment_name lstmnet_ucf24 \
     --dataset ucf24 \
-    --data_dir rgb-images \
-    --flat \
-    --train_split train.txt \
-    --test_split test.txt \
-    --batch_size 32 \
+    --data_dir features/resnet152 \
+    --train_split train_tubes.txt \
+    --test_split test_tubes.txt \
+    --feature_dim 2048 \
+    --batch_size 1 \
     --iterations 100000 \
-    --network rsdnet_flat \
-    --backbone resnet152 \
-    --load_backbone resnet152.pth \
-    --dropout_chance 0.0 \
+    --network lstmnet \
+    --dropout_chance 0.5 \
     --optimizer sgd \
     --loss smooth_l1 \
     --momentum 0.9 \

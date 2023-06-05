@@ -80,6 +80,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embed_batch_size", type=int, default=10)
     parser.add_argument("--embed_dir", type=str, default=None)
     parser.add_argument("--eval", action="store_true")
+    parser.add_argument('--save', action='store_true')
 
     parser.add_argument("--num_workers", type=int, default=4)
 
@@ -87,7 +88,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def wandb_init(args):
-    no_wandb = args.wandb_disable or args.print_only or args.eval or args.embed
+    no_wandb = args.wandb_disable or args.print_only or args.eval or args.embed or args.save
     if no_wandb:
         return
 

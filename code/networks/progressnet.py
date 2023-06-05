@@ -68,7 +68,30 @@ class ProgressNetFlat(nn.Module):
 
         return data
 
+    def embed(self, frames, boxes = None):
+        B, C, H, W = frames.shape
 
+        if boxes is None:
+            boxes = torch.FloatTensor([0, 0, 224, 224])
+            boxes = boxes.repeat(B, 1)
+            boxes = boxes.to(self.device)
+
+        frames = self.backbone(frames)
+        spp_pooled = self.spp(frames)
+        spp_pooled = self.spp_fc(spp_pooled)
+        spp_pooled = self.spp_dropout(spp_pooled)
+        spp_pooled = torch.relu(spp_pooled)
+
+        indices = torch.arange(0, B, device=self.device).reshape(B, -1)
+        boxes = torch.cat((indices, boxes), dim=-1)
+
+        roi_pooled = roi_align(frames, boxes, self.roi_size, spatial_scale=0.03125)
+        roi_pooled = roi_pooled.reshape(B, -1)
+        roi_pooled = self.roi_fc(roi_pooled)
+        roi_pooled = self.roi_dropout(roi_pooled)
+        roi_pooled = torch.relu(roi_pooled)
+
+        return torch.cat((spp_pooled, roi_pooled), dim=-1)
 
 class ProgressNet(nn.Module):
     def __init__(self, feature_dim: int, dropout_chance: float) -> None:

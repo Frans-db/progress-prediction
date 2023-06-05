@@ -32,6 +32,8 @@ def calc_baseline(trainset, testset, plot_name=None):
         averages[:length] += progress
         counts[:length] += 1
     averages = averages / counts
+    with open('./data/baseline.txt', 'w+') as f:
+        f.write('\n'.join(map(str, averages.tolist())))
 
     count = 0
     average_loss = 0.0
@@ -52,8 +54,6 @@ def calc_baseline(trainset, testset, plot_name=None):
     length = max(max(test_lengths), max_length)
     predictions = torch.ones(length)
     predictions[:max_length] = averages[:max_length]
-    # with open(f"./data/{plot_name}.txt", "w+") as f:
-    #     f.write("\n".join(map(str, predictions.tolist())))
 
     return average_loss / count, mid_loss / count, random_loss / count
 
@@ -119,8 +119,8 @@ def cholec_baseline():
     for i in range(1):
         trainset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
-            "features/i3d_embeddings",
-            f"t1_p{i}.txt",
+            "features/resnet152_0",
+            f"t12_p{i}.txt",
             False,
             False,
             1,
@@ -129,7 +129,7 @@ def cholec_baseline():
         )
         testset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
-            "features/i3d_embeddings",
+            "features/resnet152_0",
             f"v_p{i}.txt",
             False,
             False,
@@ -365,6 +365,21 @@ def visualisation():
     plt.savefig('./plots/visualisation.png')
 
 def main():
+    for i in range(20):
+        with open(f'./data/{i}.txt') as f:
+            predictions = list(map(lambda x: float(x.strip()), f.readlines()))
+        with open(f'./data/baseline.txt') as f:
+            baseline = list(map(lambda x: float(x.strip()), f.readlines()))
+        
+        plt.plot(predictions, label='predictions')
+        plt.plot(baseline, label='baseline')
+        plt.legend(loc='best')
+        plt.xlabel('Frame')
+        plt.ylabel('Progress')
+        plt.title(f'Video {i}')
+        plt.savefig(f'./plots/{i}.png')
+        plt.clf()
+    return
     # vids = map(lambda x: f'{x:04d}', range(1, 2326 + 1))
     # train, test = [], []
     # for video_name in vids:
@@ -391,8 +406,8 @@ def main():
     # toy_baseline('Penn_Action')
     # toy_baseline('bars_speed')
     # ucf_baseline()
-    cholec_baseline()
-    bf_baseline()
+    # cholec_baseline()
+    # bf_baseline()
     # bf_baseline_all()
 
 

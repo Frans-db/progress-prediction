@@ -6,6 +6,7 @@ import wandb
 import torch
 from tqdm import tqdm
 import os
+import matplotlib.pyplot as plt
 
 from arguments import parse_args, wandb_init
 from networks import Linear
@@ -59,7 +60,7 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
     }
 
 
-def train_progress(network, criterion, batch, device, optimizer=None):
+def train_progress(network, criterion, batch, device, optimizer=None, return_results=False):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
@@ -68,6 +69,8 @@ def train_progress(network, criterion, batch, device, optimizer=None):
 
     S = data[0].shape[1]
     predicted_progress = network(*data)
+    if return_results:
+        return predicted_progress.cpu()
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
@@ -110,9 +113,9 @@ def train_rsd(network, criterion, batch, device, optimizer=None):
         "rsd_normal_l1_loss": l1_loss(
             predicted_rsd * network.rsd_normalizer, rsd * network.rsd_normalizer
         ),
-        "progress_l1_loss": l1_loss(predicted_progress * 100, progress * 100),
-        "progress_smooth_l1_loss": smooth_l1_loss(predicted_progress, progress),
-        "progress_l2_loss": l2_loss(predicted_progress, progress),
+        "l1_loss": l1_loss(predicted_progress * 100, progress * 100),
+        "smooth_l1_loss": smooth_l1_loss(predicted_progress, progress),
+        "l2_loss": l2_loss(predicted_progress, progress),
         "count": S,
     }
 
@@ -320,9 +323,9 @@ def main():
             "rsd_smooth_l1_loss": 0.0,
             "rsd_l2_loss": 0.0,
             "rsd_normal_l1_loss": 0.0,
-            "progress_l1_loss": 0.0,
-            "progress_smooth_l1_loss": 0.0,
-            "progress_l2_loss": 0.0,
+            "l1_loss": 0.0,
+            "smooth_l1_loss": 0.0,
+            "l2_loss": 0.0,
             "count": 0,
         }
     elif "images" in args.data_dir and args.flat:
@@ -365,7 +368,13 @@ def main():
                 os.makedirs(recursive_dir, exist_ok=True)
                 with open(save_path, "w+") as f:
                     f.write("\n".join(txt))
-
+    elif args.save:
+        for i, batch in enumerate(tqdm(testloader)):
+            progress = train_progress(network, criterion, batch, experiment.device, return_results=True)
+            progress = torch.flatten(progress).tolist()
+            txt = '\n'.join(map(str, progress))
+            with open(f'./data/{i}.txt', 'w+') as f:
+                f.write(txt)
     elif not args.print_only:
         experiment.run(args.iterations, args.log_every, args.test_every)
 
