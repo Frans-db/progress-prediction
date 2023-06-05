@@ -33,6 +33,7 @@ class UCFDataset(Dataset):
         self.fps = fps
         self.transform = transform
         self.splitfile = splitfile
+        self.index_to_index = []
 
         split_path = os.path.join(root, "splitfiles", splitfile)
         self.splitnames = load_splitfile(split_path)
@@ -50,6 +51,9 @@ class UCFDataset(Dataset):
             frame = Image.open(paths)
             if self.transform:
                 frame = self.transform(frame)
+            if self.indices:
+                frame_index = self.index_to_index[index]
+                frame = torch.full_like(frame, frame_index) / self.indices_normalizer
             if self.bounding_boxes and self.rsd_type != 'none':
                 return name, frame, boxes, rsd, progress
             elif self.bounding_boxes:
@@ -119,6 +123,7 @@ class UCFDataset(Dataset):
                         data.append(
                             (f"{video_name}_{tube_index}_{i}", frame_path, box, p, rsd_val)
                         )
+                        self.index_to_index.append(i)
                 else:
                     data.append((f"{video_name}_{tube_index}", paths, boxes, progress, rsd))
 
