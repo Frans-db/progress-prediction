@@ -12,7 +12,7 @@
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
-srun python /home/nfs/fransdeboer/mscfransdeboer/code/i3d_embedding.py \
+srun python /home/nfs/fransdeboer/mscfransdeboer/code/i3d_embeddings.py \
     --model_path /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer/models/rgb_imagenet.pth \
     --root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer \
     --dataset ucf24 \
