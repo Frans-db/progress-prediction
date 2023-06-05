@@ -21,7 +21,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir rgb-images \
     --flat \
     --train_split t1_p${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split e_p${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 32 \
     --iterations 50000 \
     --network rsdnet_flat \
@@ -34,6 +34,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr 1e-3 \
     --weight_decay 5e-4 \
     --lr_decay 0.1 \
-    --lr_decay_every 10000 \
+    --lr_decay_every 20000 \
     --log_every 50 \
     --test_every 500
