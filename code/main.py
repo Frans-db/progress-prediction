@@ -1,16 +1,13 @@
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-import argparse
-import wandb
 import torch
 from tqdm import tqdm
 import os
-import matplotlib.pyplot as plt
 
 from arguments import parse_args, wandb_init
 from networks import Linear
-from networks import ProgressNet, ProgressNetFlat
+from networks import ProgressNet
 from networks import RSDNet, RSDNetFlat, LSTMNet
 from networks import ToyNet, ResNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
@@ -247,8 +244,8 @@ def main():
     else:
         backbone_path = None
 
-    if args.network == "progressnet_flat":
-        network = ProgressNetFlat(
+    if args.network == "progressnet":
+        network = ProgressNet(
             args.pooling_layers,
             args.roi_size,
             args.dropout_chance,
@@ -256,8 +253,6 @@ def main():
             args.backbone,
             backbone_path,
         )
-    elif args.network == "progressnet":
-        network = ProgressNet(args.feature_dim, args.dropout_chance)
     elif args.network == "rsdnet_flat":
         network = RSDNetFlat(args.backbone, backbone_path)
     elif args.network == 'lstmnet':
