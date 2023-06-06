@@ -58,16 +58,27 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
 
 
 def train_progress(network, criterion, batch, device, optimizer=None, return_results=False):
+    max_length = 10
+
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
     data = batch[1:-1]
-    data = tuple([d.to(device) for d in data])
-
     S = data[0].shape[1]
-    predicted_progress = network(*data)
-    if return_results:
-        return predicted_progress.cpu()
+
+    data = tuple([torch.split(d, max_length, dim=1) for d in data])
+    data = tuple(zip(*data))
+    
+    predicted_progress = torch.zeros(1, S, device=device)
+
+    for i, batch_data in enumerate(data):
+        batch_data = tuple([d.to(device) for d in batch_data])
+        batch_size = batch_data[0].shape[1]
+        print(batch_size)
+        batch_progress = network(*batch_data)
+        predicted_progress[0, i*max_length:i*max_length+batch_size] = batch_progress
+
+    print(predicted_progress)
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
