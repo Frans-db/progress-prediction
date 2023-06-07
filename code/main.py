@@ -62,25 +62,17 @@ def train_progress(network, criterion, batch, device, optimizer=None, return_res
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
     data = batch[1:-1]
-    S = data[0].shape[1]
+    data = tuple([d.to(device) for d in data])
 
-    if S < 600:
-        return {
-        "l2_loss": 1,
-        "l1_loss": 1,
-        "count": 1,
-    }
-    for i in range(600, 800):
-        print(i)
-        new_data = (data[0][:, :i, :, :, :].to(device), data[1][:, :i, :])
-        predicted_progress = network(*new_data)
-        if return_results:
-            return predicted_progress.cpu()
-        progress = progress.to(device)
-        if optimizer:
-            optimizer.zero_grad()
-            criterion(predicted_progress, progress).backward()
-            optimizer.step()
+    S = data[0].shape[1]
+    predicted_progress = network(*data)
+    if return_results:
+        return predicted_progress.cpu()
+    progress = progress.to(device)
+    if optimizer:
+        optimizer.zero_grad()
+        criterion(predicted_progress, progress).backward()
+        optimizer.step()
 
     return {
         "l2_loss": l2_loss(predicted_progress, progress).item(),
