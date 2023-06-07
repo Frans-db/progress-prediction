@@ -18,7 +18,7 @@ class UCFDataset(Dataset):
         bounding_boxes: bool,
         flat: bool,
         subsample_fps: int,
-        random: int,
+        random: bool,
         indices: bool,
         indices_normalizer: int,
         rsd_type: str,
@@ -58,6 +58,8 @@ class UCFDataset(Dataset):
             if self.indices:
                 frame_index = self.index_to_index[index]
                 frame = torch.full_like(frame, frame_index) / self.indices_normalizer
+            if self.random:
+                frame = torch.rand_like(frame)
             if self.bounding_boxes and self.rsd_type != 'none':
                 return name, frame, boxes, rsd, progress
             elif self.bounding_boxes:
@@ -75,6 +77,8 @@ class UCFDataset(Dataset):
                 frames.append(frame)
 
             frames = torch.stack(frames)
+            if self.random:
+                frames = torch.rand_like(frames)
             if self.bounding_boxes and self.rsd_type != 'none':
                 return name, frames, boxes, rsd, progress
             elif self.bounding_boxes:

@@ -61,7 +61,7 @@ def calc_baseline(trainset, testset, plot_name=None):
 def ucf_baseline():
     trainset = FeatureDataset(
         os.path.join(DATA_ROOT, "ucf24"),
-        "features/i3d_embeddings",
+        "features/resnet152",
         "train_tubes.txt",
         False,
         False,
@@ -71,7 +71,7 @@ def ucf_baseline():
     )
     testset = FeatureDataset(
         os.path.join(DATA_ROOT, "ucf24"),
-        "features/i3d_embeddings",
+        "features/resnet152",
         "test_tubes.txt",
         False,
         False,
@@ -364,6 +364,57 @@ def visualisation():
 
     plt.savefig('./plots/visualisation.png')
 
+# def lengths():
+    # print('breakfast')
+    # dataset = FeatureDataset(
+    #     os.path.join(DATA_ROOT, "breakfast"),
+    #     "features/dense_trajectories",
+    #     f"all.txt",
+    #     False,
+    #     False,
+    #     1,
+    #     "none",
+    #     1,
+    # )
+    # print(max(dataset.lengths))
+
+    # print('cholec80')
+    # dataset = FeatureDataset(
+    #         os.path.join(DATA_ROOT, "cholec80"),
+    #         "features/resnet152_0",
+    #         f"all_0.txt",
+    #         False,
+    #         False,
+    #         1,
+    #         "none",
+    #         1,
+    #     )
+    # print(max(dataset.lengths))
+
+    # print('ucf)')
+    # trainset = FeatureDataset(
+    #     os.path.join(DATA_ROOT, "ucf24"),
+    #     "features/resnet152",
+    #     "train_tubes.txt",
+    #     False,
+    #     False,
+    #     1,
+    #     "none",
+    #     1,
+    # )
+    # print(sorted(trainset.lengths))
+    # testset = FeatureDataset(
+    #     os.path.join(DATA_ROOT, "ucf24"),
+    #     "features/resnet152",
+    #     "test_tubes.txt",
+    #     False,
+    #     False,
+    #     1,
+    #     "none",
+    #     1,
+    # )
+    # print(max(trainset.lengths), max(testset.lengths))
+
 def main():
     # for i in range(20):
     #     with open(f'./data/{i}.txt') as f:
@@ -405,10 +456,11 @@ def main():
     # visualisation()
     # toy_baseline('Penn_Action')
     # toy_baseline('bars_speed')
-    # ucf_baseline()
+    ucf_baseline()
     # cholec_baseline()
     # bf_baseline()
-    bf_baseline_all()
+    # bf_baseline_all()
+    # lengths()
 
 
 if __name__ == "__main__":

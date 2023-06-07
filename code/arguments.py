@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embed_dim", type=int, default=1024)
     parser.add_argument("--dropout_chance", type=float, default=0.0)
     parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
-    parser.add_argument("--roi_size", type=int, default=4)
+    parser.add_argument("--roi_size", type=int, default=3)
     # network loading
     parser.add_argument("--load_experiment", type=str, default=None)
     parser.add_argument("--load_iteration", type=int, default=None)
