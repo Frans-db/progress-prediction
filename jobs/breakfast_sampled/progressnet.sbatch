@@ -18,7 +18,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --experiment_name progressnet_bf_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
     --data_dir rgb-images \
-    --bboxes \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
@@ -30,7 +29,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 1.0 \
     --lr_decay_every 1000000 \
     --log_every 100 \
-    --test_every 1000 \
+    --test_every 5000 \
     --num_workers 2 \
     --subsample_fps 15
 

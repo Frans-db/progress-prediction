@@ -18,7 +18,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --experiment_name progressnet_cholec80_${SLURM_ARRAY_TASK_ID}_random \
     --dataset cholec80 \
     --data_dir rgb-images \
-    --bboxes \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split v_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
