@@ -17,6 +17,8 @@ class UCFDataset(Dataset):
         splitfile: str,
         bounding_boxes: bool,
         flat: bool,
+        subsample_fps: int,
+        random: int,
         indices: bool,
         indices_normalizer: int,
         rsd_type: str,
@@ -27,6 +29,8 @@ class UCFDataset(Dataset):
 
         self.bounding_boxes = bounding_boxes
         self.flat = flat
+        self.subsample_fps = subsample_fps
+        self.random = random
         self.indices = indices
         self.indices_normalizer = indices_normalizer
         self.rsd_type = rsd_type
@@ -100,14 +104,19 @@ class UCFDataset(Dataset):
                 boxes[:, 1] *= (224 / 320)
                 boxes[:, 3] *= (224 / 240)
 
-                num_frames = boxes.shape[0]
-                lengths.append(num_frames)
                 paths = []
                 for frame_index in range(tube["sf"], tube["ef"]):
                     frame_path = os.path.join(
                         data_root, video_name, f"{frame_index+1:05d}.jpg"
                     )
                     paths.append(frame_path)
+
+                # Video subsampling
+                boxes = boxes[::self.subsample_fps, :]
+                paths = paths[::self.subsample_fps]
+
+                num_frames = boxes.shape[0]
+                lengths.append(num_frames)
                 progress = torch.arange(1, num_frames + 1) / num_frames
 
                 video_length = (num_frames / self.fps)

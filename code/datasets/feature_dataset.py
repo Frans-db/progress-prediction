@@ -46,7 +46,7 @@ class FeatureDataset(Dataset):
             path = os.path.join(root, f"{video_name}.txt")
             with open(path) as f:
                 video_data = f.readlines()
-
+            # TODO: Video subsampling
             video_data = torch.FloatTensor(
                 [list(map(float, row.split(" "))) for row in video_data]
             )

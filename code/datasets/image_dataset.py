@@ -17,6 +17,9 @@ class ImageDataset(Dataset):
         splitfile: str,
         flat: bool,
 
+        subsample_fps: int,
+
+        random_data: bool,
         indices: bool,
         indices_normalizer: int,
         shuffle: bool,
@@ -27,6 +30,8 @@ class ImageDataset(Dataset):
         super().__init__()
         self.transform = transform
         self.sample_transform = sample_transform
+        self.subsample_fps = subsample_fps
+        self.random = random_data
         self.splitfile = splitfile
         self.shuffle = shuffle
         split_path = os.path.join(root, "splitfiles", splitfile)
@@ -44,6 +49,8 @@ class ImageDataset(Dataset):
             video_path = os.path.join(root, video_name)
             frame_names = sorted(os.listdir(video_path))
             frame_paths = [os.path.join(video_path, frame_name) for frame_name in frame_names]
+            # video subsampling
+            frame_paths = frame_paths[::self.subsample_fps]
             num_frames = len(frame_paths)
             progress = torch.arange(1, num_frames + 1) / num_frames
 
