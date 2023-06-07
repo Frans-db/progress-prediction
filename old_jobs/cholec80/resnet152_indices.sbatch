@@ -15,11 +15,13 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name resnet152_cholec80_${SLURM_ARRAY_TASK_ID} \
+    --experiment_name resnet152_cholec80_indices_${SLURM_ARRAY_TASK_ID} \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
     --data_dir rgb-images \
     --flat \
+    --indices \
+    --indices_normalizer 2344 \
     --train_split t1_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split v_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 48 \
@@ -36,4 +38,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
     --log_every 100 \
-    --test_every 5000
+    --test_every 1000

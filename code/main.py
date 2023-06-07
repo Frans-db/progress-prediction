@@ -62,9 +62,9 @@ def train_progress(network, criterion, batch, device, optimizer=None, return_res
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
     data = batch[1:-1]
-    data = tuple([d.to(device) for d in data])
-
     S = data[0].shape[1]
+
+    data = tuple([d.to(device) for d in data])
     predicted_progress = network(*data)
     if return_results:
         return predicted_progress.cpu()
@@ -190,7 +190,6 @@ def main():
                 args.fps,
                 transform=transform,
             )
-            print(max(trainset.lengths), max(testset.lengths))
         else:
             trainset = ImageDataset(
                 data_root,
@@ -217,7 +216,6 @@ def main():
                 args.shuffle,
                 transform=transform,
             )
-            print(max(trainset.lengths), max(testset.lengths))
     else:
         trainset = FeatureDataset(
             data_root,
