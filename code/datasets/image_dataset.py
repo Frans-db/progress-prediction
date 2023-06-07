@@ -85,7 +85,7 @@ class ImageDataset(Dataset):
             if self.indices:
                 frame_index = self.index_to_index[index]
                 frame = torch.full_like(frame, frame_index) / self.indices_normalizer
-            if self.random_data:
+            if self.random:
                 frame = torch.rand_like(frame)
             return video_name, frame, progress
         else: # TODO: Better Subsampling
@@ -108,7 +108,7 @@ class ImageDataset(Dataset):
             if self.indices:
                 C, H, W = frames[0].shape
                 frames = torch.arange(0, num_frames, dtype=torch.float32).reshape(num_frames, 1, 1, 1).repeat(1, C, H, W)
-            if self.random_data:
+            if self.random:
                 frames = torch.rand_like(frames)
 
             progress = progress[indices]
