@@ -406,9 +406,9 @@ def main():
     # toy_baseline('Penn_Action')
     # toy_baseline('bars_speed')
     # ucf_baseline()
-    cholec_baseline()
+    # cholec_baseline()
     # bf_baseline()
-    # bf_baseline_all()
+    bf_baseline_all()
 
 
 if __name__ == "__main__":

@@ -15,8 +15,8 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name resnet152_bf_all_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags fold_s${SLURM_ARRAY_TASK_ID} \
+    --experiment_name resnet152_bf_all_${SLURM_ARRAY_TASK_ID}_2 \
+    --wandb_tags fold_s${SLURM_ARRAY_TASK_ID} attempt_2 \
     --dataset breakfast \
     --data_dir rgb-images \
     --flat \
@@ -36,4 +36,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 20000 \
     --log_every 100 \
-    --test_every 5000
+    --test_every 12500
