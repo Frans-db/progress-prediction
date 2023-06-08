@@ -96,6 +96,7 @@ def wandb_init(args):
     if no_wandb:
         return
 
+    # TODO: Config = args (possibly on reruns)
     wandb.init(
         project=args.wandb_project,
         name=args.wandb_name,
@@ -110,11 +111,11 @@ def wandb_init(args):
             "flat": args.flat,
             "bboxes": args.bboxes,
             "shuffle": args.shuffle,
-            'random': args.random,
+            "random_data": args.random,
             "indices": args.indices,
             "indices_normalizer": args.indices_normalizer,
             "subsample": args.subsample,
-            'subsample_fps': args.subsample_fps,
+            "subsample_fps": args.subsample_fps,
             "rsd_type": args.rsd_type,
             "rsd_normalizer": args.rsd_normalizer,
             "fps": args.fps,
