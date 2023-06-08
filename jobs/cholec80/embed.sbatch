@@ -24,7 +24,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --backbone resnet152 \
     --load_backbone resnet152.pth \
     --load_experiment resnet152_cholec80_${SLURM_ARRAY_TASK_ID} \
-    --load_iteration 50000 \
+    --load_iteration 45000 \
     --embed \
     --embed_batch_size 32 \
     --embed_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
