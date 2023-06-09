@@ -80,10 +80,12 @@ class UCFDataset(Dataset):
             boxes = boxes[indices]
             progress = progress[indices]
 
-            for path in paths:
+            for index, path in zip(indices, paths):
                 frame = Image.open(path)
                 if self.transform:
                     frame = self.transform(frame)
+                if self.indices:
+                    frame = torch.full_like(frame, index) / self.indices_normalizer
                 frames.append(frame)
 
             frames = torch.stack(frames)
