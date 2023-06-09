@@ -20,8 +20,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --dataset cholec80 \
     --data_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
-    --train_split t12_p${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split v_p${SLURM_ARRAY_TASK_ID}.txt \
+    --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split v_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
     --network lstmnet \
