@@ -175,6 +175,7 @@ def main():
                 args.rsd_type,
                 args.fps,
                 transform=transform,
+                sample_transform=subsample,
             )
             testset = UCFDataset(
                 data_root,

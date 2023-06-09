@@ -24,6 +24,7 @@ class UCFDataset(Dataset):
         rsd_type: str,
         fps: float,
         transform=None,
+        sample_transform=None
     ) -> None:
         super().__init__()
 
@@ -36,6 +37,7 @@ class UCFDataset(Dataset):
         self.rsd_type = rsd_type
         self.fps = fps
         self.transform = transform
+        self.sample_transform = sample_transform
         self.splitfile = splitfile
         self.index_to_index = []
 
@@ -70,6 +72,14 @@ class UCFDataset(Dataset):
                 return name, frame, progress
         else:
             frames = []
+
+            indices = list(range(len(paths)))
+            if self.sample_transform:
+                indices = self.sample_transform(indices)
+            paths = np.array(paths)[indices]
+            boxes = boxes[indices]
+            progress = progress[indices]
+
             for path in paths:
                 frame = Image.open(path)
                 if self.transform:
