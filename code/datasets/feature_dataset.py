@@ -15,8 +15,8 @@ class FeatureDataset(Dataset):
         splitfile: str,
         flat: bool,
 
-        random: bool,
         subsample_fps: int,
+        random: bool,
 
         indices: bool,
         indices_normalizer: int,
