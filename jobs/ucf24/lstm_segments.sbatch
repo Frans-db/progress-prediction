@@ -14,7 +14,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name lstmnet_segments_ucf24 \
+    --experiment_name lstmnet_ucf24_subsample \
     --dataset ucf24 \
     --data_dir features/resnet152 \
     --feature_dim 2048 \
