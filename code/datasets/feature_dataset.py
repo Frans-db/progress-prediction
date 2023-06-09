@@ -87,7 +87,7 @@ class FeatureDataset(Dataset):
         indices = list(range(data.shape[0]))
         if self.sample_transform:
             indices = self.sample_transform(indices)
-            data = data[indices]
+            data = data[indices, :]
             progress = progress[indices]
             rsd = rsd[indices]
         if self.random:
