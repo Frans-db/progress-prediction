@@ -15,6 +15,9 @@ class FeatureDataset(Dataset):
         splitfile: str,
         flat: bool,
 
+        random: bool,
+        subsample_fps: int,
+
         indices: bool,
         indices_normalizer: int,
 
@@ -27,6 +30,8 @@ class FeatureDataset(Dataset):
         super().__init__()
         self.splitfile = splitfile
         self.flat = flat
+        self.random = random
+        self.subsample_fps = subsample_fps
         self.indices = indices
         self.indices_normalizer = indices_normalizer
         self.rsd_type = rsd_type
@@ -50,13 +55,13 @@ class FeatureDataset(Dataset):
             video_data = torch.FloatTensor(
                 [list(map(float, row.split(" "))) for row in video_data]
             )
-
+            video_data = video_data[::self.subsample_fps, :]
             S, F = video_data.shape
             lengths.append(S)
 
+
             if self.indices:
                 video_data = torch.arange(0, S, dtype=torch.float32).reshape(S, 1).repeat(1, F) / self.indices_normalizer
-                # video_data = torch.cat((video_data, indices), dim=-1)
 
             progress = torch.arange(1, S + 1) / S
 
@@ -65,13 +70,6 @@ class FeatureDataset(Dataset):
                 video_length = video_length / 60
             rsd = progress * video_length
             rsd = torch.flip(rsd, dims=(0, ))
-
-            indices = list(range(S))
-            if self.sample_transform:
-                indices = self.sample_transform(indices)
-            video_data = video_data[indices]
-            progress = progress[indices]
-            rsd = rsd[indices]
 
             if self.flat:
                 for i, (embedding, p, rsd_val) in enumerate(zip(video_data, progress, rsd)):
@@ -85,6 +83,16 @@ class FeatureDataset(Dataset):
 
     def __getitem__(self, index):
         name, data, progress, rsd = self.data[index]
+
+        indices = list(range(data.shape[0]))
+        if self.sample_transform:
+            indices = self.sample_transform(indices)
+            data = data[indices]
+            progress = progress[indices]
+            rsd = rsd[indices]
+        if self.random:
+            data = torch.rand_like(data)
+
         if self.rsd_type != "none":
             return name, data, torch.flip(rsd, dims=(0, )), rsd, progress
         return name, data, progress
