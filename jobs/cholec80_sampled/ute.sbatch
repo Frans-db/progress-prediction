@@ -17,7 +17,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name ute_cholec80_sampled_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
-    --data_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
+    --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
     --flat \
     --train_split t1_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
@@ -31,5 +31,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 1000000 \
     --log_every 100 \
     --test_every 1000 \
-    --num_workers 2 \
-    --subsample_fps 10
+    --num_workers 2
