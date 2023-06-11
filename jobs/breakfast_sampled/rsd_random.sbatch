@@ -15,8 +15,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name rsd_bf_sampled_random_${SLURM_ARRAY_TASK_ID} \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
+    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} good2 \
     --dataset breakfast \
     --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
@@ -38,5 +37,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 10000 \
     --log_every 100 \
     --test_every 1000 \
-    --subsample_fps 15 \
     --random
