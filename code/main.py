@@ -146,9 +146,10 @@ def main():
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
-    subsample = transforms.Compose(
-        [Subsection(), Subsample()] if args.subsample else []
-    )
+    if args.subsample:
+        subsample = transforms.Compose([Subsection(), Subsample()])
+    else:
+        subsample = None
 
     # TODO: Combine datasets
     if "images" in args.data_dir:
