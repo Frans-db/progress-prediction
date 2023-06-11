@@ -45,7 +45,7 @@ def visualise_lengths():
         "features/dense_trajectories",
         f"all.txt",
         False,
-        1,
+        15,
         False,
         False,
         1,
@@ -97,13 +97,13 @@ def visualise_lengths():
     plot_lengths(cholec80_sampled, axs[1,1], 'cholec80 (sampled)')
 
     plot_lengths(ucf24, axs[0,2], 'ucf24')
-
     for ax in axs.flat:
         ax.set(xlabel='length', ylabel='amount')
     # for ax in axs.flat:
     #     ax.label_outer()
 
-    plt.savefig('./aaaa.png')
+    axs[1,2].remove()
+    plt.savefig('./lengths.png')
 
 def main():
     visualise_lengths()
