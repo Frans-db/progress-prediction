@@ -20,7 +20,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
     --indices \
-    --indices_normalizer 2344 \
+    --indices_normalizer 234 \
     --rsd_type minutes \
     --fps 0.1 \
     --rsd_normalizer 5 \

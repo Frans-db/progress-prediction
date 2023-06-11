@@ -20,7 +20,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
     --indices \
-    --indices_normalizer 2344 \
+    --indices_normalizer 234 \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
