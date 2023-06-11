@@ -23,9 +23,8 @@ def plot_lengths(dataset, ax, title):
 
     print(title)
     print(buckets)
-    keys = sorted(list(buckets.keys()))
     ax.set_title(title)
-    ax.bar(keys, [buckets[key] for key in keys])
+    ax.bar(buckets.keys(), buckets.values(), 5)
 
 
 def visualise_lengths():
@@ -90,14 +89,19 @@ def visualise_lengths():
         1,
     )
 
-    figure, (axs) = plt.subplots(2, 3)
-    plot_lengths(breakfast, axs[0, 0], 'breakfast')
-    plot_lengths(breakfast_sampled, axs[1, 0], 'breakfast (sampled)')
+    figure, axs = plt.subplots(2, 3)
+    plot_lengths(breakfast, axs[0,0], 'breakfast')
+    plot_lengths(breakfast_sampled, axs[1,0], 'breakfast (sampled)')
 
-    plot_lengths(cholec80, axs[0, 1], 'cholec80')
-    plot_lengths(cholec80_sampled, axs[1, 1], 'cholec80 (sampled)')
+    plot_lengths(cholec80, axs[0,1], 'cholec80')
+    plot_lengths(cholec80_sampled, axs[1,1], 'cholec80 (sampled)')
 
-    plot_lengths(ucf24, axs[0, 2], 'ucf24')
+    plot_lengths(ucf24, axs[0,2], 'ucf24')
+
+    for ax in axs.flat:
+        ax.set(xlabel='length', ylabel='amount')
+    # for ax in axs.flat:
+    #     ax.label_outer()
 
     plt.savefig('./aaaa.png')
 
