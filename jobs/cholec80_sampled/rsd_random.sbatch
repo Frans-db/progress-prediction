@@ -15,9 +15,9 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} sampled \
+    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} good \
     --dataset cholec80 \
-    --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
+    --data_dir features/resnet152_good_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
     --random \
     --rsd_type minutes \
