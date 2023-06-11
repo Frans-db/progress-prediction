@@ -8,18 +8,19 @@
 #SBATCH --mem=16G
 #SBATCH --mail-type=ALL
 #SBATCH --gres=gpu
+#SBATCH --array=1,2,3,4
 
 module use /opt/insy/modulefiles
 module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name ute_ucf24 \
-    --dataset ucf24 \
-    --data_dir features/resnet152 \
+    --experiment_name ute_cholec80_sampled_${SLURM_ARRAY_TASK_ID} \
+    --dataset cholec80 \
+    --data_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
     --flat \
-    --train_split train_tubes.txt \
-    --test_split test_tubes.txt \
+    --train_split t1_${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 256 \
     --iterations 50000 \
     --network ute \
@@ -30,4 +31,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 1000000 \
     --log_every 100 \
     --test_every 1000 \
-    --num_workers 2
+    --num_workers 2 \
+    --subsample_fps 10

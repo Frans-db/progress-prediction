@@ -14,14 +14,14 @@ class Linear(nn.Module):
 
     def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
         x = self.embedding_dropout(x)
-        x = F.sigmoid(self.fc1(x))
-        x = F.sigmoid(self.fc2(x))
+        x = torch.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
         x = self.fc_last(x)
         return x
 
     def embed(self, x):
         x = self.fc1(x)
-        x = F.sigmoid(x)
+        x = torch.sigmoid(x)
         x = self.fc2(x)
         return x
 

@@ -14,10 +14,12 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name ute_ucf24 \
+    --experiment_name ute_ucf24_indices \
     --dataset ucf24 \
     --data_dir features/resnet152 \
     --flat \
+    --indices \
+    --indices_normalizer 128 \
     --train_split train_tubes.txt \
     --test_split test_tubes.txt \
     --batch_size 256 \
