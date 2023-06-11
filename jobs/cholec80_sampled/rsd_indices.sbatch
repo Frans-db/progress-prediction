@@ -25,7 +25,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --fps 0.1 \
     --rsd_normalizer 5 \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
-    --test_split v_${SLURM_ARRAY_TASK_ID}.txt \
+    --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
     --network rsdnet \
