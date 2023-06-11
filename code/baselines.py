@@ -19,7 +19,7 @@ def get_datasetset_lengths(dataset):
     return lengths
 
 
-def calc_baseline(trainset, testset, plot_name=None):
+def calc_baseline(trainset, testset):
     train_lengths = get_datasetset_lengths(trainset)
     test_lengths = get_datasetset_lengths(testset)
 
@@ -32,8 +32,6 @@ def calc_baseline(trainset, testset, plot_name=None):
         averages[:length] += progress
         counts[:length] += 1
     averages = averages / counts
-    with open('./data/baseline.txt', 'w+') as f:
-        f.write('\n'.join(map(str, averages.tolist())))
 
     count = 0
     average_loss = 0.0
@@ -64,6 +62,7 @@ def ucf_baseline():
         "features/resnet152",
         "train_tubes.txt",
         False,
+        1, False,
         False,
         1,
         "none",
@@ -74,44 +73,18 @@ def ucf_baseline():
         "features/resnet152",
         "test_tubes.txt",
         False,
+        1, False,
         False,
         1,
         "none",
         1,
     )
-    losses = calc_baseline(trainset, testset, plot_name="ucf101-24")
+    losses = calc_baseline(trainset, testset)
     print(f"--- ucf ---")
     print("average", losses[0])
     print("0.5", losses[1])
     print("random", losses[2])
 
-
-def ucf_telic_baseline():
-    trainset = FeatureDataset(
-        os.path.join(DATA_ROOT, "ucf24"),
-        "features/i3d_embeddings",
-        "train_telic_tubes.txt",
-        False,
-        False,
-        1,
-        "none",
-        1,
-    )
-    testset = FeatureDataset(
-        os.path.join(DATA_ROOT, "ucf24"),
-        "features/i3d_embeddings",
-        "test_telic_tubes.txt",
-        False,
-        False,
-        1,
-        "none",
-        1,
-    )
-    losses = calc_baseline(trainset, testset, plot_name="ucf101-24_telic")
-    print(f"--- ucf ---")
-    print("average", losses[0])
-    print("0.5", losses[1])
-    print("random", losses[2])
 
 
 def cholec_baseline():
@@ -120,8 +93,9 @@ def cholec_baseline():
         trainset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/resnet152_0",
-            f"t1_p{i}.txt",
+            f"t12_{i}.txt",
             False,
+            1, False,
             False,
             1,
             "none",
@@ -130,8 +104,9 @@ def cholec_baseline():
         testset = FeatureDataset(
             os.path.join(DATA_ROOT, "cholec80"),
             "features/resnet152_0",
-            f"e_p{i}.txt",
+            f"e_{i}.txt",
             False,
+            1, False,
             False,
             1,
             "none",
@@ -139,95 +114,52 @@ def cholec_baseline():
         )
 
         for i, loss in enumerate(
-            calc_baseline(trainset, testset, plot_name=f"cholec_{i}")
+            calc_baseline(trainset, testset)
         ):
             losses[i] += loss / 4
-        print(losses)
     print(f"--- cholec ---")
     print("average", losses[0])
     print("0.5", losses[1])
     print("random", losses[2])
 
+    losses = [0, 0, 0]
+    for i in range(4):
+        trainset = FeatureDataset(
+            os.path.join(DATA_ROOT, "cholec80"),
+            "features/resnet152_0",
+            f"t12_{i}.txt",
+            False,
+            10, False,
+            False,
+            1,
+            "none",
+            1,
+        )
+        testset = FeatureDataset(
+            os.path.join(DATA_ROOT, "cholec80"),
+            "features/resnet152_0",
+            f"e_{i}.txt",
+            False,
+            10, False,
+            False,
+            1,
+            "none",
+            1,
+        )
 
-def toy_baseline(dataset: str):
-    transform = [transforms.ToTensor()]
-    transform = transforms.Compose(transform)
-
-    trainset = ImageDataset(
-        os.path.join(DATA_ROOT, dataset),
-        "rgb-images",
-        "train.txt",
-        False,
-        False,
-        1,
-        False,
-        transform=transform,
-    )
-    testset = ImageDataset(
-        os.path.join(DATA_ROOT, dataset),
-        "rgb-images",
-        "test.txt",
-        False,
-        False,
-        1,
-        False,
-        transform=transform,
-    )
-    losses = calc_baseline(trainset, testset, plot_name=dataset)
-    print(f"--- {dataset} ---")
+        for i, loss in enumerate(
+            calc_baseline(trainset, testset)
+        ):
+            losses[i] += loss / 4
+    print(f"--- cholec (sampled) ---")
     print("average", losses[0])
     print("0.5", losses[1])
     print("random", losses[2])
+
+
 
 
 def bf_baseline():
-    losses = [0, 0, 0]
-    for activity in [
-        "coffee",
-        "cereals",
-        "tea",
-        "milk",
-        "juice",
-        "sandwich",
-        "scrambledegg",
-        "friedegg",
-        "salat",
-        "pancake",
-    ]:
-        for i in range(1, 2):
-            trainset = FeatureDataset(
-                os.path.join(DATA_ROOT, "breakfast"),
-                "features/dense_trajectories",
-                f"train_{activity}_s{i}.txt",
-                False,
-                False,
-                1,
-                "none",
-                1,
-            )
-            testset = FeatureDataset(
-                os.path.join(DATA_ROOT, "breakfast"),
-                "features/dense_trajectories",
-                f"test_{activity}_s{i}.txt",
-                False,
-                False,
-                1,
-                "none",
-                1,
-            )
-            for i, loss in enumerate(
-                calc_baseline(trainset, testset, plot_name=f"bf_{activity}_{i}")
-            ):
-                losses[i] += loss / 10
-            print(losses)
-
-    print(f"--- bf ---")
-    print("average", losses[0])
-    print("0.5", losses[1])
-    print("random", losses[2])
-
-
-def bf_baseline_all():
     losses = [0, 0, 0]
     for i in range(1, 5):
         trainset = FeatureDataset(
@@ -235,6 +167,7 @@ def bf_baseline_all():
             "features/dense_trajectories",
             f"train_s{i}.txt",
             False,
+            1, False,
             False,
             1,
             "none",
@@ -245,12 +178,13 @@ def bf_baseline_all():
             "features/dense_trajectories",
             f"test_s{i}.txt",
             False,
+            1, False,
             False,
             1,
             "none",
             1,
         )
-        for i, loss in enumerate(calc_baseline(trainset, testset, plot_name=f"bf_{i}")):
+        for i, loss in enumerate(calc_baseline(trainset, testset)):
             losses[i] += loss / 4
 
     print(f"--- bf all ---")
@@ -258,209 +192,43 @@ def bf_baseline_all():
     print("0.5", losses[1])
     print("random", losses[2])
 
+    losses = [0, 0, 0]
+    for i in range(1, 5):
+        trainset = FeatureDataset(
+            os.path.join(DATA_ROOT, "breakfast"),
+            "features/dense_trajectories",
+            f"train_s{i}.txt",
+            False,
+            15, False,
+            False,
+            1,
+            "none",
+            1,
+        )
+        testset = FeatureDataset(
+            os.path.join(DATA_ROOT, "breakfast"),
+            "features/dense_trajectories",
+            f"test_s{i}.txt",
+            False,
+            15, False,
+            False,
+            1,
+            "none",
+            1,
+        )
+        for i, loss in enumerate(calc_baseline(trainset, testset)):
+            losses[i] += loss / 4
 
-def plots():
-    bf = [
-        "bf_1.txt",
-        "bf_2.txt",
-        "bf_3.txt",
-        "bf_4.txt",
-    ]
-    ucf = ["ucf101-24.txt"]
-    cholec80 = [
-        "cholec_0.txt",
-        "cholec_1.txt",
-        "cholec_2.txt",
-        "cholec_3.txt",
-    ]
+    print(f"--- bf all (sampled) ---")
+    print("average", losses[0])
+    print("0.5", losses[1])
+    print("random", losses[2])
 
-    averages = []
-    for dataset in [bf, ucf, cholec80]:
-        datas = []
-        counts = []
-        lengths = []
-        for predictions in dataset:
-            with open(f'data/{predictions}') as f:
-                data = torch.FloatTensor([float(row.strip()) for row in f.readlines()])
-                count = torch.ones(data.shape[0])
-
-                lengths.append(data.shape[0])
-                datas.append(data)
-                counts.append(count)
-        count = torch.zeros(max(lengths))
-        data = torch.zeros(max(lengths))
-        for d,c,l in zip(datas,counts, lengths):
-            count[:l] += c[:l]
-            data[:l] += d[:l]
-        
-        average = data / count
-        averages.append(average)
-    
-    fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(6.4*3.5, 4.8*1.5))
-    axs = [ax0, ax1, ax2]
-
-    ax0.plot(averages[0])
-    ax0.set_title('Breakfast')
-
-    ax1.plot(averages[1])
-    ax1.set_title('UCF101-24')
-
-    ax2.plot(averages[2])
-    ax2.set_title('cholec80')
-
-    for ax in axs:
-        ax.set_xlabel('Frame')
-        ax.set_ylabel('Progress')
-
-    plt.savefig('./plots/all.png')
-            
-            
-
-    # sns.set_theme()
-    # print(sns.load_dataset("dots"))
-    # plot = sns.relplot(
-    #     data=sns.load_dataset("dots"),
-    #     kind="line",
-    #     x="time",
-    #     y="firing_rate",
-    #     col="align",
-    #     hue='choice',
-    # )
-    # plot.fig.savefig("./out.png")
-    # fig.savefig('./out.png')
-
-def visualisation():
-    fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(6.4*4.5, 4.8*1.5))
-    axs = [ax0, ax1, ax2, ax3]
-
-    ax0.plot(list(range(10)), list(map(lambda x: (x+1) / 10, range(10))))
-    ax0.set_title('Video 1')
-
-    ax1.plot(list(range(20)), list(map(lambda x: (x+1) / 20, range(20))))
-    ax1.set_title('Video 2')
-
-    ax2.plot(list(range(30)), list(map(lambda x: (x+1) / 20, range(30))))
-    ax2.set_title('Video 3')
-
-    averages = [0 for i in range(50)]
-    for i in range(10):
-        averages[i] += ((i + 1) / 10) / 3
-        averages[i] += ((i + 1) / 20) / 3
-        averages[i] += ((i + 1) / 30) / 3
-    for i in range(10):
-        averages[i+10] += ((i + 11) / 20) / 2
-        averages[i+10] += ((i + 11) / 30) / 2
-    for i in range(10):
-        averages[i+20] += ((i + 21) / 30) / 1
-    for i in range(20):
-        averages[i+30] = 1
-    ax3.plot(list(range(50)), averages)
-    ax3.set_title('Averages')
-
-    for ax in axs:
-        ax.set_xlabel('Frame')
-        ax.set_ylabel('Progress')
-        ax.set_xlim([0, 50])
-
-    plt.savefig('./plots/visualisation.png')
-
-# def lengths():
-    # print('breakfast')
-    # dataset = FeatureDataset(
-    #     os.path.join(DATA_ROOT, "breakfast"),
-    #     "features/dense_trajectories",
-    #     f"all.txt",
-    #     False,
-    #     False,
-    #     1,
-    #     "none",
-    #     1,
-    # )
-    # print(max(dataset.lengths))
-
-    # print('cholec80')
-    # dataset = FeatureDataset(
-    #         os.path.join(DATA_ROOT, "cholec80"),
-    #         "features/resnet152_0",
-    #         f"all_0.txt",
-    #         False,
-    #         False,
-    #         1,
-    #         "none",
-    #         1,
-    #     )
-    # print(max(dataset.lengths))
-
-    # print('ucf)')
-    # trainset = FeatureDataset(
-    #     os.path.join(DATA_ROOT, "ucf24"),
-    #     "features/resnet152",
-    #     "train_tubes.txt",
-    #     False,
-    #     False,
-    #     1,
-    #     "none",
-    #     1,
-    # )
-    # print(sorted(trainset.lengths))
-    # testset = FeatureDataset(
-    #     os.path.join(DATA_ROOT, "ucf24"),
-    #     "features/resnet152",
-    #     "test_tubes.txt",
-    #     False,
-    #     False,
-    #     1,
-    #     "none",
-    #     1,
-    # )
-    # print(max(trainset.lengths), max(testset.lengths))
 
 def main():
-    # for i in range(20):
-    #     with open(f'./data/{i}.txt') as f:
-    #         predictions = list(map(lambda x: float(x.strip()), f.readlines()))
-    #     with open(f'./data/baseline.txt') as f:
-    #         baseline = list(map(lambda x: float(x.strip()), f.readlines()))
-        
-    #     plt.plot(predictions, label='predictions')
-    #     plt.plot(baseline, label='baseline')
-    #     plt.legend(loc='best')
-    #     plt.xlabel('Frame')
-    #     plt.ylabel('Progress')
-    #     plt.title(f'Video {i}')
-    #     plt.savefig(f'./plots/{i}.png')
-    #     plt.clf()
-    # return
-    # vids = map(lambda x: f'{x:04d}', range(1, 2326 + 1))
-    # train, test = [], []
-    # for video_name in vids:
-    #     path = f'/home/frans/Datasets/Penn_Action/labels/{video_name}.mat'
-    #     mat = scipy.io.loadmat(path)
-    #     if mat['action'][0] in ['jump_rope', 'strum_guitar']:
-    #         continue
-
-    #     if mat['train'][0][0] == 1:
-    #         train.append(video_name)
-    #     else:
-    #         test.append(video_name)
-    # with open('./train.txt', 'w+') as f:
-    #     f.write('\n'.join(train))
-    # with open('./test.txt', 'w+') as f:
-    #     f.write('\n'.join(test))
-    
-    # random.shuffle(vids)
-    # with open('./train.txt', 'w+') as f:
-    #     f.write('\n'.join(map(lambda x: f'{x:04d}', sorted(vids[2326 // 2:]))))
-    # with open('./test.txt', 'w+') as f:
-        # f.write('\n'.join(map(lambda x: f'{x:04d}', sorted(vids[:2326 // 2]))))
-    # visualisation()
-    # toy_baseline('Penn_Action')
-    # toy_baseline('bars_speed')
     ucf_baseline()
-    # cholec_baseline()
-    # bf_baseline()
-    # bf_baseline_all()
-    # lengths()
+    cholec_baseline()
+    bf_baseline()
 
 
 if __name__ == "__main__":
