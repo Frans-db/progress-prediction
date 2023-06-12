@@ -16,7 +16,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name ute_ucf24_indices \
     --dataset ucf24 \
-    --data_dir features/resnet152 \
+    --data_dir features/i3d_embeddings \
     --flat \
     --indices \
     --indices_normalizer 128 \

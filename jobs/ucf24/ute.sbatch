@@ -16,7 +16,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name ute_ucf24 \
     --dataset ucf24 \
-    --data_dir features/resnet152 \
+    --data_dir features/i3d_embeddings \
     --flat \
     --train_split train_tubes.txt \
     --test_split test_tubes.txt \
