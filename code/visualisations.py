@@ -102,7 +102,7 @@ def visualise_lengths():
     # for ax in axs.flat:
     #     ax.label_outer()
 
-    axs[1,2].remove()
+    axs[1,2].set_visible(False)()
     plt.savefig('./lengths.png')
 
 def main():

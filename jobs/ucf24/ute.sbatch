@@ -23,7 +23,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --batch_size 256 \
     --iterations 50000 \
     --network ute \
-    --feature_dim 2048 \
+    --feature_dim 1024 \
     --embed_dim 20 \
     --lr 1e-4 \
     --lr_decay 1.0 \
