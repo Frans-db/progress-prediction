@@ -102,51 +102,5 @@ def wandb_init(args):
         name=args.wandb_name,
         group=args.wandb_group,
         tags=args.wandb_tags,
-        config={
-            # experiment
-            "seed": args.seed,
-            # data
-            "dataset": args.dataset,
-            "data_dir": args.data_dir,
-            "flat": args.flat,
-            "bboxes": args.bboxes,
-            "shuffle": args.shuffle,
-            "random_data": args.random,
-            "indices": args.indices,
-            "indices_normalizer": args.indices_normalizer,
-            "subsample": args.subsample,
-            "subsample_fps": args.subsample_fps,
-            "rsd_type": args.rsd_type,
-            "rsd_normalizer": args.rsd_normalizer,
-            "fps": args.fps,
-            "no_resize": args.no_resize,
-            "train_split": args.train_split,
-            "test_split": args.test_split,
-            # training
-            "batch_size": args.batch_size,
-            "iterations": args.iterations,
-            # network
-            "network": args.network,
-            "backbone": args.backbone,
-            "load_backbone": args.load_backbone,
-            # network parameters
-            "feature_dim": args.feature_dim,
-            "embed_dim": args.embed_dim,
-            "dropout_chance": args.dropout_chance,
-            "pooling_layers": args.pooling_layers,
-            "roi_size": args.roi_size,
-            # network loading
-            "load_experiment": args.load_experiment,
-            "load_iteration": args.load_iteration,
-            # optimizer
-            "optimizer": args.optimizer,
-            "loss": args.loss,
-            "momentum": args.momentum,
-            "betas": (args.beta1, args.beta2),
-            "lr": args.lr,
-            "weight_decay": args.weight_decay,
-            # scheduler
-            "lr_deday": args.lr_decay,
-            "lr_decay_every": args.lr_decay_every,
-        },
+        config=args,
     )
