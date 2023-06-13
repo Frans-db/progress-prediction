@@ -19,13 +19,19 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --dataset cholec80 \
     --data_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
+    --rsd_type minutes \
+    --fps 1 \
+    --rsd_normalizer 5 \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
     --iterations 30000 \
-    --network lstmnet \
+    --network rsdnet \
     --dropout_chance 0.3 \
     --lr_decay 0.1 \
     --lr_decay_every 10000 \
     --log_every 100 \
-    --test_every 5000
+    --test_every 5000 \
+    --subsample \
+    --indices \
+    --indices_normalizer 2308

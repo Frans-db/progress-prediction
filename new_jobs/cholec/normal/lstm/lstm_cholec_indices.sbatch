@@ -28,4 +28,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 10000 \
     --log_every 100 \
-    --test_every 5000
+    --test_every 5000 \
+    --subsample \
+    --indices \
+    --indices_normalizer 2308
