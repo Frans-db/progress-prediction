@@ -66,9 +66,9 @@ results = {
             "indices": 12.6,
         },
         "UTE": {  # TODO: Waiting
-            "normal": 17.1,
-            "segments": 17.1,
-            "indices": 12.1,
+            "normal": 0,
+            "segments": 0,
+            "indices": 0,
         },
         "ProgressNet": {  # TODO: Run 2
             "normal": 12.0,
@@ -173,6 +173,7 @@ def compare(dataset: str, modes: List[str]):
     xticks = BAR_XS * SPACING + BAR_WIDTH * 0.5
 
     plt.axhline(y=results[dataset]["Average Index"]["normal"], linestyle=':', color='grey')
+    plt.axhline(y=results[dataset]["Static 0.5"]["normal"], linestyle=':', color='grey')
     plt.xticks(xticks, networks, rotation=90)
     plt.ylabel("L1 Loss")
     plt.title(f'{dataset} - {" vs ".join(modes)}')
