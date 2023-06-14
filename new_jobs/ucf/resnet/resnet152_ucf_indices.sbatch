@@ -14,6 +14,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
+    --wandb_group indices \
     --dataset ucf24 \
     --data_dir rgb-images \
     --flat \

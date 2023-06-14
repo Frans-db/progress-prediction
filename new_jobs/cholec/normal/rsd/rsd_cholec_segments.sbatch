@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=2:00:00
+#SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
@@ -15,6 +15,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
+    --wandb_group segments \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
     --data_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
