@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=1:00:00
+#SBATCH --time=4:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
@@ -16,12 +16,12 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --wandb_group segments \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} sampled \
+    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset breakfast \
-    --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
+    --data_dir features/resnet152_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
     --rsd_type minutes \
-    --fps 1 \
+    --fps 15 \
     --rsd_normalizer 5 \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
@@ -35,4 +35,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --test_every 5000 \
     --subsample \
     --indices \
-    --indices_normalizer 141
+    --indices_normalizer 1410
