@@ -17,7 +17,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
-    --data_dir features/i3d_embeddings \
+    --data_dir features/i3d_embeddings_sampled \
     --feature_dim 2048 \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
