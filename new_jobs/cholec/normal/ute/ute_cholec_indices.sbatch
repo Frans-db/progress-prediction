@@ -2,7 +2,7 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=1:00:00
+#SBATCH --time=2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
@@ -15,10 +15,10 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --wandb_group normal \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} sampled \
+    --wandb_group indices \
+    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
-    --data_dir features/i3d_embeddings_sampled \
+    --data_dir features/i3d_embeddings \
     --flat \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
@@ -31,4 +31,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 1000000 \
     --log_every 100 \
     --test_every 1000 \
-    --num_workers 2
+    --num_workers 2 \
+    --indices \
+    --indices_normalizer 2308

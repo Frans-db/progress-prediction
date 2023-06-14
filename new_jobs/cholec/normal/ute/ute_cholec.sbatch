@@ -15,10 +15,11 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
+    --wandb_group normal \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset cholec80 \
-    --data_dir features/i3d_embeddings_sampled \
-    --feature_dim 2048 \
+    --data_dir features/i3d_embeddings \
+    --flat \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 256 \
@@ -29,5 +30,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 1.0 \
     --lr_decay_every 1000000 \
     --log_every 100 \
-    --test_every 5000 \
+    --test_every 1000 \
     --num_workers 2

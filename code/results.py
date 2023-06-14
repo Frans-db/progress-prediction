@@ -66,9 +66,9 @@ results = {
             "indices": 12.6,
         },
         "UTE": {  # TODO: Waiting
-            "normal": 0,
-            "segments": 0,
-            "indices": 0,
+            "normal": 17.1,
+            "segments": 17.1,
+            "indices": 12.1,
         },
         "ProgressNet": {  # TODO: Run 2
             "normal": 12.0,
