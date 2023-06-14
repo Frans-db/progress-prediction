@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--splitfile", type=str, default="all.txt")
     parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--subsample_fps", type=int, default=1)
 
     return parser.parse_args()
 
@@ -50,7 +51,7 @@ def main():
             frame_paths = [
                 os.path.join(video_path, frame_name)
                 for frame_name in sorted(os.listdir(video_path))
-            ]
+            ][::args.subsample_fps]
             data.append((video_name, frame_paths))
     elif args.splitfile.endswith(".pkl"):
         pickle_path = os.path.join(data_root, "splitfiles", args.splitfile)
