@@ -31,4 +31,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 1000000 \
     --log_every 100 \
     --test_every 2500 \
-    --num_workers 2
+    --num_workers 2 \
+    --subsample_fps 10
