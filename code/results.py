@@ -178,12 +178,14 @@ def compare(dataset: str, modes: List[str]):
     plt.title(f'{dataset} - {" vs ".join(modes)}')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("./bars.png")
+    plt.savefig(f"./plots/{dataset}_{'_'.join(modes)}.png")
+    plt.clf()
 
 
 def main():
-    compare("UCF101-24", ["normal", "random"])
-    print(plt.style.available)
+    for dataset in ['UCF101-24', 'Cholec80 (sampled)']:
+        compare(dataset, ["normal", "random"])
+        compare(dataset, ["segments", "indices"])
 
 
 if __name__ == "__main__":

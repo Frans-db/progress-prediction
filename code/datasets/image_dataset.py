@@ -98,16 +98,15 @@ class ImageDataset(Dataset):
 
             frame_paths = np.array(frame_paths)
             frame_paths = frame_paths[indices]
-            for frame_path in frame_paths:
-                frame = Image.open(frame_path)
+            for index, path in zip(indices, frame_paths):
+                frame = Image.open(path)
                 if self.transform:
                     frame = self.transform(frame)
+                if self.indices:
+                    frame = torch.full_like(frame, index) / self.indices_normalizer
                 frames.append(frame)
             
             frames = torch.stack(frames)
-            if self.indices:
-                C, H, W = frames[0].shape
-                frames = torch.arange(0, num_frames, dtype=torch.float32).reshape(num_frames, 1, 1, 1).repeat(1, C, H, W)
             if self.random:
                 frames = torch.rand_like(frames)
 
