@@ -19,7 +19,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} sampled \
     --dataset cholec80 \
     --data_dir features/i3d_embeddings \
-    --feature_dim 2048 \
+    --flat \
     --train_split t12_${SLURM_ARRAY_TASK_ID}.txt \
     --test_split e_${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 256 \
