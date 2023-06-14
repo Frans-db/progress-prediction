@@ -228,9 +228,9 @@ def bf_baseline():
 
 
 def main():
-    # ucf_baseline()
+    ucf_baseline()
     cholec_baseline()
-    # bf_baseline()
+    bf_baseline()
 
 
 if __name__ == "__main__":
