@@ -32,7 +32,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --log_every 100 \
     --test_every 10000 \
     --num_workers 2 \
-    --subsample_fps 15 \
+    --subsample_fps 16 \
     --subsample \
     --indices \
     --indices_normalizer 141
