@@ -28,4 +28,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 10000 \
     --log_every 100 \
     --test_every 1000 \
-    --subsample
+    --subsample \
+    --feature_dim 512
