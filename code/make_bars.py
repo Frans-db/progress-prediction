@@ -109,13 +109,15 @@ def visualise(args):
             prog = min(1, prog)
             ax.imshow(frame.T)
             ax.axis('off')
-            ax.set_title(f'{(prog * 100):.1f}')
+            ax.set_title(f'{(prog * 100):.1f}%', y=-0.2, x=0.5, fontsize=8)
             # ax.set_axis('off')
 
         # plt.figure(figsize=(8, 8))
         # plt.imshow(np.transpose(grid, [1, 2, 0]))
         plt.axis('off')
+        plt.tight_layout(pad=1.0)
         plt.savefig(f'./plots/bars/{i:03d}.jpg')
+        plt.savefig(f'./plots/bars/{i:03d}.pdf')
         plt.clf()
 
     subprocess.call([
