@@ -30,5 +30,6 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --log_every 100 \
     --test_every 2500 \
     --num_workers 2 \
-    --subsample
+    --subsample \
+    --feature_dim 512
     
