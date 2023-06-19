@@ -42,11 +42,13 @@ class FeatureDataset(Dataset):
         split_path = os.path.join(root, "splitfiles", splitfile)
         self.splitnames = load_splitfile(split_path)
 
-        self.data, self.lengths = self._get_data(os.path.join(root, data_dir))
+        self.data, self.lengths, self.means, self.stds = self._get_data(os.path.join(root, data_dir))
+        self.stds += 1e-6
 
     def _get_data(self, root: str) -> List[str]:
         data = []
         lengths = []
+        all_data = []
         for video_name in tqdm(self.splitnames):
             path = os.path.join(root, f"{video_name}.txt")
             with open(path) as f:
@@ -71,18 +73,23 @@ class FeatureDataset(Dataset):
             rsd = progress * video_length
             rsd = torch.flip(rsd, dims=(0, ))
 
+            all_data.append(video_data)
+
             if self.flat:
                 for i, (embedding, p, rsd_val) in enumerate(zip(video_data, progress, rsd)):
                     data.append((f"{video_name}_{i}", embedding, p, rsd_val))
             else:
                 data.append((video_name, video_data, progress, rsd))
-        return data, lengths
+        
+        all_data = torch.cat(all_data)
+        return data, lengths, all_data.mean(dim=0), all_data.std(dim=0)
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, index):
         name, data, progress, rsd = self.data[index]
+        data = (data - self.means) / self.stds
 
         indices = list(range(data.shape[0]))
         if self.sample_transform:

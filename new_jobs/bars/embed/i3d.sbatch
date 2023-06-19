@@ -17,5 +17,4 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/i3d_embeddings.py \
     --root /tudelft.net/staff-umbrella/StudentsCVlab/fransdeboer \
     --dataset bars \
     --splitfile all.txt \
-    --save_dir features/i3d_embeddings \
-    --subsample_fps 10
+    --save_dir features/i3d_embeddings

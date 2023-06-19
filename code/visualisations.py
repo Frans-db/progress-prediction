@@ -3,20 +3,23 @@ import torch
 import torch.nn as nn
 import seaborn as sns
 import matplotlib.pyplot as plt
+from typing import List
+from PIL import Image
 
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 
 plt.style.use("seaborn-v0_8-paper")
-plt.rc('axes', titlesize=15)        # Controls Axes Title
-plt.rc('axes', labelsize=15)        # Controls Axes Labels
-plt.rc('xtick', labelsize=12)       # Controls x Tick Labels
-plt.rc('ytick', labelsize=12)       # Controls y Tick Labels
-plt.rc('legend', fontsize=13)       # Controls Legend Font
-plt.rc('figure', titlesize=15)      # Controls Figure Title
+plt.rc("axes", titlesize=15)  # Controls Axes Title
+plt.rc("axes", labelsize=15)  # Controls Axes Labels
+plt.rc("xtick", labelsize=12)  # Controls x Tick Labels
+plt.rc("ytick", labelsize=12)  # Controls y Tick Labels
+plt.rc("legend", fontsize=13)  # Controls Legend Font
+plt.rc("figure", titlesize=15)  # Controls Figure Title
 
 TITLE_X_OFFSET = 0.5
 TITLE_Y_OFFSET = -0.3
 DATA_ROOT = "/home/frans/Datasets"
+
 
 def calc_baseline(train_lengths, test_lengths):
     max_length = max(train_lengths)
@@ -51,6 +54,7 @@ def calc_baseline(train_lengths, test_lengths):
 
     return predictions, average_loss / count
 
+
 def calculate_average_baseline(train_lengths, test_lengths):
     avg_loss = 0
     max_length = 0
@@ -60,11 +64,12 @@ def calculate_average_baseline(train_lengths, test_lengths):
         max_length = max(max_length, max(test))
 
     average_predictions = torch.zeros(max_length)
-    for train,test in zip(train_lengths, test_lengths):
+    for train, test in zip(train_lengths, test_lengths):
         predictions, loss = calc_baseline(train, test)
-        average_predictions += (predictions / len(train_lengths))
+        average_predictions += predictions / len(train_lengths)
         avg_loss += loss / len(train_lengths)
     return average_predictions, avg_loss
+
 
 # def plot_lengths(dataset, ax, title):
 #     lengths = dataset.lengths
@@ -92,94 +97,199 @@ def calculate_average_baseline(train_lengths, test_lengths):
 #     plt.bar(buckets.keys(), buckets.values(), width=bucket_size * 0.9)
 #     plt.savefig('./plots/test.png')
 
-    # figure, axs = plt.subplots(2, 3)
-    # plot_lengths(breakfast, axs[0,0], 'breakfast')
-    # plot_lengths(breakfast_sampled, axs[1,0], 'breakfast (sampled)')
+# figure, axs = plt.subplots(2, 3)
+# plot_lengths(breakfast, axs[0,0], 'breakfast')
+# plot_lengths(breakfast_sampled, axs[1,0], 'breakfast (sampled)')
 
-    # plot_lengths(cholec80, axs[0,1], 'cholec80')
-    # plot_lengths(cholec80_sampled, axs[1,1], 'cholec80 (sampled)')
+# plot_lengths(cholec80, axs[0,1], 'cholec80')
+# plot_lengths(cholec80_sampled, axs[1,1], 'cholec80 (sampled)')
 
-    # plot_lengths(ucf24, axs[0,2], 'ucf24')
-    # for ax in axs.flat:
-    #     ax.set(xlabel='length', ylabel='amount')
+# plot_lengths(ucf24, axs[0,2], 'ucf24')
+# for ax in axs.flat:
+#     ax.set(xlabel='length', ylabel='amount')
 
-    # axs[1,2].set_visible(False)()
-    # plt.savefig('./plots/lengths.pdf')
-    # plt.savefig('./plots/lengths.png')
+# axs[1,2].set_visible(False)()
+# plt.savefig('./plots/lengths.pdf')
+# plt.savefig('./plots/lengths.png')
+
 
 def baseline_example():
-    predictions, average_loss = calc_baseline(
-        [10, 20, 30],
-        [50]
-    )
+    predictions, average_loss = calc_baseline([10, 20, 30], [50])
 
     figure, axs = plt.subplots(1, 2, figsize=(12.8, 4.8))
-    axs[0].plot([0] + [(i+1) / 10 for i in range(10)], label='Video 1')
-    axs[0].plot([0] + [(i+1) / 20 for i in range(20)], label='Video 2')
-    axs[0].plot([0] + [(i+1) / 30 for i in range(30)], label='Video 3')
-    axs[1].plot(predictions, label='predictions')
+    axs[0].plot([0] + [(i + 1) / 10 for i in range(10)], label="Video 1")
+    axs[0].plot([0] + [(i + 1) / 20 for i in range(20)], label="Video 2")
+    axs[0].plot([0] + [(i + 1) / 30 for i in range(30)], label="Video 3")
+    axs[1].plot(predictions, label="predictions")
     for ax in axs.flat:
-        ax.set_xlabel('Frame')
-        ax.set_ylabel('Progress')
+        ax.set_xlabel("Frame")
+        ax.set_ylabel("Progress")
         ax.set_xlim(0, 50)
         # ax.set(xlabel='Frame', ylabel='Progress')
         ax.legend()
-    axs[0].set_title('(a) 3 Videos of length 10, 20, and 30', y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
-    axs[1].set_title('(b) Average Index baseline', y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
+    axs[0].set_title(
+        "(a) 3 Videos of length 10, 20, and 30", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET
+    )
+    axs[1].set_title("(b) Average Index baseline", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
     # for ax in axs.flat:
-        # ax.label_outer()
+    # ax.label_outer()
     plt.tight_layout()
-    plt.savefig('./plots/avg_index_example.pdf')
-    plt.savefig('./plots/avg_index_example.png')
+    plt.savefig("./plots/avg_index_example.pdf")
+    plt.savefig("./plots/avg_index_example.png")
     plt.clf()
-    
+
+
 def baselines():
     train_lengths = []
     test_lengths = []
     for i in range(1, 5):
-        train = ImageDataset(os.path.join(DATA_ROOT, "breakfast"), "rgb-images", f"train_s{i}.txt", False, 1, False, False, 1, False)
-        test = ImageDataset(os.path.join(DATA_ROOT, "breakfast"), "rgb-images", f"test_s{i}.txt", False, 1, False, False, 1, False)
+        train = ImageDataset(
+            os.path.join(DATA_ROOT, "breakfast"),
+            "rgb-images",
+            f"train_s{i}.txt",
+            False,
+            1,
+            False,
+            False,
+            1,
+            False,
+        )
+        test = ImageDataset(
+            os.path.join(DATA_ROOT, "breakfast"),
+            "rgb-images",
+            f"test_s{i}.txt",
+            False,
+            1,
+            False,
+            False,
+            1,
+            False,
+        )
         train_lengths.append(train.lengths)
         test_lengths.append(test.lengths)
-    breakfast_predictions, bf_loss = calculate_average_baseline(train_lengths, test_lengths)
+    breakfast_predictions, bf_loss = calculate_average_baseline(
+        train_lengths, test_lengths
+    )
 
     train_lengths = []
     test_lengths = []
     for i in range(0, 4):
-        train = ImageDataset(os.path.join(DATA_ROOT, "cholec80"), "rgb-images", f"t12_{i}.txt", False, 1, False, False, 1, False)
-        test = ImageDataset(os.path.join(DATA_ROOT, "cholec80"), "rgb-images", f"e_{i}.txt", False, 1, False, False, 1, False)
+        train = ImageDataset(
+            os.path.join(DATA_ROOT, "cholec80"),
+            "rgb-images",
+            f"t12_{i}.txt",
+            False,
+            1,
+            False,
+            False,
+            1,
+            False,
+        )
+        test = ImageDataset(
+            os.path.join(DATA_ROOT, "cholec80"),
+            "rgb-images",
+            f"e_{i}.txt",
+            False,
+            1,
+            False,
+            False,
+            1,
+            False,
+        )
         train_lengths.append(train.lengths)
         test_lengths.append(test.lengths)
-    cholec_predictions, cholec_loss = calculate_average_baseline(train_lengths, test_lengths)
+    cholec_predictions, cholec_loss = calculate_average_baseline(
+        train_lengths, test_lengths
+    )
 
-    train_lengths = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"train.txt", False, False, 1, False, False, 1, 'none', 1).lengths
-    test_lengths = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"test.txt", False, False, 1, False, False, 1, 'none', 1).lengths
+    train_lengths = UCFDataset(
+        os.path.join(DATA_ROOT, "ucf24"),
+        "rgb-images",
+        f"train.txt",
+        False,
+        False,
+        1,
+        False,
+        False,
+        1,
+        "none",
+        1,
+    ).lengths
+    test_lengths = UCFDataset(
+        os.path.join(DATA_ROOT, "ucf24"),
+        "rgb-images",
+        f"test.txt",
+        False,
+        False,
+        1,
+        False,
+        False,
+        1,
+        "none",
+        1,
+    ).lengths
     ucf_predictions, ucf_loss = calc_baseline(train_lengths, test_lengths)
 
-    figure, axs = plt.subplots(1, 3, figsize=(19.2, 4.8*1.3))
-    axs[0].plot(breakfast_predictions, label='Average Index')
-    axs[1].plot(cholec_predictions, label='Average Index')
-    axs[2].plot(ucf_predictions, label='Average Index')
+    figure, axs = plt.subplots(1, 3, figsize=(19.2, 4.8 * 1.3))
+    axs[0].plot(breakfast_predictions, label="Average Index")
+    axs[1].plot(cholec_predictions, label="Average Index")
+    axs[2].plot(ucf_predictions, label="Average Index")
 
     for ax in axs.flat:
-        ax.set_xlabel('Frame')
-        ax.set_ylabel('Progress')
+        ax.set_xlabel("Frame")
+        ax.set_ylabel("Progress")
         ax.legend()
-    axs[0].set_title('(a) Average index baseline on Breakfast', y=TITLE_Y_OFFSET/1.3, x=TITLE_X_OFFSET)
-    axs[1].set_title('(b) Average index baseline on Cholec80', y=TITLE_Y_OFFSET/1.3, x=TITLE_X_OFFSET)
-    axs[2].set_title('(c) Average index baseline on UCF101-24', y=TITLE_Y_OFFSET/1.3, x=TITLE_X_OFFSET)
+    axs[0].set_title(
+        "(a) Average index baseline on Breakfast",
+        y=TITLE_Y_OFFSET / 1.3,
+        x=TITLE_X_OFFSET,
+    )
+    axs[1].set_title(
+        "(b) Average index baseline on Cholec80",
+        y=TITLE_Y_OFFSET / 1.3,
+        x=TITLE_X_OFFSET,
+    )
+    axs[2].set_title(
+        "(c) Average index baseline on UCF101-24",
+        y=TITLE_Y_OFFSET / 1.3,
+        x=TITLE_X_OFFSET,
+    )
 
     print(bf_loss, cholec_loss, ucf_loss)
     plt.tight_layout()
-    plt.savefig('./plots/avg_index_baseline.pdf')
-    plt.savefig('./plots/avg_index_baseline.png')
+    plt.savefig("./plots/avg_index_baseline.pdf")
+    plt.savefig("./plots/avg_index_baseline.png")
     plt.clf()
 
+def visualise_video(frame_path: str, result_paths: List[str]):
+    frame = Image.open(frame_path)
+    fig, axs = plt.subplots(1, 2)
+    for name, path in result_paths:
+        with open(path) as f:
+            data = [float(row.strip()) for row in f.readlines()]
+        axs[1].plot(data, label=name)
+    axs[0].imshow(frame)
+    axs[0].axis('off')
+    axs[1].set_xlabel('Frame')
+    axs[1].set_ylabel('Progress')
+    plt.tight_layout()
+    plt.savefig('./plots/test.png')
+
+        # plt.axis('off')
+        # plt.tight_layout()
+        # plt.savefig(f'./plots/bars/{i:03d}.jpg')
+        # plt.savefig(f'./plots/bars/{i:03d}.pdf')
+        # plt.clf()
 
 def main():
-    baselines()
-    baseline_example()
+    visualise_video(
+        "/home/frans/Datasets/cholec80/rgb-images/video01/frame_017026.jpg",
+        [('forgot', './data/0.txt'), ('forgot2', './data/1.txt')]
+    )
+    # baselines()
+    # baseline_example()
     # visualise_lengths()
+
 
 if __name__ == "__main__":
     main()

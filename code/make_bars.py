@@ -86,7 +86,8 @@ def create_data(args):
 def visualise(args):
     data_dir = os.path.join(args.root, args.save_dir, 'rgb-images')
     video_names = sorted(os.listdir(data_dir))
-    video_names = [video_names[0], video_names[4], video_names[5], video_names[45]]
+    # video_names = [video_names[0], video_names[4], video_names[5], video_names[45]]
+    video_names = [video_names[1], video_names[4], video_names[5], video_names[45]]
 
     frames_per_video = {}
     max_num_frames = 0

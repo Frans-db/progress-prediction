@@ -8,7 +8,8 @@ import pickle
 
 from networks import InceptionI3d
 from datasets import ChunkDataset, load_splitfile
-from experiment import get_device, set_seeds
+from experiment import get_device
+from main import set_seeds
 
 
 def parse_args() -> argparse.Namespace:
