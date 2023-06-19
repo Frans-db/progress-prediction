@@ -24,8 +24,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --iterations 30000 \
     --network lstmnet \
     --dropout_chance 0.3 \
-    --lr_decay 0.1 \
-    --lr_decay_every 10000 \
+    --lr_decay 0.5 \
+    --lr_decay_every 25000 \
     --log_every 100 \
     --test_every 1000 \
     --feature_dim 512

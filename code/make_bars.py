@@ -85,7 +85,8 @@ def create_data(args):
 
 def visualise(args):
     data_dir = os.path.join(args.root, args.save_dir, 'rgb-images')
-    video_names = os.listdir(data_dir)[:16]
+    video_names = sorted(os.listdir(data_dir))
+    video_names = [video_names[0], video_names[4], video_names[5], video_names[45]]
 
     frames_per_video = {}
     max_num_frames = 0
@@ -104,18 +105,18 @@ def visualise(args):
             frame_path = os.path.join(data_dir, video_name, f'{frame_index:05d}.jpg')
             frames.append(read_image(frame_path))
             progress.append((i + 1) / frames_per_video[video_name])
-        fig, axs = plt.subplots(4, 4)
+        fig, axs = plt.subplots(1, 4, figsize=(6.8, 2.2))
         for frame, prog, ax in zip(frames, progress, axs.flat):
             prog = min(1, prog)
-            ax.imshow(frame.T)
+            ax.imshow(transforms.ToPILImage()(frame))
             ax.axis('off')
-            ax.set_title(f'{(prog * 100):.1f}%', y=-0.2, x=0.5, fontsize=8)
+            ax.set_title(f'{(prog * 100):.1f}%', y=-0.25, x=0.5, fontsize=10)
             # ax.set_axis('off')
 
         # plt.figure(figsize=(8, 8))
         # plt.imshow(np.transpose(grid, [1, 2, 0]))
         plt.axis('off')
-        plt.tight_layout(pad=1.0)
+        plt.tight_layout()
         plt.savefig(f'./plots/bars/{i:03d}.jpg')
         plt.savefig(f'./plots/bars/{i:03d}.pdf')
         plt.clf()

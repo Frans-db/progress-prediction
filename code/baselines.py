@@ -19,9 +19,7 @@ def get_datasetset_lengths(dataset):
     return lengths
 
 
-def calc_baseline(trainset, testset):
-    train_lengths = get_datasetset_lengths(trainset)
-    test_lengths = get_datasetset_lengths(testset)
+def calc_baseline(train_lengths, test_lengths):
 
     max_length = max(train_lengths)
     loss = nn.L1Loss(reduction="sum")
@@ -226,11 +224,16 @@ def bf_baseline():
     print("0.5", losses[1])
     print("random", losses[2])
 
+def bars_baseline():
+    train = ImageDataset(os.path.join(DATA_ROOT, "bars"), "rgb-images", f"train.txt", False, 1, False, False, 1, False)
+    test = ImageDataset(os.path.join(DATA_ROOT, "bars"), "rgb-images", f"test.txt", False, 1, False, False, 1, False)
+    print(calc_baseline(train.lengths, test.lengths))
 
 def main():
-    ucf_baseline()
-    cholec_baseline()
-    bf_baseline()
+    bars_baseline()
+    # ucf_baseline()
+    # cholec_baseline()
+    # bf_baseline()
 
 
 if __name__ == "__main__":
