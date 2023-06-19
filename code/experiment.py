@@ -13,13 +13,6 @@ from tqdm import tqdm
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-def set_seeds(seed: int) -> None:
-    torch.random.manual_seed(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-
-
 class Experiment:
     def __init__(
         self,
@@ -31,7 +24,6 @@ class Experiment:
         testloader: DataLoader,
         train_fn,
         experiment_path: str,
-        seed: int,
         result: Dict,
     ) -> None:
         self.device = get_device()
@@ -45,7 +37,6 @@ class Experiment:
         self.experiment_path = experiment_path
         self.result = result
 
-        set_seeds(seed)
         if experiment_path:
             os.mkdir(experiment_path)
 

@@ -4,6 +4,8 @@ from torchvision import transforms
 import torch
 from tqdm import tqdm
 import os
+import random
+import numpy as np
 
 from arguments import parse_args, wandb_init
 from networks import Linear
@@ -13,6 +15,11 @@ from networks import ToyNet, ResNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 from datasets import Subsample, Subsection
 from experiment import Experiment
+
+def set_seeds(seed: int) -> None:
+    torch.random.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def train_flat_features(network, criterion, batch, device, optimizer=None):
@@ -132,6 +139,7 @@ def embed_frames(network, batch, device, batch_size: int):
 
 def main():
     args = parse_args()
+    set_seeds(args.seed)
 
     # root can be set manually, but can also be obtained automatically so wandb sweeps work properly
     if args.root is not None:
@@ -352,7 +360,6 @@ def main():
         testloader,
         train_fn,
         experiment_path,
-        args.seed,
         result,
     )
     experiment.print()
