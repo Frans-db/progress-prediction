@@ -49,9 +49,11 @@ class Experiment:
         print(f"Train {self.trainloader.dataset.splitfile} - {len(self.trainloader.dataset)} ({len(self.trainloader)})")
         if len(self.trainloader.dataset.lengths) > 1:
             print(f'- {statistics.mean(self.trainloader.dataset.lengths)} / {statistics.stdev(self.trainloader.dataset.lengths)}')
+            print(f'- {min(self.trainloader.dataset.lengths)} / {max(self.trainloader.dataset.lengths)}')
         print(f"Test {self.testloader.dataset.splitfile} - {len(self.testloader.dataset)} ({len(self.testloader)})")
         if len(self.testloader.dataset.lengths) > 1:
             print(f'- {statistics.mean(self.testloader.dataset.lengths)} / {statistics.stdev(self.testloader.dataset.lengths)}')
+            print(f'- {min(self.testloader.dataset.lengths)} / {max(self.testloader.dataset.lengths)}')
         print("--- Optimizer & Scheduler ---")
         print(self.optimizer)
         print(self.scheduler)
