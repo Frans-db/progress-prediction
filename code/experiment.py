@@ -23,6 +23,7 @@ class Experiment:
         trainloader: DataLoader,
         testloader: DataLoader,
         train_fn,
+        max_length: int,
         experiment_path: str,
         result: Dict,
     ) -> None:
@@ -34,6 +35,7 @@ class Experiment:
         self.trainloader = trainloader
         self.testloader = testloader
         self.train_fn = train_fn
+        self.max_length = max_length
         self.experiment_path = experiment_path
         self.result = result
 
@@ -64,6 +66,7 @@ class Experiment:
                     self.network,
                     self.criterion,
                     batch,
+                    self.max_length,
                     self.device,
                     optimizer=self.optimizer,
                 )
@@ -77,7 +80,7 @@ class Experiment:
                         for batch in self.testloader:
                             # split option?
                             batch_result = self.train_fn(
-                                self.network, self.criterion, batch, self.device
+                                self.network, self.criterion, batch, self.max_length, self.device
                             )
                             self._add_result(test_result, batch_result)
                     test_result = self._log(test_result, iteration, "test")
@@ -100,7 +103,7 @@ class Experiment:
         with torch.no_grad():
             for batch in tqdm(self.testloader):
                 batch_result = self.train_fn(
-                    self.network, self.criterion, batch, self.device
+                    self.network, self.criterion, batch, self.max_length, self.device
                 )
                 self._add_result(test_result, batch_result)
         for key in test_result:

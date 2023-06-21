@@ -15,6 +15,7 @@ class ProgressNet(nn.Module):
         roi_size: int,
         dropout_chance: float,
         embed_dim: int,
+        finetune: bool,
         backbone: str,
         backbone_path: str = None,
     ) -> None:
@@ -46,6 +47,10 @@ class ProgressNet(nn.Module):
 
         self.lstm1 = nn.LSTM(64, 32, batch_first=True)
         self.lstm2 = nn.LSTM(32, 32, batch_first=True)
+
+        if finetune:
+            for param in self.parameters():
+                param.requires_grad = False
 
         self.fc8 = nn.Linear(32, 1)
 

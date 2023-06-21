@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-def train_flat_features(network, criterion, batch, device, optimizer=None, return_results=False):
+def train_flat_features(network, criterion, batch, max_length, device, optimizer=None, return_results=False):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     _, data, progress = batch
@@ -23,7 +23,7 @@ def train_flat_features(network, criterion, batch, device, optimizer=None, retur
     }
 
 
-def train_flat_frames(network, criterion, batch, device, optimizer=None):
+def train_flat_frames(network, criterion, batch, max_length, device, optimizer=None):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
@@ -45,15 +45,22 @@ def train_flat_frames(network, criterion, batch, device, optimizer=None):
     }
 
 
-def train_progress(network, criterion, batch, device, optimizer=None, return_results=False):
+def train_progress(network, criterion, batch, max_length, device, optimizer=None, return_results=False):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
-    data = batch[1:-1]
-    data = tuple([d.to(device) for d in data])
 
+    # TODO: Split batch into segments of max_length
+    data = batch[1:-1]
     S = data[0].shape[1]
-    predicted_progress = network(*data)
+
+    predicted_progress = []
+    data = tuple([torch.split(d, max_length, dim=1) for d in data])
+    for samples in zip(*data):
+        samples = tuple([sample.to(device) for sample in samples])
+        predicted_progress.append(network(*samples))
+    predicted_progress = torch.cat(predicted_progress, dim=-1)
+
     if return_results:
         return predicted_progress.cpu()
     progress = progress.to(device)
@@ -69,7 +76,7 @@ def train_progress(network, criterion, batch, device, optimizer=None, return_res
     }
 
 
-def train_rsd(network, criterion, batch, device, optimizer=None, return_results=False):
+def train_rsd(network, criterion, batch, max_length, device, optimizer=None, return_results=False):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     smooth_l1_loss = nn.SmoothL1Loss(reduction="sum")

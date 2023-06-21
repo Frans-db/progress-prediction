@@ -31,19 +31,25 @@ class RSDNetFlat(nn.Module):
         return self.backbone(frames)
 
 class LSTMNet(nn.Module):
-    def __init__(self, feature_dim: int, dropout_chance: float) -> None:
+    def __init__(self, feature_dim: int, dropout_chance: float, finetune: bool) -> None:
         super().__init__()
 
         self.cnn_dropout = nn.Dropout(p=dropout_chance)
         self.lstm_dropout = nn.Dropout(p=dropout_chance)
         
-        self.lstm1 = nn.LSTM(feature_dim, 1024, batch_first=True)
-        self.fc_progress = nn.Linear(1024, 1)
+        self.lstm1 = nn.LSTM(feature_dim, 512, batch_first=True)
+
+        if finetune:
+            for param in self.parameters():
+                param.requires_grad = False
+    
+        self.fc_progress = nn.Linear(512, 1)
 
     def forward(self, data: torch.FloatTensor) -> torch.FloatTensor:
         B, S, _ = data.shape
         data = self.cnn_dropout(data)
         data, _ = self.lstm1(data)
+
         data = self.lstm_dropout(data)
 
         progress = torch.sigmoid(self.fc_progress(data))
@@ -51,7 +57,7 @@ class LSTMNet(nn.Module):
         return progress.reshape(B, S)    
 
 class RSDNet(nn.Module):
-    def __init__(self, feature_dim: int, rsd_normalizer: float, dropout_chance: float) -> None:
+    def __init__(self, feature_dim: int, rsd_normalizer: float, dropout_chance: float, finetune: bool) -> None:
         super().__init__()
         self.rsd_normalizer = rsd_normalizer
 
@@ -59,6 +65,11 @@ class RSDNet(nn.Module):
         self.lstm_dropout = nn.Dropout(p=dropout_chance)
 
         self.lstm1 = nn.LSTM(feature_dim, 512, batch_first=True)
+
+        if finetune:
+            for param in self.parameters():
+                param.requires_grad = False
+
         self.fc_rsd = nn.Linear(512 + 1, 1)
         self.fc_progress = nn.Linear(512 + 1, 1)
 

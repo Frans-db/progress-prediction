@@ -24,6 +24,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--indices", action="store_true")
     parser.add_argument("--indices_normalizer", type=float, default=1.0)
     parser.add_argument("--subsample", action="store_true")
+    parser.add_argument('--max_length', type=int, default=1000000)
     parser.add_argument("--subsample_fps", type=int, default=1)
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
@@ -55,6 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dropout_chance", type=float, default=0.0)
     parser.add_argument("--pooling_layers", nargs="+", type=int, default=[1, 2, 3])
     parser.add_argument("--roi_size", type=int, default=3)
+    parser.add_argument('--finetune', action='store_true')
     # network loading
     parser.add_argument("--load_experiment", type=str, default=None)
     parser.add_argument("--load_iteration", type=int, default=None)

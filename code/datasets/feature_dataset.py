@@ -64,7 +64,6 @@ class FeatureDataset(Dataset):
 
             if self.indices:
                 video_data = torch.arange(0, S, dtype=torch.float32).reshape(S, 1).repeat(1, F) / self.indices_normalizer
-
             progress = torch.arange(1, S + 1) / S
 
             video_length = (S / self.fps)

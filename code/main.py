@@ -13,7 +13,7 @@ from networks import ProgressNet
 from networks import RSDNet, RSDNetFlat, LSTMNet
 from networks import ToyNet, ResNet
 from datasets import FeatureDataset, ImageDataset, UCFDataset
-from datasets import Subsample, Subsection
+from datasets import Subsample, Subsection, Truncate
 from experiment import Experiment
 from train_functions import train_flat_features, train_flat_frames, train_progress, train_rsd, embed_frames
 
@@ -41,7 +41,7 @@ def main():
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
 
     if args.subsample:
-        subsample = transforms.Compose([Subsection(), Subsample()])
+        subsample = transforms.Compose([Subsection(), Subsample(), Truncate(args.max_length)])
     else:
         subsample = None
 
@@ -158,15 +158,16 @@ def main():
             args.roi_size,
             args.dropout_chance,
             args.embed_dim,
+            args.finetune,
             args.backbone,
             backbone_path,
         )
     elif args.network == "rsdnet_flat":
         network = RSDNetFlat(args.backbone, backbone_path)
     elif args.network == 'lstmnet':
-        network = LSTMNet(args.feature_dim, args.dropout_chance)
+        network = LSTMNet(args.feature_dim, args.dropout_chance, args.finetune)
     elif args.network == "rsdnet":
-        network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance)
+        network = RSDNet(args.feature_dim, args.rsd_normalizer, args.dropout_chance, args.finetune)
     elif args.network == "ute":
         network = Linear(args.feature_dim, args.embed_dim, args.dropout_chance)
     elif args.network == "toynet":
@@ -245,6 +246,7 @@ def main():
         trainloader,
         testloader,
         train_fn,
+        args.max_length,
         experiment_path,
         result,
     )

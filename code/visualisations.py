@@ -68,6 +68,7 @@ def calculate_average_baseline(train_lengths, test_lengths):
         predictions, loss = calc_baseline(train, test)
         average_predictions += predictions / len(train_lengths)
         avg_loss += loss / len(train_lengths)
+        print(loss)
     return average_predictions, avg_loss
 
 
@@ -165,6 +166,9 @@ def baselines():
     train_lengths = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"train.txt").lengths
     test_lengths = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"test.txt").lengths
     ucf_predictions, ucf_loss = calc_baseline(train_lengths, test_lengths)
+    print(f'BF: {bf_loss:.2f}')
+    print(f'C80: {cholec_loss:.2f}')
+    print(f'UCF: {ucf_loss:.2f}')
 
     figure, axs = plt.subplots(1, 3, figsize=(19.2, 4.8 * 1.3))
     axs[0].plot(breakfast_predictions, label="Average Index")
@@ -256,7 +260,7 @@ def visualise_video(frame_path: str, result_paths: List[str], length: int):
         # plt.clf()
 
 def main():
-    # baselines()
+    baselines()
     visualise_video(
         "/home/frans/Datasets/cholec80/rgb-images/video04/frame_017026.jpg",
         [('Average Index', './data/cholec_baseline.txt'), 
