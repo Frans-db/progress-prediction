@@ -16,6 +16,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name ute_cholec80_sampled_${SLURM_ARRAY_TASK_ID} \
+    --wandb_project saved \
     --wandb_group normal \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} sampled \
     --dataset cholec80 \
