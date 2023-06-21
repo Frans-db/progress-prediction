@@ -31,4 +31,17 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 10000 \
     --log_every 100 \
-    --test_every 5000
+    --test_every 5000 
+
+# srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+#     --seed 42 \
+#     --load_experiment lstmnet_cholec80_sampled_0 \
+#     --load_iteration 50000 \
+#     --dataset cholec80 \
+#     --data_dir features/resnet152_sampled_0 \
+#     --feature_dim 2048 \
+#     --train_split video04.txt \
+#     --test_split video04.txt \
+#     --batch_size 1 \
+#     --network lstmnet \
+#     --save_dir lstm_cholec

@@ -15,14 +15,14 @@ class ImageDataset(Dataset):
         root: str,
         data_dir: str,
         splitfile: str,
-        flat: bool,
+        flat: bool = False,
 
-        subsample_fps: int,
+        subsample_fps: int = 1,
 
-        random_data: bool,
-        indices: bool,
-        indices_normalizer: int,
-        shuffle: bool,
+        random_data: bool = False,
+        indices: bool = False,
+        indices_normalizer: int = 1,
+        shuffle: bool = False,
 
         transform=None,
         sample_transform=None,

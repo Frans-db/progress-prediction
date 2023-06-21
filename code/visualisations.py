@@ -9,12 +9,12 @@ from PIL import Image
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 
 plt.style.use("seaborn-v0_8-paper")
-plt.rc("axes", titlesize=15)  # Controls Axes Title
-plt.rc("axes", labelsize=15)  # Controls Axes Labels
-plt.rc("xtick", labelsize=12)  # Controls x Tick Labels
-plt.rc("ytick", labelsize=12)  # Controls y Tick Labels
-plt.rc("legend", fontsize=13)  # Controls Legend Font
-plt.rc("figure", titlesize=15)  # Controls Figure Title
+# plt.rc("axes", titlesize=15)  # Controls Axes Title
+# plt.rc("axes", labelsize=15)  # Controls Axes Labels
+# plt.rc("xtick", labelsize=12)  # Controls x Tick Labels
+# plt.rc("ytick", labelsize=12)  # Controls y Tick Labels
+# plt.rc("legend", fontsize=13)  # Controls Legend Font
+# plt.rc("figure", titlesize=15)  # Controls Figure Title
 
 TITLE_X_OFFSET = 0.5
 TITLE_Y_OFFSET = -0.3
@@ -143,28 +143,8 @@ def baselines():
     train_lengths = []
     test_lengths = []
     for i in range(1, 5):
-        train = ImageDataset(
-            os.path.join(DATA_ROOT, "breakfast"),
-            "rgb-images",
-            f"train_s{i}.txt",
-            False,
-            1,
-            False,
-            False,
-            1,
-            False,
-        )
-        test = ImageDataset(
-            os.path.join(DATA_ROOT, "breakfast"),
-            "rgb-images",
-            f"test_s{i}.txt",
-            False,
-            1,
-            False,
-            False,
-            1,
-            False,
-        )
+        train = ImageDataset(os.path.join(DATA_ROOT, "breakfast"), "rgb-images", f"train_s{i}.txt")
+        test = ImageDataset(os.path.join(DATA_ROOT, "breakfast"), "rgb-images", f"test_s{i}.txt")
         train_lengths.append(train.lengths)
         test_lengths.append(test.lengths)
     breakfast_predictions, bf_loss = calculate_average_baseline(
@@ -174,60 +154,16 @@ def baselines():
     train_lengths = []
     test_lengths = []
     for i in range(0, 4):
-        train = ImageDataset(
-            os.path.join(DATA_ROOT, "cholec80"),
-            "rgb-images",
-            f"t12_{i}.txt",
-            False,
-            1,
-            False,
-            False,
-            1,
-            False,
-        )
-        test = ImageDataset(
-            os.path.join(DATA_ROOT, "cholec80"),
-            "rgb-images",
-            f"e_{i}.txt",
-            False,
-            1,
-            False,
-            False,
-            1,
-            False,
-        )
+        train = ImageDataset(os.path.join(DATA_ROOT, "cholec80"), "rgb-images", f"t12_{i}.txt", subsample_fps=10)
+        test = ImageDataset(os.path.join(DATA_ROOT, "cholec80"), "rgb-images", f"e_{i}.txt", subsample_fps=10)
         train_lengths.append(train.lengths)
         test_lengths.append(test.lengths)
     cholec_predictions, cholec_loss = calculate_average_baseline(
         train_lengths, test_lengths
     )
 
-    train_lengths = UCFDataset(
-        os.path.join(DATA_ROOT, "ucf24"),
-        "rgb-images",
-        f"train.txt",
-        False,
-        False,
-        1,
-        False,
-        False,
-        1,
-        "none",
-        1,
-    ).lengths
-    test_lengths = UCFDataset(
-        os.path.join(DATA_ROOT, "ucf24"),
-        "rgb-images",
-        f"test.txt",
-        False,
-        False,
-        1,
-        False,
-        False,
-        1,
-        "none",
-        1,
-    ).lengths
+    train_lengths = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"train.txt").lengths
+    test_lengths = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"test.txt").lengths
     ucf_predictions, ucf_loss = calc_baseline(train_lengths, test_lengths)
 
     figure, axs = plt.subplots(1, 3, figsize=(19.2, 4.8 * 1.3))
@@ -235,45 +171,83 @@ def baselines():
     axs[1].plot(cholec_predictions, label="Average Index")
     axs[2].plot(ucf_predictions, label="Average Index")
 
-    for ax in axs.flat:
-        ax.set_xlabel("Frame")
-        ax.set_ylabel("Progress")
-        ax.legend()
-    axs[0].set_title(
-        "(a) Average index baseline on Breakfast",
-        y=TITLE_Y_OFFSET / 1.3,
-        x=TITLE_X_OFFSET,
-    )
-    axs[1].set_title(
-        "(b) Average index baseline on Cholec80",
-        y=TITLE_Y_OFFSET / 1.3,
-        x=TITLE_X_OFFSET,
-    )
-    axs[2].set_title(
-        "(c) Average index baseline on UCF101-24",
-        y=TITLE_Y_OFFSET / 1.3,
-        x=TITLE_X_OFFSET,
-    )
+    with open('./data/bf_baseline.txt', 'w+') as f:
+        f.write('\n'.join([str(val) for val in breakfast_predictions.tolist()]))
+    with open('./data/cholec_baseline.txt', 'w+') as f:
+        f.write('\n'.join([str(val) for val in cholec_predictions.tolist()]))
+    with open('./data/ucf_baseline.txt', 'w+') as f:
+        f.write('\n'.join([str(val) for val in ucf_predictions.tolist()]))
+    # for ax in axs.flat:
+    #     ax.set_xlabel("Frame")
+    #     ax.set_ylabel("Progress")
+    #     ax.legend()
+    # axs[0].set_title(
+    #     "(a) Average index baseline on Breakfast",
+    #     y=TITLE_Y_OFFSET / 1.3,
+    #     x=TITLE_X_OFFSET,
+    # )
+    # axs[1].set_title(
+    #     "(b) Average index baseline on Cholec80",
+    #     y=TITLE_Y_OFFSET / 1.3,
+    #     x=TITLE_X_OFFSET,
+    # )
+    # axs[2].set_title(
+    #     "(c) Average index baseline on UCF101-24",
+    #     y=TITLE_Y_OFFSET / 1.3,
+    #     x=TITLE_X_OFFSET,
+    # )
 
-    print(bf_loss, cholec_loss, ucf_loss)
-    plt.tight_layout()
-    plt.savefig("./plots/avg_index_baseline.pdf")
-    plt.savefig("./plots/avg_index_baseline.png")
-    plt.clf()
+    # print(bf_loss, cholec_loss, ucf_loss)
+    # plt.tight_layout()
+    # plt.savefig("./plots/avg_index_baseline.pdf")
+    # plt.savefig("./plots/avg_index_baseline.png")
+    # plt.clf()
+# BASELINE_COLOUR = 'blue'
+# LEARNER_COLOUR = 'red'
+# METHOD_COLOUR = 'green'
+theme = {
+    'Average Index': ('blue', ':'),
+    'Static 0.5': ('red', ':'),
+    'ResNet-2D': ('blue', '-.'),
+    'ResNet-LSTM': ('red', '-.'),
+    'RSDNet': ('blue', '-'),
+    'UTE': ('red', '-') 
+}
 
-def visualise_video(frame_path: str, result_paths: List[str]):
+def visualise_video(frame_path: str, result_paths: List[str], length: int):
     frame = Image.open(frame_path)
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, figsize=(8.4, 4.2))
+
+    truth = [(i + 1) / length for i in range(length)]
+    axs[1].plot(truth, label='Ground Truth', color='purple')
+
+    static = [0.5 for _ in range(length)]
+    axs[1].plot(static, label='Static 0.5', color=theme['Static 0.5'][0], linestyle=theme['Static 0.5'][1])
+
     for name, path in result_paths:
         with open(path) as f:
-            data = [float(row.strip()) for row in f.readlines()]
-        axs[1].plot(data, label=name)
+            data = [float(row.strip()) for row in f.readlines()][:length]
+        axs[1].plot(data, label=name, color=theme[name][0], linestyle=theme[name][1])
+
+
     axs[0].imshow(frame)
     axs[0].axis('off')
     axs[1].set_xlabel('Frame')
     axs[1].set_ylabel('Progress')
+
+    plt.grid(axis='y')
+    yticks = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    ytick_labels = ['0%', '20%', '40%', '60%', '80%', '100%']
+    axs[1].tick_params(axis='y', length = 0)
+    axs[1].set_yticks(yticks, ytick_labels)
+    axs[1].set_xlim(0, length)
+
+
+    # axs[1].legend()
+    plt.legend()
     plt.tight_layout()
     plt.savefig('./plots/test.png')
+    plt.clf()
 
         # plt.axis('off')
         # plt.tight_layout()
@@ -282,11 +256,15 @@ def visualise_video(frame_path: str, result_paths: List[str]):
         # plt.clf()
 
 def main():
-    visualise_video(
-        "/home/frans/Datasets/cholec80/rgb-images/video01/frame_017026.jpg",
-        [('forgot', './data/0.txt'), ('forgot2', './data/1.txt')]
-    )
     # baselines()
+    visualise_video(
+        "/home/frans/Datasets/cholec80/rgb-images/video04/frame_017026.jpg",
+        [('Average Index', './data/cholec_baseline.txt'), 
+         ('ResNet-LSTM', './data/lstm_cholec/video04.txt'), 
+         ('RSDNet', './data/rsd_cholec/video04.txt'),
+         ('UTE', './data/ute_cholec/video04_0.txt')],
+        153
+    )
     # baseline_example()
     # visualise_lengths()
 

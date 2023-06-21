@@ -45,9 +45,11 @@ class Experiment:
         print(self.network)
         print("--- Datasets ---")
         print(f"Train {self.trainloader.dataset.splitfile} - {len(self.trainloader.dataset)} ({len(self.trainloader)})")
-        print(f'- {statistics.mean(self.trainloader.dataset.lengths)} / {statistics.stdev(self.trainloader.dataset.lengths)}')
+        if len(self.trainloader.dataset.lengths) > 1:
+            print(f'- {statistics.mean(self.trainloader.dataset.lengths)} / {statistics.stdev(self.trainloader.dataset.lengths)}')
         print(f"Test {self.testloader.dataset.splitfile} - {len(self.testloader.dataset)} ({len(self.testloader)})")
-        print(f'- {statistics.mean(self.testloader.dataset.lengths)} / {statistics.stdev(self.testloader.dataset.lengths)}')
+        if len(self.testloader.dataset.lengths) > 1:
+            print(f'- {statistics.mean(self.testloader.dataset.lengths)} / {statistics.stdev(self.testloader.dataset.lengths)}')
         print("--- Optimizer & Scheduler ---")
         print(self.optimizer)
         print(self.scheduler)
@@ -107,6 +109,23 @@ class Experiment:
             print(f'{key}: {test_result[key] / test_result["count"]}')
         self.network.train()
 
+    def save(self, save_dir: str) -> None:
+        self.network.eval()
+        with torch.no_grad():
+            for i, batch in enumerate(tqdm(self.testloader)):
+                progress = self.train_fn(
+                    self.network,
+                    self.criterion,
+                    batch,
+                    self.device,
+                    return_results=True,
+                )
+                progress = torch.flatten(progress).tolist()
+                txt = '\n'.join(map(str, progress))
+                with open(f'./data/{save_dir}/{batch[0][0]}.txt', 'w+') as f:
+                    f.write(txt)
+        self.network.train()
+    
     @staticmethod
     def _add_result(result: Dict, batch_result: Dict) -> None:
         for key in result:

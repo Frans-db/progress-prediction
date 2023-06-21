@@ -34,3 +34,31 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --log_every 100 \
     --test_every 1000 \
     --num_workers 2
+
+# srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+#     --seed 42 \
+#     --load_experiment ute_cholec80_sampled_0 \
+#     --load_iteration 50000 \
+#     --dataset cholec80 \
+#     --data_dir features/i3d_embeddings_sampled \
+#     --flat \
+#     --train_split video04.txt \
+#     --test_split video04.txt \
+#     --batch_size 100000 \
+#     --network ute \
+#     --feature_dim 1024 \
+#     --embed_dim 20 \
+#     --save_dir ute_cholec
+
+# srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+#     --seed 42 \
+#     --load_experiment lstmnet_cholec80_sampled_0 \
+#     --load_iteration 50000 \
+#     --dataset cholec80 \
+#     --data_dir features/resnet152_sampled_0 \
+#     --feature_dim 2048 \
+#     --train_split video04.txt \
+#     --test_split video04.txt \
+#     --batch_size 1 \
+#     --network lstmnet \
+#     --save_dir lstm_cholec

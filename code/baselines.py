@@ -231,9 +231,9 @@ def bars_baseline():
 
 def main():
     bars_baseline()
-    # ucf_baseline()
-    # cholec_baseline()
-    # bf_baseline()
+    ucf_baseline()
+    cholec_baseline()
+    bf_baseline()
 
 
 if __name__ == "__main__":
