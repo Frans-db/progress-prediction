@@ -29,9 +29,6 @@ class ProgressNet(nn.Module):
         if backbone_path:
             self.backbone.load_state_dict(torch.load(backbone_path))
 
-        for param in self.backbone.parameters():
-            param.requires_grad = False
-
         pooling_size = sum(map(lambda x: x**2, pooling_layers))
         self.roi_size = roi_size
 
