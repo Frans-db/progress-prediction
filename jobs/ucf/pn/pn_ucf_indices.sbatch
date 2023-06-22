@@ -34,4 +34,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --num_workers 2 \
     --subsample \
     --indices \
-    --indices_normalizer 128
+    --indices_normalizer 128 \
+    --max_length 600
