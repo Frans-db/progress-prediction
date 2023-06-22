@@ -9,7 +9,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--experiment_name", type=str, default=None)
     parser.add_argument("--root", type=str, default=None)
     # wandb
-    parser.add_argument("--wandb_project", type=str, default="new_experiments")
+    parser.add_argument("--wandb_project", type=str, default="final")
     parser.add_argument("--wandb_name", type=str, default=None)
     parser.add_argument("--wandb_tags", type=str, nargs="+")
     parser.add_argument("--wandb_group", type=str, default=None)
