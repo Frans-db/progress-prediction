@@ -56,6 +56,9 @@ def train_progress(network, criterion, batch, max_length, device, optimizer=None
 
     predicted_progress = []
     data = tuple([torch.split(d, max_length, dim=1) for d in data])
+    if getattr(network, 'reset', None):
+        print('reset progressnet')
+        network.reset()
     for samples in zip(*data):
         samples = tuple([sample.to(device) for sample in samples])
         predicted_progress.append(network(*samples))

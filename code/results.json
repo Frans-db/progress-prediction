@@ -1,0 +1,180 @@
+{
+    "UCF101-24": {
+        "ResNet 2D": {
+            "full video": 25.8,
+            "video segments": 25.8,
+            "indices": 14.1
+        },
+        "ResNet\n-LSTM": {
+            "full video": 24.4,
+            "random": 17.1,
+            "video segments": 24.5,
+            "indices": 18.0
+        },
+        "UTE": {
+            "full video": 24.7,
+            "video segments": 24.7,
+            "indices": 14.1
+        },
+        "ProgressNet": {
+            "full video": 13.6,
+            "random": 17.4,
+            "video segments": 26.6,
+            "indices": 19.2
+        },
+        "RSDNet": {
+            "full video": 24.5,
+            "random": 17.3,
+            "video segments": 25.1,
+            "indices": 18.3
+        },
+        "Static 0.5": {
+            "full video": 25.0,
+            "random": 25.0,
+            "video segments": 25.0,
+            "indices": 25.0
+        },
+        "Random": {
+            "full video": 33.3,
+            "random": 33.3,
+            "video segments": 33.3,
+            "indices": 33.3
+        },
+        "Average Index": {
+            "full video": 14.2,
+            "random": 14.2,
+            "video segments": 14.2,
+            "indices": 14.2
+        }
+    },
+    "Cholec80": {
+        "ResNet 2D": {
+            "full video": 17.9,
+            "video segments": 17.9,
+            "indices": 12.3
+        },
+        "ResNet\n-LSTM": {
+            "full video": 9.8,
+            "random": 12.2,
+            "video segments": 12.4,
+            "indices": 12.5
+        },
+        "UTE": {
+            "full video": 17.2,
+            "video segments": 17.2,
+            "indices": 11.7
+        },
+        "ProgressNet": {
+            "full video": 21.9,
+            "random": 19.2,
+            "video segments": 26.8,
+            "indices": 19.1
+        },
+        "RSDNet": {
+            "full video": 11.0,
+            "random": 14.1,
+            "video segments": 14.6,
+            "indices": 19.4
+        },
+        "Static 0.5": {
+            "full video": 25.0,
+            "random": 25.0,
+            "video segments": 25.0,
+            "indices": 25.0
+        },
+        "Random": {
+            "full video": 33.3,
+            "random": 33.3,
+            "video segments": 33.3,
+            "indices": 33.3
+        },
+        "Average Index": {
+            "full video": 11.9,
+            "random": 11.9,
+            "video segments": 11.9,
+            "indices": 11.9
+        }
+    },
+    "Breakfast": {
+        "ResNet 2D": {
+            "full video": 27.1,
+            "video segments": 27.1,
+            "indices": 16.7
+        },
+        "ResNet\n-LSTM": {
+            "full video": 31.1,
+            "random": 19.0,
+            "video segments": 26.4,
+            "indices": 20.0
+        },
+        "UTE": {
+            "full video": 25.3,
+            "video segments": 25.3,
+            "indices": 16.4
+        },
+        "ProgressNet": {
+            "full video": 21.9,
+            "random": 19.2,
+            "video segments": 26.8,
+            "indices": 19.1
+        },
+        "RSDNet": {
+            "full video": 30.1,
+            "random": 19.2,
+            "video segments": 27.2,
+            "indices": 24.2
+        },
+        "Static 0.5": {
+            "full video": 25.0,
+            "random": 25.0,
+            "video segments": 25.0,
+            "indices": 25.0
+        },
+        "Random": {
+            "full video": 33.3,
+            "random": 33.3,
+            "video segments": 33.3,
+            "indices": 33.3
+        },
+        "Average Index": {
+            "full video": 16.7,
+            "random": 16.7,
+            "video segments": 16.7,
+            "indices": 16.7
+        }
+    },
+    "Bars": {
+        "ResNet 2D": {
+            "full video": 2.8,
+            "video segments": 2.8
+        },
+        "ResNet\n-LSTM": {
+            "full video": 2.6,
+            "video segments": 3.3
+        },
+        "UTE": {
+            "full video": 1.3, 
+            "video segments": 1.3
+        },
+        "ProgressNet": {
+            "full video": 2.6,
+            "video segments": 2.8
+        },
+        "RSDNet": {
+            "full video": 2.7,
+            "video segments": 3.3
+        },
+        "Static 0.5": {
+            "full video": 25.0, 
+            "video segments": 25.0
+        },
+        "Random": {
+            "full video": 33.5, 
+            "video segments": 33.5
+        },
+        "Average Index": {
+            "full video": 12.9, 
+            "video segments": 12.9
+        }
+    }
+}

@@ -51,6 +51,8 @@ class ProgressNet(nn.Module):
 
         self.fc8 = nn.Linear(32, 1)
 
+        self.hidden1, self.hidden2 = None, None
+
     def forward(self, frames: torch.FloatTensor, boxes: torch.Tensor = None) -> torch.FloatTensor:
         B, S, C, H, W = frames.shape
         num_samples = B * S
@@ -88,8 +90,8 @@ class ProgressNet(nn.Module):
         data = torch.relu(data)
 
         data = data.reshape(B, S, -1)
-        data, _ = self.lstm1(data)
-        data, _ = self.lstm2(data)
+        data, self.hidden1 = self.lstm1(data, self.hidden1)
+        data, self.hidden2 = self.lstm2(data, self.hidden2)
         data = data.reshape(num_samples, -1)
         data = self.fc8(data)
         data = torch.sigmoid(data)
@@ -120,6 +122,9 @@ class ProgressNet(nn.Module):
         roi_pooled = torch.relu(roi_pooled)
 
         return torch.cat((spp_pooled, roi_pooled), dim=-1)
+    
+    def reset(self):
+        self.hidden1, self.hidden2 = None, None
 
 # class ProgressNet(nn.Module):
 #     def __init__(self, feature_dim: int, dropout_chance: float) -> None:
