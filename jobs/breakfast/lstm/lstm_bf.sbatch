@@ -5,7 +5,7 @@
 #SBATCH --time=2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=16G
+#SBATCH --mem=24G
 #SBATCH --mail-type=ALL
 #SBATCH --gres=gpu
 #SBATCH --array=1,2,3,4
@@ -15,7 +15,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name lstm_cholec_${SLURM_ARRAY_TASK_ID} \
+    --experiment_name lstm_bf_${SLURM_ARRAY_TASK_ID} \
     --wandb_group normal \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset breakfast \

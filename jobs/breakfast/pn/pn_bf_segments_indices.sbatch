@@ -2,12 +2,12 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=medium
-#SBATCH --time=32:00:00
+#SBATCH --time=36:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16G
 #SBATCH --mail-type=ALL
-#SBATCH --gres=gpu
+#SBATCH --gres=gpu:a40
 #SBATCH --array=1,2,3,4
 
 module use /opt/insy/modulefiles
@@ -31,7 +31,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 1.0 \
     --lr_decay_every 1000000 \
     --log_every 100 \
-    --test_every 2500 \
+    --test_every 5000 \
     --num_workers 2 \
     --subsample \
     --max_length 550 \
