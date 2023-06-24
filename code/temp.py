@@ -321,23 +321,64 @@ def plot_synthetic(video_index: int, frame_indices: List[int]):
     plt.savefig('./plots/bars.pdf')
     plt.clf()
 
+def visualise_video(video_dir: str, index: int, result_paths: List[str]):
+    frames = os.listdir(video_dir)
+    num_frames = len(frames)
+    frame_path = os.path.join(video_dir, frames[index])
+    frame = Image.open(frame_path)
+
+    fig, axs = plt.subplots(1, 2)
+
+    ground_truth = [(i+1) / num_frames for i in range(num_frames)]
+    static = [0.5 for _ in range(num_frames)]
+
+    for name, path in result_paths:
+        with open(path) as f:
+            data = [float(row.strip()) for row in f.readlines()][:num_frames]
+        axs[1].plot(data, label=name)
+
+    axs[0].imshow(frame)
+    axs[0].axis('off')
+    axs[1].set_xlabel('Frame')
+    axs[1].set_ylabel('Progress')
+
+    plt.grid(axis='y')
+    yticks = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    ytick_labels = ['0%', '20%', '40%', '60%', '80%', '100%']
+    axs[1].tick_params(axis='y', length = 0)
+    axs[1].set_yticks(yticks, ytick_labels)
+    axs[1].set_xlim(0, num_frames)
+
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig('./plots/test.png')
+    plt.clf()
+
+
 
 
 def main():
     # result plots
-    results = load_results('./results.json')
-    for dataset in ["UCF101-24", "Cholec80", "Breakfast"]:
-        plot_result_bar(results, dataset, ["full video", "random"])
-        plot_result_bar(results, dataset, ["video segments", "indices"])
-    plot_result_bar(results, "Bars", ["full video", "video segments"])
-    # average index baseline
-    plot_baselines()
-    plot_baseline_example()
-    # dataset statistics
-    plot_dataset_lengths()
-    # syntethic dataset example
-    plot_synthetic(4, [0, 15, 35, 58, 71])
-    # example progress predictions
+    # results = load_results('./results.json')
+    # for dataset in ["UCF101-24", "Cholec80", "Breakfast"]:
+    #     plot_result_bar(results, dataset, ["full video", "random"])
+    #     plot_result_bar(results, dataset, ["video segments", "indices"])
+    # plot_result_bar(results, "Bars", ["full video", "video segments"])
+    # # average index baseline
+    # plot_baselines()
+    # plot_baseline_example()
+    # # dataset statistics
+    # plot_dataset_lengths()
+    # # syntethic dataset example
+    # plot_synthetic(4, [0, 15, 35, 58, 71])
+    # # example progress predictions
+    visualise_video(
+        os.path.join(DATA_ROOT, 'cholec80/rgb-images/video04'), 250,
+        [('Average Index', './data/cholec_baseline.txt'),
+         ('ResNet-LSTM', './data/lstm_cholec/video04.txt'),
+         ('UTE', './data/ute_cholec/video04_0.txt'),
+         ('RSDnet', './data/rsd_cholec/video04.txt')]
+    )
 
 if __name__ == '__main__':
     main()

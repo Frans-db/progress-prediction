@@ -6,27 +6,28 @@
             "indices": 14.1
         },
         "ResNet\n-LSTM": {
-            "full video": 24.4,
-            "random": 17.1,
-            "video segments": 24.5,
-            "indices": 18.0
+            "full video": 25.1,
+            "random": 17.3,
+            "video segments": 25.7,
+            "indices": 19.6
         },
         "UTE": {
-            "full video": 24.7,
-            "video segments": 24.7,
-            "indices": 14.1
+            "full video": 26.7,
+            "random": 25.0,
+            "video segments": 26.7,
+            "indices": 14.8
         },
         "ProgressNet": {
-            "full video": 13.6,
-            "random": 17.4,
-            "video segments": 26.6,
-            "indices": 19.2
+            "full video": 14.3,
+            "random": 16.5,
+            "video segments": 25.9,
+            "indices": 18.0
         },
         "RSDNet": {
-            "full video": 24.5,
-            "random": 17.3,
-            "video segments": 25.1,
-            "indices": 18.3
+            "full video": 23.1,
+            "random": 17.6,
+            "video segments": 27.7,
+            "indices": 22.1
         },
         "Static 0.5": {
             "full video": 25.0,
@@ -54,27 +55,28 @@
             "indices": 12.3
         },
         "ResNet\n-LSTM": {
-            "full video": 9.8,
+            "full video": 11.0,
             "random": 12.2,
-            "video segments": 12.4,
-            "indices": 12.5
+            "video segments": 12.0,
+            "indices": 14.4
         },
         "UTE": {
-            "full video": 17.2,
-            "video segments": 17.2,
-            "indices": 11.7
+            "full video": 17.9,
+            "random": 25.0,
+            "video segments": 18.7,
+            "indices": 12.0
         },
         "ProgressNet": {
-            "full video": 21.9,
-            "random": 19.2,
-            "video segments": 26.8,
-            "indices": 19.1
+            "full video": 12.1,
+            "random": 12.5,
+            "video segments": 13.5,
+            "indices": 13.3
         },
         "RSDNet": {
-            "full video": 11.0,
-            "random": 14.1,
-            "video segments": 14.6,
-            "indices": 19.4
+            "full video": 10.2,
+            "random": 12.3,
+            "video segments": 13.1,
+            "indices": 20.2
         },
         "Static 0.5": {
             "full video": 25.0,
@@ -102,15 +104,16 @@
             "indices": 16.7
         },
         "ResNet\n-LSTM": {
-            "full video": 31.1,
+            "full video": 26.4,
             "random": 19.0,
-            "video segments": 26.4,
-            "indices": 20.0
+            "video segments": 27.6,
+            "indices": 21.6
         },
         "UTE": {
-            "full video": 25.3,
-            "video segments": 25.3,
-            "indices": 16.4
+            "full video": 26.8,
+            "random": 25.0,
+            "video segments": 26.7,
+            "indices": 16.8
         },
         "ProgressNet": {
             "full video": 21.9,
@@ -119,10 +122,10 @@
             "indices": 19.1
         },
         "RSDNet": {
-            "full video": 30.1,
+            "full video": 27.0,
             "random": 19.2,
-            "video segments": 27.2,
-            "indices": 24.2
+            "video segments": 29.5,
+            "indices": 30.0
         },
         "Static 0.5": {
             "full video": 25.0,
@@ -137,10 +140,10 @@
             "indices": 33.3
         },
         "Average Index": {
-            "full video": 16.7,
-            "random": 16.7,
-            "video segments": 16.7,
-            "indices": 16.7
+            "full video": 16.6,
+            "random": 16.6,
+            "video segments": 16.6,
+            "indices": 16.6
         }
     },
     "Bars": {

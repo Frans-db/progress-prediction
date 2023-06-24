@@ -273,7 +273,8 @@ def main():
                 with open(save_path, "w+") as f:
                     f.write("\n".join(txt))
     elif args.save_dir is not None:
-        os.mkdir(f'./data/{args.save_dir}')
+        if not os.path.isdir(f'./data/{args.save_dir}'):
+            os.mkdir(f'./data/{args.save_dir}')
         experiment.save(args.save_dir)
 
     elif not args.print_only:
