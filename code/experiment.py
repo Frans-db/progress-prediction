@@ -122,6 +122,7 @@ class Experiment:
                     self.network,
                     self.criterion,
                     batch,
+                    self.max_length,
                     self.device,
                     return_results=True,
                 )
