@@ -23,7 +23,7 @@ def train_flat_features(network, criterion, batch, max_length, device, optimizer
     }
 
 
-def train_flat_frames(network, criterion, batch, max_length, device, optimizer=None):
+def train_flat_frames(network, criterion, batch, max_length, device, optimizer=None, return_results=False):
     l2_loss = nn.MSELoss(reduction="sum")
     l1_loss = nn.L1Loss(reduction="sum")
     progress = batch[-1]
@@ -32,6 +32,8 @@ def train_flat_frames(network, criterion, batch, max_length, device, optimizer=N
 
     B = data[0].shape[0]
     predicted_progress = network(*data).reshape(B)
+    if return_results:
+        return predicted_progress.cpu()
     progress = progress.to(device)
     if optimizer:
         optimizer.zero_grad()
