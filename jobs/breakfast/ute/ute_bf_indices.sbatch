@@ -19,7 +19,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --wandb_group indices \
     --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
     --dataset breakfast \
-    --data_dir features/i3d_sampled \
+    --data_dir features/i3d_embeddings \
     --flat \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
