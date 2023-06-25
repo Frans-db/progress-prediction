@@ -14,7 +14,7 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name lstm_ucf \
+    --experiment_name lstm_bars \
     --wandb_group normal \
     --dataset bars \
     --data_dir features/resnet18 \
