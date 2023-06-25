@@ -17,8 +17,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --experiment_name lstm_ucf \
     --wandb_group normal \
     --dataset bars \
-    --data_dir features/resnet152 \
-    --feature_dim 2048 \
+    --data_dir features/resnet18 \
+    --feature_dim 512 \
     --train_split train.txt \
     --test_split test.txt \
     --batch_size 1 \
