@@ -14,8 +14,8 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name lstm_bars \
-    --wandb_group normal \
+    --experiment_name lstm_bars_segments \
+    --wandb_group segments \
     --dataset bars \
     --data_dir features/resnet18 \
     --feature_dim 512 \
@@ -28,4 +28,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay 0.1 \
     --lr_decay_every 10000 \
     --log_every 100 \
-    --test_every 1000
+    --test_every 1000 \
+    --subsample

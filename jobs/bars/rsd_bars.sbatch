@@ -14,16 +14,19 @@ module load cuda/10.0 cudnn/10.0-7.4.2.24
 
 srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
-    --experiment_name lstm_bars \
+    --experiment_name rsd_bars \
     --wandb_group normal \
     --dataset bars \
     --data_dir features/resnet18 \
     --feature_dim 512 \
+    --rsd_type minutes \
+    --fps 1 \
+    --rsd_normalizer 5 \
     --train_split train.txt \
     --test_split test.txt \
     --batch_size 1 \
     --iterations 30000 \
-    --network lstmnet \
+    --network rsdnet \
     --dropout_chance 0.3 \
     --lr_decay 0.1 \
     --lr_decay_every 10000 \
