@@ -19,8 +19,8 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --dataset bars \
     --data_dir features/resnet152 \
     --feature_dim 2048 \
-    --train_split train_tubes.txt \
-    --test_split test_tubes.txt \
+    --train_split train.txt \
+    --test_split test.txt \
     --batch_size 1 \
     --iterations 30000 \
     --network lstmnet \
