@@ -3,7 +3,8 @@
         "ResNet 2D": {
             "full video": 25.8,
             "video segments": 25.8,
-            "indices": 14.1
+            "indices": 14.1,
+            "random": 25.0
         },
         "ResNet\n-LSTM": {
             "full video": 25.1,
@@ -52,7 +53,8 @@
         "ResNet 2D": {
             "full video": 17.9,
             "video segments": 17.9,
-            "indices": 12.3
+            "indices": 12.3,
+            "random": 25.0
         },
         "ResNet\n-LSTM": {
             "full video": 11.0,
@@ -101,7 +103,8 @@
         "ResNet 2D": {
             "full video": 27.1,
             "video segments": 27.1,
-            "indices": 16.7
+            "indices": 16.7,
+            "random": 25.0
         },
         "ResNet\n-LSTM": {
             "full video": 26.4,
@@ -116,10 +119,10 @@
             "indices": 16.8
         },
         "ProgressNet": {
-            "full video": 21.9,
-            "random": 19.2,
-            "video segments": 26.8,
-            "indices": 19.1
+            "full video": 20.3,
+            "random": 20.0,
+            "video segments": 25.9,
+            "indices": 20.5
         },
         "RSDNet": {
             "full video": 27.0,

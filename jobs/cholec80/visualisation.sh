@@ -74,5 +74,5 @@ python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --subsample \
     --max_length 550 \
     --load_experiment pn_cholec_segments_0 \
-    --load_iteraton 50000 \
-    --saved_dir pn_cholec
+    --load_iteration 50000 \
+    --save_dir pn_cholec

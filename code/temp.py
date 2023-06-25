@@ -8,6 +8,8 @@ import torch
 import statistics
 from PIL import Image
 import string
+import pandas as pd
+import os
 
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 
@@ -25,6 +27,7 @@ BASELINES = ["Average Index", "Static 0.5", "Random"]
 LINEWIDTH = 2
 TITLE_X_OFFSET = 0.5
 TITLE_Y_OFFSET = -0.25
+FILE = 'pdf'
 
 # Matplotlib parameters
 plt.style.use("seaborn-v0_8-paper")
@@ -196,8 +199,7 @@ def plot_result_bar(results: Dict, dataset: str, modes: List[str]):
     plt.legend(loc='upper right')
     plt.tight_layout()
     filename = f"./plots/results/{dataset}_{'_'.join(modes).replace(' ', '_')}"
-    plt.savefig(f"{filename}.pdf")
-    plt.savefig(f"{filename}.png")
+    plt.savefig(f"{filename}.{FILE}")
     plt.clf()
     set_spines(True)
 
@@ -243,8 +245,7 @@ def plot_baselines():
     )
 
     plt.tight_layout()
-    plt.savefig("./plots/baselines/avg_index_baseline.pdf")
-    plt.savefig("./plots/baselines/avg_index_baseline.png")
+    plt.savefig(f"./plots/baselines/avg_index_baseline.{FILE}")
     plt.clf()
 
 def plot_baseline_example():
@@ -264,8 +265,7 @@ def plot_baseline_example():
     axs[0].set_title("(a) 3 Videos of length 10, 20, and 30", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
     axs[1].set_title("(b) Average Index baseline", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
     plt.tight_layout()
-    plt.savefig("./plots/baselines/avg_index_example.pdf")
-    plt.savefig("./plots/baselines/avg_index_example.png")
+    plt.savefig(f"./plots/baselines/avg_index_example.{FILE}")
     plt.clf()
 
 def make_length_plot(lengths, ax: plt.Axes, title: str, bucket_size: int = 10):
@@ -295,8 +295,7 @@ def plot_dataset_lengths():
         ax.set_xlabel("Video Length")
         ax.set_ylabel("Number of Videos")
     plt.tight_layout()
-    plt.savefig('./plots/dataset_lengths.pdf')
-    plt.savefig('./plots/dataset_lengths.png')
+    plt.savefig(f'./plots/dataset_lengths.{FILE}')
     plt.clf()
 
 def plot_synthetic(video_index: int, frame_indices: List[int]):
@@ -317,9 +316,26 @@ def plot_synthetic(video_index: int, frame_indices: List[int]):
         ax.set_title(f'({letter}) \nt={frame_index}\np={round(progress * 100, 1)}%', y=TITLE_Y_OFFSET * 2.2, x=TITLE_X_OFFSET)
 
     plt.tight_layout()
-    plt.savefig('./plots/bars.png')
-    plt.savefig('./plots/bars.pdf')
+    plt.savefig(f'./plots/bars.{FILE}')
     plt.clf()
+
+def numpy_ewma_vectorized(data, window):
+
+    alpha = 2 /(window + 1.0)
+    alpha_rev = 1-alpha
+
+    scale = 1/alpha_rev
+    n = data.shape[0]
+
+    r = np.arange(n)
+    scale_arr = scale**r
+    offset = data[0]*alpha_rev**(r+1)
+    pw0 = alpha*alpha_rev**(n-1)
+
+    mult = data*pw0*scale_arr
+    cumsums = mult.cumsum()
+    out = offset + cumsums*scale_arr[::-1]
+    return out
 
 def visualise_video(video_dir: str, index: int, result_paths: List[str]):
     frames = os.listdir(video_dir)
@@ -327,16 +343,22 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str]):
     frame_path = os.path.join(video_dir, frames[index])
     frame = Image.open(frame_path)
 
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, figsize=(6.4*1.5, 4))
 
     ground_truth = [(i+1) / num_frames for i in range(num_frames)]
     static = [0.5 for _ in range(num_frames)]
 
+
+    N = 200
     for name, path in result_paths:
         with open(path) as f:
             data = [float(row.strip()) for row in f.readlines()][:num_frames]
-        axs[1].plot(data, label=name)
+        if name != 'Average Index':
+            axs[1].plot(np.convolve(data, np.ones(N)/N, mode='full'), label=name, linewidth=1)
+        else:
+            axs[1].plot(data, label=name, linewidth=1)
 
+    axs[1].plot(ground_truth, label='Ground Truth')
     axs[0].imshow(frame)
     axs[0].axis('off')
     axs[1].set_xlabel('Frame')
@@ -351,7 +373,7 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str]):
 
     plt.legend()
     plt.tight_layout()
-    plt.savefig('./plots/test.png')
+    plt.savefig(f'./plots/test.png')
     plt.clf()
 
 
@@ -359,25 +381,30 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str]):
 
 def main():
     # result plots
-    # results = load_results('./results.json')
-    # for dataset in ["UCF101-24", "Cholec80", "Breakfast"]:
-    #     plot_result_bar(results, dataset, ["full video", "random"])
-    #     plot_result_bar(results, dataset, ["video segments", "indices"])
-    # plot_result_bar(results, "Bars", ["full video", "video segments"])
-    # # average index baseline
-    # plot_baselines()
-    # plot_baseline_example()
-    # # dataset statistics
-    # plot_dataset_lengths()
-    # # syntethic dataset example
-    # plot_synthetic(4, [0, 15, 35, 58, 71])
-    # # example progress predictions
+    results = load_results('./results.json')
+    for dataset in ["UCF101-24", "Cholec80", "Breakfast"]:
+        plot_result_bar(results, dataset, ["full video", "random"])
+        plot_result_bar(results, dataset, ["video segments", "indices"])
+    plot_result_bar(results, "Bars", ["full video", "video segments"])
+    # average index baseline
+    plot_baselines()
+    plot_baseline_example()
+    # dataset statistics
+    plot_dataset_lengths()
+    # syntethic dataset example
+    plot_synthetic(4, [0, 15, 35, 58, 71])
+    # example progress predictions
     visualise_video(
         os.path.join(DATA_ROOT, 'cholec80/rgb-images/video04'), 250,
-        [('Average Index', './data/cholec_baseline.txt'),
+        [
+         
+         ('ResNet', './data/resnet_cholec/video04.txt'),
          ('ResNet-LSTM', './data/lstm_cholec/video04.txt'),
-         ('UTE', './data/ute_cholec/video04_0.txt'),
-         ('RSDnet', './data/rsd_cholec/video04.txt')]
+
+         ('UTE', './data/ute_cholec/video04.txt'),
+         ('RSDNet', './data/rsd_cholec/video04.txt'),
+         ('ProgressNet', './data/pn_cholec/video04.txt'),
+         ('Average Index', './data/cholec_baseline.txt')]
     )
 
 if __name__ == '__main__':
