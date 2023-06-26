@@ -30,4 +30,5 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --lr_decay_every 1000000 \
     --log_every 100 \
     --test_every 1000 \
-    --num_workers 2
+    --num_workers 2 \
+    --no_resize

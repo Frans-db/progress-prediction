@@ -116,6 +116,8 @@ class Experiment:
 
     def save(self, save_dir: str) -> None:
         self.network.eval()
+        criterion = nn.L1Loss(reduction='sum')
+        total_loss,count = 0,0
         with torch.no_grad():
             for i, batch in enumerate(tqdm(self.testloader)):
                 progress = self.train_fn(
@@ -126,10 +128,13 @@ class Experiment:
                     self.device,
                     return_results=True,
                 )
+                total_loss += criterion(progress * 100, batch[-1] * 100).item()
                 progress = torch.flatten(progress).tolist()
+                count += len(progress)
                 txt = '\n'.join(map(str, progress))
                 with open(f'./data/{save_dir}/{batch[0][0]}.txt', 'w+') as f:
                     f.write(txt)
+        print(total_loss / count)
         self.network.train()
     
     @staticmethod
