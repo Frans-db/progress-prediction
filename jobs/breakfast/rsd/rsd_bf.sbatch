@@ -17,12 +17,12 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --seed 42 \
     --experiment_name rsd_bf_${SLURM_ARRAY_TASK_ID} \
     --wandb_group normal \
-    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} \
+    --wandb_tags fold_${SLURM_ARRAY_TASK_ID} optimized \
     --dataset breakfast \
     --data_dir features/resnet152_sampled_${SLURM_ARRAY_TASK_ID} \
     --feature_dim 2048 \
     --rsd_type minutes \
-    --fps 1 \
+    --fps 15 \
     --rsd_normalizer 5 \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
