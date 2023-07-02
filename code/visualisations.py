@@ -19,19 +19,29 @@ DATA_ROOT = "/home/frans/Datasets"
 BAR_WIDTH = 0.5
 SPACING = 1.5
 MODE_COLOURS = {
-    "full video": (0.2980392156862745, 0.4470588235294118, 0.6901960784313725),
-    "random": (0.8666666666666667, 0.5176470588235295, 0.3215686274509804),
-    "video segments": (0.3333333333333333, 0.6588235294117647, 0.40784313725490196),
-    "indices": (0.7686274509803922, 0.3058823529411765, 0.3215686274509804),
+    "'full-video' inputs": (0.2980392156862745, 0.4470588235294118, 0.6901960784313725),
+    "'random-noise' inputs": (0.8666666666666667, 0.5176470588235295, 0.3215686274509804),
+    "'video-segments' inputs": (0.3333333333333333, 0.6588235294117647, 0.40784313725490196),
+    "'frame-indices' inputs": (0.7686274509803922, 0.3058823529411765, 0.3215686274509804),
 }
-BASELINES = ["Average Index", "Static 0.5", "Random"]
-LINEWIDTH = 2
+BASELINES = ["average-index", "static-0.5", "random"]
+LINEWIDTH = 3
 TITLE_X_OFFSET = 0.5
 TITLE_Y_OFFSET = -0.25
 
 # Matplotlib parameters
 plt.style.use("seaborn-v0_8-paper")
 plt.rcParams['axes.axisbelow'] = True
+
+
+def set_font_sizes(small=12, medium=14, big=16):
+    plt.rc('font', size=small)          # controls default text sizes
+    plt.rc('axes', titlesize=small)     # fontsize of the axes title
+    plt.rc('axes', labelsize=medium)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=small)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=small)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=small)    # legend fontsize
+    plt.rc('figure', titlesize=big)  # fontsize of the figure title
 
 def set_spines(enable: bool):
     plt.rcParams['axes.spines.left'] = enable
@@ -135,9 +145,9 @@ def calculate_average_baseline(trains, tests):
     return average_predictions, avg_index_loss, avg_static_loss, avg_random_loss
 
 # Plots
-def plot_result_bar(results: Dict, dataset: str, modes: List[str]):
+def plot_result_bar(results: Dict, dataset: str, modes: List[str], names: List[str]):
     set_spines(False)
-    plt.figure(figsize=(7.2, 4.2))
+    plt.figure(figsize=(7.2, 5.2))
 
     data = [[] for _ in modes]
     networks = [key for key in results[dataset] if key not in BASELINES]
@@ -153,44 +163,45 @@ def plot_result_bar(results: Dict, dataset: str, modes: List[str]):
 
     for i, (values, mode) in enumerate(zip(data, modes)):
         bar_xs = xs_indices * SPACING + i * BAR_WIDTH
+        print(bar_xs, values, mode, dataset)
         plt.bar(bar_xs, values, width=BAR_WIDTH, label=mode, color=MODE_COLOURS[mode])
     xticks = xs_indices * SPACING + BAR_WIDTH * 0.5
     if dataset != 'Bars':
         plt.axhline(
-            y=results[dataset]["Average Index"]["full video"],
+            y=results[dataset]["average-index"]["'full-video' inputs"],
             linestyle="-",
-            label="Average Index",
+            label="average-index",
             color=(0.8, 0.7254901960784313, 0.4549019607843137),
             linewidth=LINEWIDTH,
         )
         plt.axhline(
-            y=results[dataset]["Static 0.5"]["full video"],
+            y=results[dataset]["static-0.5"]["'full-video' inputs"],
             linestyle="-",
-            label="Static 0.5",
+            label="static-0.5",
             color=(0.8549019607843137, 0.5450980392156862, 0.7647058823529411),
             linewidth=LINEWIDTH,
         )
         plt.axhline(
-            y=results[dataset]["Random"]["full video"],
+            y=results[dataset]["random"]["'full-video' inputs"],
             linestyle="-",
-            label="Random",
+            label="random",
             color=(0.5058823529411764, 0.4470588235294118, 0.7019607843137254),
             linewidth=LINEWIDTH,
         )
         plt.text(
             3,
-            results[dataset]["Average Index"]["full video"] - 0.5,
-            str(results[dataset]["Average Index"]["full video"]),
+            results[dataset]["average-index"]["'full-video' inputs"] - 0.5,
+            str(results[dataset]["average-index"]["'full-video' inputs"]) + '%',
         ).set_bbox({"facecolor": "white", "edgecolor": "white"})
         plt.text(
             3,
-            results[dataset]["Static 0.5"]["full video"] - 0.5,
-            str(results[dataset]["Static 0.5"]["full video"]),
+            results[dataset]["static-0.5"]["'full-video' inputs"] - 0.5,
+            str(results[dataset]["static-0.5"]["'full-video' inputs"]) + '%',
         ).set_bbox({"facecolor": "white", "edgecolor": "white"})
         plt.text(
             3,
-            results[dataset]["Random"]["full video"] - 0.5,
-            str(results[dataset]["Random"]["full video"]),
+            results[dataset]["random"]["'full-video' inputs"] - 0.5,
+            str(results[dataset]["random"]["'full-video' inputs"]) + '%',
         ).set_bbox({"facecolor": "white", "edgecolor": "white"})
 
     plt.grid(axis='y')
@@ -198,15 +209,15 @@ def plot_result_bar(results: Dict, dataset: str, modes: List[str]):
 
     plt.xticks(xticks, networks)
     if dataset == 'Bars':
-        yticks = [0, 5, 10]
+        yticks = [0, 1, 2, 3, 4]
     else:
         yticks = [0, 5, 10, 15, 20, 25, 30, 35]
     plt.tick_params(axis='y', length = 0)
     plt.yticks(yticks, [f'{tick}%' for tick in yticks])
     plt.ylabel("MAE")
-    plt.legend(loc='upper right')
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=False, shadow=False, ncol=3)
     plt.tight_layout()
-    filename = f"./plots/results/{dataset}_{'_'.join(modes).replace(' ', '_')}"
+    filename = f"./plots/results/{dataset}_{'_'.join(names).replace(' ', '_')}"
     plt.savefig(f"{filename}.{FILE}")
     plt.clf()
     set_spines(True)
@@ -220,9 +231,9 @@ def plot_baselines():
     print('ucf', ucf_index_loss, ucf_static_loss, ucf_random_loss)
 
     figure, axs = plt.subplots(1, 3, figsize=(19.2, 4.8 * 1.3))
-    axs[0].plot(ucf_predictions, label="Average Index")
-    axs[1].plot(c80_predictions, label="Average Index")
-    axs[2].plot(bf_predictions, label="Average Index")
+    axs[0].plot(ucf_predictions, label="average-index")
+    axs[1].plot(c80_predictions, label="average-index")
+    axs[2].plot(bf_predictions, label="average-index")
 
     with open('./data/ucf_baseline.txt', 'w+') as f:
         f.write('\n'.join([str(val) for val in ucf_predictions.tolist()]))
@@ -237,23 +248,23 @@ def plot_baselines():
         ax.set_ylabel("Progress")
         ax.legend()
     axs[0].set_title(
-        "(a) Average index baseline on UCF101-24",
+        "(a) Average-index baseline on UCF101-24",
         y=TITLE_Y_OFFSET / 1.3,
         x=TITLE_X_OFFSET,
     )
     axs[1].set_title(
-        "(b) Average index baseline on Cholec80",
+        "(b) Average-index baseline on Cholec80",
         y=TITLE_Y_OFFSET / 1.3,
         x=TITLE_X_OFFSET,
     )
     axs[2].set_title(
-        "(c) Average index baseline on Breakfast",
+        "(c) Average-index baseline on Breakfast",
         y=TITLE_Y_OFFSET / 1.3,
         x=TITLE_X_OFFSET,
     )
 
     plt.tight_layout()
-    plt.savefig(f"./plots/baselines/avg_index_baseline.{FILE}")
+    plt.savefig(f"./plots/avg_index_baseline.{FILE}")
     plt.clf()
 
 def plot_baseline_example():
@@ -271,9 +282,9 @@ def plot_baseline_example():
         # ax.set(xlabel='Frame', ylabel='Progress')
         ax.legend()
     axs[0].set_title("(a) 3 Videos of length 10, 20, and 30", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
-    axs[1].set_title("(b) Average Index baseline", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
+    axs[1].set_title("(b) Average-index baseline", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
     plt.tight_layout()
-    plt.savefig(f"./plots/baselines/avg_index_example.{FILE}")
+    plt.savefig(f"./plots/avg_index_example.{FILE}")
     plt.clf()
 
 def make_length_plot(lengths, ax: plt.Axes, title: str, bucket_size: int = 10):
@@ -291,11 +302,11 @@ def make_length_plot(lengths, ax: plt.Axes, title: str, bucket_size: int = 10):
     ax.axvline(mean, color='red')
     # ax.axvline(q3, color='red', linestyle=':')
     # title = title + f'\nQ1={round(q1)}, mean={round(mean)}, Q3={round(q3)}'
-    ax.set_title(title, y=TITLE_Y_OFFSET * 1.5, x=TITLE_X_OFFSET)
+    ax.set_title(title, y=TITLE_Y_OFFSET*1.1, x=TITLE_X_OFFSET)
 
 
 def plot_dataset_lengths():
-    figure, axs = plt.subplots(1, 3, figsize=(6.4 * 1.5, 4.4 / 1.5))
+    figure, axs = plt.subplots(1, 3, figsize=(6.4 * 2, 4.4))
     make_length_plot(ucf101['all'], axs[0], '(a) video length distribution for UCF101-24', bucket_size=10)
     make_length_plot(cholec80['all'], axs[1], '(b) video length distribution for Cholec80', bucket_size=100)
     make_length_plot(breakfast['all'], axs[2], '(c) video length distribution for Breakfast', bucket_size=100)
@@ -335,7 +346,7 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str], video_n
     frame_path = os.path.join(video_dir, frames[index])
     frame = Image.open(frame_path)
 
-    fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8), gridspec_kw={'width_ratios': [1, 2]})
+    fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8*1.5), gridspec_kw={'width_ratios': [1, 2]})
 
     ground_truth = [(i+1) / num_frames for i in range(num_frames)]
     static = [0.5 for _ in range(num_frames)]
@@ -345,19 +356,19 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str], video_n
     for name, path, linestyle in result_paths:
         with open(path) as f:
             data = [float(row.strip()) for row in f.readlines()][:num_frames]
-        if name != 'Average Index':
-            axs[1].plot(np.convolve(data, np.ones(N)/N, mode='full'), label=name, linestyle=linestyle)
+        if name != 'average-index':
+            axs[1].plot(np.convolve(data, np.ones(N)/N, mode='full'), label=name, linestyle=linestyle, linewidth=LINEWIDTH)
         else:
-            axs[1].plot(data, label=name, linewidth=1)
+            axs[1].plot(data, label=name, linewidth=LINEWIDTH)
 
-    axs[1].plot(ground_truth, label='Ground Truth')
+    axs[1].plot(ground_truth, label='Ground Truth', linewidth=LINEWIDTH)
     axs[0].imshow(frame)
     axs[0].axis('off')
-    axs[1].set_xlabel('Frame', fontsize=14)
-    axs[1].set_ylabel('Progress', fontsize=14)
+    axs[1].set_xlabel('Frame')
+    axs[1].set_ylabel('Progress')
 
-    axs[1].tick_params(axis='both', which='major', labelsize=14)
-    axs[1].tick_params(axis='both', which='minor', labelsize=14)
+    axs[1].tick_params(axis='both', which='major')
+    axs[1].tick_params(axis='both', which='minor')
 
     plt.grid(axis='y')
     yticks = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
@@ -366,7 +377,7 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str], video_n
     axs[1].set_yticks(yticks, ytick_labels)
     axs[1].set_xlim(0, num_frames)
 
-    plt.legend()
+    plt.legend(loc='upper left')
     plt.tight_layout()
     plt.savefig(f'./plots/examples/{video_name}.{FILE}')
     plt.clf()
@@ -382,17 +393,17 @@ def main():
         os.mkdir('./plots')
         os.mkdir('./plots/bars')
         os.mkdir('./plots/results')
-        os.mkdir('./plots/baselines')
         os.mkdir('./plots/examples')
     except:
         pass
 
+    set_font_sizes()
     # result plots
     results = load_results('./results.json')
     for dataset in ["UCF101-24", "Cholec80", "Breakfast"]:
-        plot_result_bar(results, dataset, ["full video", "random"])
-        plot_result_bar(results, dataset, ["video segments", "indices"])
-    plot_result_bar(results, "Bars", ["full video", "video segments"])
+        plot_result_bar(results, dataset, ["'full-video' inputs", "'random-noise' inputs"], ['full video', 'random'])
+        plot_result_bar(results, dataset, ["'video-segments' inputs", "'frame-indices' inputs"], ['video segments', 'indices'])
+    plot_result_bar(results, "Bars", ["'full-video' inputs", "'video-segments' inputs"], ['full video', 'video segments'])
     # average index baseline
     plot_baselines()
     plot_baseline_example()
@@ -401,18 +412,19 @@ def main():
     # syntethic dataset example
     plot_synthetic(4, [0, 15, 35, 58, 71])
     # example progress predictions
+    set_font_sizes(16, 18, 20)
     for index, timestamp in zip(['04', '05', '12'], [210, 1650, 850]):
         visualise_video(
             os.path.join(DATA_ROOT, f'cholec80/rgb-images/video{index}'), timestamp,
             [
             
-            ('ResNet', f'./data/cholec/resnet_cholec/video{index}.txt', ':'),
+            ('ResNet-2D', f'./data/cholec/resnet_cholec/video{index}.txt', ':'),
             ('ResNet-LSTM', f'./data/cholec/lstm_cholec/video{index}.txt', ':'),
 
             ('UTE', f'./data/cholec/ute_cholec/video{index}.txt', '-.'),
             ('RSDNet', f'./data/cholec/rsd_cholec/video{index}.txt', '-.'),
             ('ProgressNet', f'./data/cholec/pn_cholec/video{index}.txt', '-.'),
-            ('Average Index', f'./data/cholec_baseline.txt', '-')],
+            ('average-index', f'./data/cholec_baseline.txt', '-')],
             f'cholec80_video{index}', 200
     )
     for index, timestamp in zip(['00004', '00015'], [10, 45]):

@@ -21,7 +21,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --feature_dim 2048 \
     --rsd_type minutes \
     --fps 1 \
-    --rsd_normalizer 5 \
+    --rsd_normalizer 50 \
     --train_split train_tubes.txt \
     --test_split test_tubes.txt \
     --batch_size 1 \
