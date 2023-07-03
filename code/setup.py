@@ -68,9 +68,12 @@ def create_networks():
     vgg16 = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1).features
     torch.save(vgg16.state_dict(), './vgg16.pth')
 
+    vgg11 = models.vgg11(weights=models.VGG11_Weights.IMAGENET1K_V1).features
+    torch.save(vgg11.state_dict(), './vgg11.pth')
+
 def main() -> None:
     random.seed(42)
-    create_cholec80_folds()
+    # create_cholec80_folds()
     create_networks()
 
 

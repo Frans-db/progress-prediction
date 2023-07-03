@@ -23,6 +23,8 @@ class ProgressNet(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if backbone == "vgg16":
             self.backbone = models.vgg16().features
+        elif backbone == "vgg11":
+            self.backbone = models.vgg11().features
         else:
             raise Exception(f"Backbone {backbone} cannot be used for ProgressnetFlat")
 
