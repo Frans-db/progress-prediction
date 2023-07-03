@@ -1,8 +1,8 @@
 #!/bin/sh
 
 #SBATCH --partition=general
-#SBATCH --qos=short
-#SBATCH --time=4:00:00
+#SBATCH --qos=medium
+#SBATCH --time=6:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=64G
@@ -22,7 +22,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --feature_dim 2048 \
     --rsd_type minutes \
     --fps 15 \
-    --rsd_normalizer 150 \
+    --rsd_normalizer 150- \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
