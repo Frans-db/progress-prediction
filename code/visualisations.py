@@ -346,12 +346,11 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str], video_n
     frame_path = os.path.join(video_dir, frames[index])
     frame = Image.open(frame_path)
 
-    fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8*1.5), gridspec_kw={'width_ratios': [1, 2]})
+    fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8*1.5), gridspec_kw={'width_ratios': [1, 3]})
 
     ground_truth = [(i+1) / num_frames for i in range(num_frames)]
     static = [0.5 for _ in range(num_frames)]
 
-    print(index, num_frames)
     axs[1].axvline(index, color='red', linestyle=':')
     for name, path, linestyle in result_paths:
         with open(path) as f:
@@ -382,6 +381,34 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str], video_n
     plt.savefig(f'./plots/examples/{video_name}.{FILE}')
     plt.clf()
 
+def stats(dataset: str, splitfiles: List[str]):
+    root = os.path.join(DATA_ROOT, dataset)
+    for splitfile in splitfiles:
+        with open(f'{os.path.join(root, f"splitfiles/{splitfile}.txt")}') as f:
+            lines = f.readlines()
+        counts_per_class = {}
+        num_frames_per_class = {}
+        total = 0
+        for line in lines:
+            line = line.strip()
+            # frames_path = os.path.join(root, 'rgb-images', line)
+            # num_frames = len(os.listdir(frames_path))
+            activity_class = line.split('/')[0]
+            if activity_class not in counts_per_class:
+                counts_per_class[activity_class] = 0
+            if activity_class not in num_frames_per_class:
+                num_frames_per_class[activity_class] = 0
+            # num_frames_per_class[activity_class] += num_frames
+            counts_per_class[activity_class] += 1
+            total += 1
+
+        print(f'--- {total} videos in {dataset}/{splitfile} ({len(counts_per_class)} classes) ---')
+        for activity_class in counts_per_class:
+            print(f'{activity_class}: {counts_per_class[activity_class]} ({num_frames_per_class[activity_class] / counts_per_class[activity_class]})')
+
+def dataset_statistics():
+    stats('ucf24', ['all', 'train', 'test', 'all_tubes', 'train_tubes', 'test_tubes'])
+    stats('breakfast', ['all'])
 
 
 parser = argparse.ArgumentParser()
@@ -405,8 +432,10 @@ def main():
         plot_result_bar(results, dataset, ["'video-segments' inputs", "'frame-indices' inputs"], ['video segments', 'indices'])
     plot_result_bar(results, "Bars", ["'full-video' inputs", "'video-segments' inputs"], ['full video', 'video segments'])
     # average index baseline
+    set_font_sizes(16, 18, 20)
     plot_baselines()
     plot_baseline_example()
+    set_font_sizes()
     # dataset statistics
     plot_dataset_lengths()
     # syntethic dataset example
@@ -441,6 +470,7 @@ def main():
             # ('Average Index', f'./data/cholec_baseline.txt', '-')],
             f'bars_video{index}', 1
     )
+    dataset_statistics()
 
 if __name__ == '__main__':
     main()
