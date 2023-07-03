@@ -22,7 +22,7 @@ srun python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
     --feature_dim 2048 \
     --rsd_type minutes \
     --fps 15 \
-    --rsd_normalizer 150- \
+    --rsd_normalizer 1500 \
     --train_split train_s${SLURM_ARRAY_TASK_ID}.txt \
     --test_split test_s${SLURM_ARRAY_TASK_ID}.txt \
     --batch_size 1 \
