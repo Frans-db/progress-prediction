@@ -88,7 +88,8 @@ class UCFDataset(Dataset):
                     frame = torch.full_like(frame, index) / self.indices_normalizer
                 frames.append(frame)
 
-            frames = torch.stack(frames)
+            if self.transform:
+                frames = torch.stack(frames)
             if self.random:
                 frames = torch.rand_like(frames)
             if self.bounding_boxes and self.rsd_type != 'none':
@@ -106,7 +107,7 @@ class UCFDataset(Dataset):
 
         data = []
         lengths = []
-        for video_name in database:
+        for video_name in sorted(database):
             if video_name not in self.splitnames:
                 continue
             for tube_index, tube in enumerate(database[video_name]["annotations"]):
@@ -151,5 +152,5 @@ class UCFDataset(Dataset):
                         self.index_to_index.append(i)
                 else:
                     data.append((f"{video_name}_{tube_index}", paths, boxes, progress, rsd))
-
+                break
         return data, lengths

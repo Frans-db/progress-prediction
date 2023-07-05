@@ -35,7 +35,7 @@ class ImageDataset(Dataset):
         self.splitfile = splitfile
         self.shuffle = shuffle
         split_path = os.path.join(root, "splitfiles", splitfile)
-        splitnames = sorted(load_splitfile(split_path))
+        splitnames = (load_splitfile(split_path))
         self.flat = flat
         self.indices = indices
         self.index_to_index = []
@@ -105,8 +105,10 @@ class ImageDataset(Dataset):
                 if self.indices:
                     frame = torch.full_like(frame, index) / self.indices_normalizer
                 frames.append(frame)
+                # frame.close()
             
-            frames = torch.stack(frames)
+            if self.transform:
+                frames = torch.stack(frames)
             if self.random:
                 frames = torch.rand_like(frames)
 

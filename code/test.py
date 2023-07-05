@@ -1,14 +1,39 @@
-import torch.nn as nn
-import torch
+import os
+from typing import List, Dict
+from collections import defaultdict
+import math
 
-l1_criterion = nn.L1Loss()
-l2_criterion = nn.MSELoss()
-iterations = 10000
-target = torch.FloatTensor([1])
-for i in range(iterations):
-    prediction = torch.FloatTensor([(i+1) / iterations])
-    l1_loss = l1_criterion(prediction * 100, target * 100)
-    l2_loss = l2_criterion(prediction, target)
-    print(l1_loss.item(), l2_loss.item())
-    if l2_loss.item() < 0.045:
-        break
+DATA_ROOT = "/home/frans/Datasets"
+
+def group_names(root: str, read: str, save: str) -> None:
+    with open(os.path.join(root, read)) as f:
+        names = [name.strip() for name in f.readlines()]
+
+    grouped = defaultdict(list)
+    for name in names:
+        activity = name.split('/')[0]
+        grouped[activity].append(name)
+    new_names = []
+    for activity in grouped:
+        names = sorted(grouped[activity])
+        num_names = len(names)
+        cutoff = num_names - math.floor(num_names / 10) * 10
+        if cutoff != 0:
+            names = names[:-cutoff]
+        sample_ratio = len(names) // 10
+
+        names = names[::sample_ratio]
+        new_names.extend(names)
+
+    with open(os.path.join(root, save), 'w+') as f:
+        f.write('\n'.join(new_names))
+
+     
+
+
+def main():
+    group_names(os.path.join(DATA_ROOT, 'breakfast/splitfiles/'), 'all.txt', 'small.txt')
+    group_names(os.path.join(DATA_ROOT, 'ucf24/splitfiles/'), 'all.txt', 'small.txt')
+
+if __name__ == '__main__':
+    main()

@@ -132,7 +132,7 @@ class Experiment:
                 progress = torch.flatten(progress).tolist()
                 count += len(progress)
                 txt = '\n'.join(map(str, progress))
-                with open(f'./data/{save_dir}/{batch[0][0]}.txt', 'w+') as f:
+                with open(f'./data/{save_dir}/{batch[0][0].replace("/", "_")}.txt', 'w+') as f:
                     f.write(txt)
         print(total_loss / count)
         self.network.train()

@@ -1,0 +1,31 @@
+python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+    --seed 42 \
+    --dataset ucf24 \
+    --data_dir rgb-images \
+    --train_split test_small.txt \
+    --test_split test_small.txt \
+    --batch_size 1 \
+    --network progressnet \
+    --backbone vgg16 \
+    --load_backbone vgg16.pth \
+    --num_workers 2 \
+    --max_length 550 \
+    --load_experiment pn_ucf \
+    --load_iteration 50000 \
+    --save_dir pn_ucf
+
+python /home/nfs/fransdeboer/mscfransdeboer/code/main.py \
+    --seed 42 \
+    --dataset ucf24 \
+    --data_dir rgb-images \
+    --train_split test_small.txt \
+    --test_split test_small.txt \
+    --batch_size 1 \
+    --network progressnet \
+    --backbone vgg16 \
+    --load_backbone vgg16.pth \
+    --num_workers 2 \
+    --max_length 550 \
+    --load_experiment pn_ucf_segments \
+    --load_iteration 50000 \
+    --save_dir pn_ucf_segments

@@ -11,8 +11,11 @@ import string
 import pandas as pd
 import os
 import argparse
+import math
+import torchvision.transforms as transforms
 
 from datasets import FeatureDataset, ImageDataset, UCFDataset
+from datasets import Middle
 
 # Constants
 DATA_ROOT = "/home/frans/Datasets"
@@ -249,17 +252,17 @@ def plot_baselines():
         ax.legend()
     axs[0].set_title(
         "(a) Average-index baseline on UCF101-24",
-        y=TITLE_Y_OFFSET / 1.3,
+        y=TITLE_Y_OFFSET / 1.2,
         x=TITLE_X_OFFSET,
     )
     axs[1].set_title(
         "(b) Average-index baseline on Cholec80",
-        y=TITLE_Y_OFFSET / 1.3,
+        y=TITLE_Y_OFFSET / 1.2,
         x=TITLE_X_OFFSET,
     )
     axs[2].set_title(
         "(c) Average-index baseline on Breakfast",
-        y=TITLE_Y_OFFSET / 1.3,
+        y=TITLE_Y_OFFSET / 1.2,
         x=TITLE_X_OFFSET,
     )
 
@@ -271,10 +274,15 @@ def plot_baseline_example():
     predictions, _, _, _ = calc_baselines([10, 20, 30], [50])
 
     figure, axs = plt.subplots(1, 2, figsize=(12.8, 4.8))
-    axs[0].plot([0] + [(i + 1) / 10 for i in range(10)], label="Video 1")
-    axs[0].plot([0] + [(i + 1) / 20 for i in range(20)], label="Video 2")
-    axs[0].plot([0] + [(i + 1) / 30 for i in range(30)], label="Video 3")
+    axs[0].plot([(i + 1) / 10 for i in range(10)], label="Video 1")
+    axs[0].plot([(i + 1) / 20 for i in range(20)], label="Video 2")
+    axs[0].plot([(i + 1) / 30 for i in range(30)], label="Video 3")
+    axs[0].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ['0%', '20%', '40%', '60%', '80%', '100%'])
+    axs[1].plot([(i + 1) / 10 for i in range(10)], label="Video 1", linestyle=':')
+    axs[1].plot([(i + 1) / 20 for i in range(20)], label="Video 2", linestyle=':')
+    axs[1].plot([(i + 1) / 30 for i in range(30)], label="Video 3", linestyle=':')
     axs[1].plot(predictions, label="predictions")
+    axs[1].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ['0%', '20%', '40%', '60%', '80%', '100%'])
     for ax in axs.flat:
         ax.set_xlabel("Frame")
         ax.set_ylabel("Progress")
@@ -293,7 +301,7 @@ def make_length_plot(lengths, ax: plt.Axes, title: str, bucket_size: int = 10):
     mean = np.percentile(lengths, 50)
     q3 = np.percentile(lengths, 65)
     for length in lengths:
-        length = round(length / bucket_size) * bucket_size
+        length = math.floor(length / bucket_size) * bucket_size
         if length not in buckets:
             buckets[length] = 0
         buckets[length] += 1
@@ -381,7 +389,7 @@ def visualise_video(video_dir: str, index: int, result_paths: List[str], video_n
     plt.savefig(f'./plots/examples/{video_name}.{FILE}')
     plt.clf()
 
-def stats(dataset: str, splitfiles: List[str]):
+def stats(dataset: str, splitfiles: List[str], length=False):
     root = os.path.join(DATA_ROOT, dataset)
     for splitfile in splitfiles:
         with open(f'{os.path.join(root, f"splitfiles/{splitfile}.txt")}') as f:
@@ -391,31 +399,124 @@ def stats(dataset: str, splitfiles: List[str]):
         total = 0
         for line in lines:
             line = line.strip()
-            # frames_path = os.path.join(root, 'rgb-images', line)
-            # num_frames = len(os.listdir(frames_path))
+            if length:
+                frames_path = os.path.join(root, 'rgb-images', line)
+                num_frames = len(os.listdir(frames_path))
             activity_class = line.split('/')[0]
             if activity_class not in counts_per_class:
                 counts_per_class[activity_class] = 0
             if activity_class not in num_frames_per_class:
                 num_frames_per_class[activity_class] = 0
-            # num_frames_per_class[activity_class] += num_frames
+            if length:
+                num_frames_per_class[activity_class] += num_frames
             counts_per_class[activity_class] += 1
             total += 1
-
+        
+        plt.bar(counts_per_class.keys(), [num_frames_per_class[key] / counts_per_class[key] for key in counts_per_class])
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(f'./plots/{dataset}_{splitfile}.png')
+        plt.clf()
         print(f'--- {total} videos in {dataset}/{splitfile} ({len(counts_per_class)} classes) ---')
         for activity_class in counts_per_class:
             print(f'{activity_class}: {counts_per_class[activity_class]} ({num_frames_per_class[activity_class] / counts_per_class[activity_class]})')
 
-def dataset_statistics():
-    stats('ucf24', ['all', 'train', 'test', 'all_tubes', 'train_tubes', 'test_tubes'])
-    stats('breakfast', ['all'])
+def tube_stats(splitfile: str):
+    dataset = FeatureDataset(os.path.join(DATA_ROOT, 'ucf24'), 'features/resnet152', splitfile, False, 1, False, False, 1, 'none', 1)
+    counts_per_class = {}
+    num_frames_per_class = {}
+    total = 0
+    for (name, data, _) in dataset:
+        length = data.shape[0]
+        activity_class = name.split('/')[0]
+        if activity_class not in counts_per_class:
+            counts_per_class[activity_class] = 0
+        if activity_class not in num_frames_per_class:
+            num_frames_per_class[activity_class] = 0
+        if length:
+            num_frames_per_class[activity_class] += length
+        counts_per_class[activity_class] += 1
+        total += 1
+        plt.bar(counts_per_class.keys(), [num_frames_per_class[key] / counts_per_class[key] for key in counts_per_class])
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(f'./plots/ucf24__{splitfile}.png')
+        plt.clf()
+    print(f'--- {total} videos in ucf24/{splitfile} ({len(counts_per_class)} classes) ---')
+    for activity_class in counts_per_class:
+        print(f'{activity_class}: {counts_per_class[activity_class]} ({num_frames_per_class[activity_class] / counts_per_class[activity_class]})')
 
+def dataset_statistics():
+    stats('ucf24', ['all', 'train', 'test'], length=True)
+    tube_stats('all_tubes.txt')
+    stats('breakfast', ['all'], length=True)
+
+def surgery_duration():
+    durations = [num_frames / 60 for num_frames in cholec80['all']]
+
+    buckets = {}
+    q1 = np.percentile(durations, 25)
+    mean = np.percentile(durations, 50)
+    q3 = np.percentile(durations, 65)
+    for length in durations:
+        length = math.floor(length / 10) * 10
+        if length not in buckets:
+            buckets[length] = 0
+        buckets[length] += 1
+
+    plt.rcParams['axes.linewidth'] = 0.4
+    plt.figure(figsize=(6.8, 4.1))
+    plt.bar([5+key for key in buckets.keys()], buckets.values(), width=10, edgecolor='black', linewidth=0.75, color='#75a9d3')
+    plt.xlabel('Surgery duration (minute)')
+    plt.ylabel('# of surgeries')
+    plt.axvline(q1, color='blue', linestyle='-.', linewidth=1)
+    plt.axvline(q3, color='blue', linestyle='-.', linewidth=1)
+    plt.xticks([i*10 for i in range(12)])
+    plt.yticks([i*5 for i in range(9)])
+    plt.tick_params(axis='y', direction='in', length=4, left=True, right=True, width=0.4)
+    plt.tick_params(axis='x', direction='in', length=4, bottom=True, top=True, width=0.4)
+    # title = title + f'\nQ1={round(q1)}, mean={round(mean)}, Q3={round(q3)}'
+    plt.tight_layout()
+    plt.savefig('./plots/cholec80_durations.png')
+    plt.rcParams['axes.linewidth'] = 0.8
+
+def dataset_visualisations():
+    transform = transforms.Resize((240, 320))
+    # dataset = ImageDataset(os.path.join(DATA_ROOT, "breakfast"), "rgb-images", f"small.txt", sample_transform=Middle())
+    dataset = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"small.txt", sample_transform=Middle())
+    num_activities = len(dataset) // 10
+
+    frames = []
+    fig, axs = plt.subplots(num_activities, 10, figsize=(6.4, 4.8*(24/10)))
+    unique_names = []
+    for name, frame, _ in dataset:
+        frames.append(transform(frame[0]))
+        activity_name = name.split('/')[0]
+        if activity_name not in unique_names:
+            unique_names.append(activity_name)
+    for (frame, ax) in zip(frames, axs.flat):
+        ax.imshow(frame)
+        # ax.axis('off')
+        ax.set_xticks([])
+        ax.set_xticks([], minor=True)
+        ax.set_yticks([])
+        ax.set_yticks([], minor=True)
+    # for (unique_name, ax) in zip(unique_names, axs[:, 0]):
+    #     ax.axis('off')
+    #     ax.text(0, 0, unique_name)
+        # ax.set_aspect('equal')
+    print(unique_names)
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+    plt.savefig('./plots/ucf_visualisations.png')
+    # ucf101_small = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"small.txt")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pdf', action='store_true')
 args = parser.parse_args()
 FILE = 'pdf' if args.pdf else 'png'
 def main():
+    dataset_visualisations()
     try:
         os.mkdir('./plots')
         os.mkdir('./plots/bars')
@@ -470,7 +571,10 @@ def main():
             # ('Average Index', f'./data/cholec_baseline.txt', '-')],
             f'bars_video{index}', 1
     )
-    dataset_statistics()
+    # dataset_statistics()
+    # plot_dataset_lengths()
+    # set_font_sizes(9, 10, 12)
+    # surgery_duration()
 
 if __name__ == '__main__':
     main()

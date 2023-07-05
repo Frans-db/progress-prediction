@@ -25,3 +25,9 @@ class Truncate:
         if len(indices) < self.max_length:
             return indices
         return indices[:self.max_length]
+    
+class Middle:
+    def __call__(self, indices: List[int]) -> List[int]:
+        num_frames = len(indices)
+        middle_index = num_frames // 2
+        return [indices[middle_index]]
