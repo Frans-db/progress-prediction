@@ -32,8 +32,13 @@ def group_names(root: str, read: str, save: str) -> None:
 
 
 def main():
-    group_names(os.path.join(DATA_ROOT, 'breakfast/splitfiles/'), 'all.txt', 'small.txt')
-    group_names(os.path.join(DATA_ROOT, 'ucf24/splitfiles/'), 'all.txt', 'small.txt')
+    with open('./data/bf_baseline.txt') as f:
+        data = [float(line.strip()) for line in f.readlines()]
+    data = data[::15]
+    with open('./data/bf_baseline_sampled.txt', 'w+') as f:
+        f.write('\n'.join([str(line) for line in data]))
+    # group_names(os.path.join(DATA_ROOT, 'breakfast/splitfiles/'), 'all.txt', 'small.txt')
+    # group_names(os.path.join(DATA_ROOT, 'ucf24/splitfiles/'), 'all.txt', 'small.txt')
 
 if __name__ == '__main__':
     main()

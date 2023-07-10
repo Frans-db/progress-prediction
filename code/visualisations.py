@@ -348,10 +348,10 @@ def plot_synthetic(video_index: int, frame_indices: List[int]):
     plt.clf()
 
 
-def visualise_video(video_dir: str, index: int, result_paths: List[str], video_name: str, N):
-    frames = sorted(os.listdir(video_dir))
+def visualise_video(video_dir: str, index: int, result_paths: List[str], video_name: str, N: int, offset: int = 0, subsample: int = 1):
+    frames = sorted(os.listdir(video_dir))[::subsample]
     num_frames = len(frames)
-    frame_path = os.path.join(video_dir, frames[index])
+    frame_path = os.path.join(video_dir, frames[index+offset])
     frame = Image.open(frame_path)
 
     fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8*1.5), gridspec_kw={'width_ratios': [1, 3]})
@@ -477,7 +477,7 @@ def surgery_duration():
     plt.tick_params(axis='x', direction='in', length=4, bottom=True, top=True, width=0.4)
     # title = title + f'\nQ1={round(q1)}, mean={round(mean)}, Q3={round(q3)}'
     plt.tight_layout()
-    plt.savefig('./plots/cholec80_durations.png')
+    plt.savefig('./plots/cholec80_durations.pdf')
     plt.rcParams['axes.linewidth'] = 0.8
 
 def dataset_visualisations():
@@ -505,18 +505,84 @@ def dataset_visualisations():
     #     ax.axis('off')
     #     ax.text(0, 0, unique_name)
         # ax.set_aspect('equal')
-    print(unique_names)
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.1, hspace=0.1)
     plt.savefig('./plots/ucf_visualisations.png')
     # ucf101_small = UCFDataset(os.path.join(DATA_ROOT, "ucf24"), "rgb-images", f"small.txt")
+
+def cholec_visualisations():
+    # transform = transforms.Resize((240, 320))
+    transform = transforms.Compose([])
+    dataset = ImageDataset(os.path.join(DATA_ROOT, "cholec80"), "rgb-images", f"v_0.txt", sample_transform=Middle())
+
+    frames = []
+    fig, axs = plt.subplots(1, 6, figsize=(6.4, 4.8 / 5))
+    for name, frame, _ in dataset:
+        frames.append(transform(frame[0]))
+    for (frame, ax) in zip(frames, axs.flat):
+        ax.imshow(frame)
+        # ax.axis('off')
+        ax.set_xticks([])
+        ax.set_xticks([], minor=True)
+        ax.set_yticks([])
+        ax.set_yticks([], minor=True)
+    # for (unique_name, ax) in zip(unique_names, axs[:, 0]):
+    #     ax.axis('off')
+    #     ax.text(0, 0, unique_name)
+        # ax.set_aspect('equal')
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+    plt.savefig('./plots/c80_visualisations.pdf')
+
+def visualise_results():
+    for index, timestamp in zip(['04', '05', '12'], [210, 1650, 850]):
+        visualise_video(
+            os.path.join(DATA_ROOT, f'cholec80/rgb-images/video{index}'), timestamp,
+            [('ResNet-2D', f'./data/cholec/resnet_cholec/video{index}.txt', ':'),
+            ('ResNet-LSTM', f'./data/cholec/lstm_cholec/video{index}.txt', ':'),
+
+            ('UTE', f'./data/cholec/ute_cholec/video{index}.txt', '-.'),
+            ('RSDNet', f'./data/cholec/rsd_cholec/video{index}.txt', '-.'),
+            ('ProgressNet', f'./data/cholec/pn_cholec/video{index}.txt', '-.'),
+            ('average-index', f'./data/cholec_baseline.txt', '-')],
+            f'cholec80_video{index}', 200
+    )
+    for index, timestamp in zip(['00004', '00015'], [10, 45]):
+        visualise_video(
+            os.path.join(DATA_ROOT, f'bars/rgb-images/{index}'), timestamp,
+            [('ResNet', f'./data/bars/resnet_bars/{index}.txt', ':'),
+            ('ResNet-LSTM', f'./data/bars/lstm_bars/{index}.txt', ':'),
+
+            ('UTE', f'./data/bars/ute_bars/{index}.txt', '-.'),
+            ('RSDNet', f'./data/bars/rsd_bars/{index}.txt', '-.'),
+            ('ProgressNet', f'./data/bars/pn_bars/{index}.txt', '-.'),
+            ('Average Index', f'./data/cholec_baseline.txt', '-')],
+            f'bars_video{index}', 1
+    )
+    # 0, 122, 0, 0, 0
+    for index, timestamp, offset in zip(['Biking/v_Biking_g01_c02', 'Fencing/v_Fencing_g01_c01', 'FloorGymnastics/v_FloorGymnastics_g01_c03', 'GolfSwing/v_GolfSwing_g01_c03', 'GolfSwing/v_GolfSwing_g01_c02', 'HorseRiding/v_HorseRiding_g01_c01'], [80, 45, 60, 125, 45, 125], [0, 0, 0, 0, 0, 0]):
+        visualise_video(
+            os.path.join(DATA_ROOT, f'ucf24/rgb-images/{index}'), timestamp,
+            [('ProgressNet (full-video)', f'./data/ucf/pn_ucf/{index.replace("/", "_")}_0.txt', '-.'),
+             ('ProgressNet (full-video)', f'./data/ucf/pn_ucf_segments/{index.replace("/", "_")}_0.txt', '-.'),
+             ('average-index', f'./data/ucf_baseline.txt', '-')],
+             f'ucf_video_{index.replace("/", "_")}', 1, offset=offset
+        )
+    for index, timestamp in zip(['pancake/P12/cam01', 'sandwich/P07/webcam01'], [150, 65]):
+        visualise_video(
+            os.path.join(DATA_ROOT, f'breakfast/rgb-images/{index}'), timestamp,
+            [('ResNet-LSTM', f'./data/breakfast/lstm_bf_random/{index.replace("/", "_")}.txt', '-.'),
+             ('RSDNet', f'./data/breakfast/rsd_bf_random/{index.replace("/", "_")}.txt', '-.'),
+             ('ProgressNet', f'./data/breakfast/pn_bf_random/{index.replace("/", "_")}.txt', '-.'),
+             ('average-index', f'./data/bf_baseline_sampled.txt', '-')],
+             f'bf_video_{index.replace("/", "_")}', 1, subsample=15,
+        )
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pdf', action='store_true')
 args = parser.parse_args()
 FILE = 'pdf' if args.pdf else 'png'
 def main():
-    dataset_visualisations()
     try:
         os.mkdir('./plots')
         os.mkdir('./plots/bars')
@@ -524,7 +590,10 @@ def main():
         os.mkdir('./plots/examples')
     except:
         pass
-
+    dataset_visualisations()
+    cholec_visualisations()
+    set_font_sizes(16, 18, 20)
+    visualise_results()
     set_font_sizes()
     # result plots
     results = load_results('./results.json')
@@ -543,38 +612,12 @@ def main():
     plot_synthetic(4, [0, 15, 35, 58, 71])
     # example progress predictions
     set_font_sizes(16, 18, 20)
-    for index, timestamp in zip(['04', '05', '12'], [210, 1650, 850]):
-        visualise_video(
-            os.path.join(DATA_ROOT, f'cholec80/rgb-images/video{index}'), timestamp,
-            [
-            
-            ('ResNet-2D', f'./data/cholec/resnet_cholec/video{index}.txt', ':'),
-            ('ResNet-LSTM', f'./data/cholec/lstm_cholec/video{index}.txt', ':'),
+    visualise_results()
 
-            ('UTE', f'./data/cholec/ute_cholec/video{index}.txt', '-.'),
-            ('RSDNet', f'./data/cholec/rsd_cholec/video{index}.txt', '-.'),
-            ('ProgressNet', f'./data/cholec/pn_cholec/video{index}.txt', '-.'),
-            ('average-index', f'./data/cholec_baseline.txt', '-')],
-            f'cholec80_video{index}', 200
-    )
-    for index, timestamp in zip(['00004', '00015'], [10, 45]):
-        visualise_video(
-            os.path.join(DATA_ROOT, f'bars/rgb-images/{index}'), timestamp,
-            [
-            
-            ('ResNet', f'./data/bars/resnet_bars/{index}.txt', ':'),
-            ('ResNet-LSTM', f'./data/bars/lstm_bars/{index}.txt', ':'),
-
-            ('UTE', f'./data/bars/ute_bars/{index}.txt', '-.'),
-            ('RSDNet', f'./data/bars/rsd_bars/{index}.txt', '-.'),
-            ('ProgressNet', f'./data/bars/pn_bars/{index}.txt', '-.')],
-            # ('Average Index', f'./data/cholec_baseline.txt', '-')],
-            f'bars_video{index}', 1
-    )
     # dataset_statistics()
-    # plot_dataset_lengths()
-    # set_font_sizes(9, 10, 12)
-    # surgery_duration()
+    plot_dataset_lengths()
+    set_font_sizes(9, 10, 12)
+    surgery_duration()
 
 if __name__ == '__main__':
     main()

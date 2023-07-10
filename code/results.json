@@ -28,7 +28,7 @@
             "'full-video' inputs": 23.1,
             "'random-noise' inputs": 17.6,
             "'video-segments' inputs": 27.7,
-            "'frame-indices' inputs": 22.1
+            "'frame-indices' inputs": 18.3
         },
         "static-0.5": {
             "'full-video' inputs": 25.0,
@@ -78,7 +78,7 @@
             "'full-video' inputs": 10.2,
             "'random-noise' inputs": 12.3,
             "'video-segments' inputs": 13.1,
-            "'frame-indices' inputs": 20.2
+            "'frame-indices' inputs": 16.7
         },
         "static-0.5": {
             "'full-video' inputs": 25.0,
@@ -128,7 +128,7 @@
             "'full-video' inputs": 27.0,
             "'random-noise' inputs": 19.2,
             "'video-segments' inputs": 29.5,
-            "'frame-indices' inputs": 30.0
+            "'frame-indices' inputs": 20.5
         },
         "static-0.5": {
             "'full-video' inputs": 25.0,
