@@ -13,6 +13,7 @@ import os
 import argparse
 import math
 import torchvision.transforms as transforms
+import random
 
 from datasets import FeatureDataset, ImageDataset, UCFDataset
 from datasets import Middle
@@ -273,24 +274,31 @@ def plot_baselines():
 def plot_baseline_example():
     predictions, _, _, _ = calc_baselines([10, 20, 30], [50])
 
-    figure, axs = plt.subplots(1, 2, figsize=(12.8, 4.8))
-    axs[0].plot([(i + 1) / 10 for i in range(10)], label="Video 1")
-    axs[0].plot([(i + 1) / 20 for i in range(20)], label="Video 2")
-    axs[0].plot([(i + 1) / 30 for i in range(30)], label="Video 3")
-    axs[0].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ['0%', '20%', '40%', '60%', '80%', '100%'])
-    axs[1].plot([(i + 1) / 10 for i in range(10)], label="Video 1", linestyle=':')
-    axs[1].plot([(i + 1) / 20 for i in range(20)], label="Video 2", linestyle=':')
-    axs[1].plot([(i + 1) / 30 for i in range(30)], label="Video 3", linestyle=':')
-    axs[1].plot(predictions, label="predictions")
-    axs[1].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ['0%', '20%', '40%', '60%', '80%', '100%'])
-    for ax in axs.flat:
-        ax.set_xlabel("Frame")
-        ax.set_ylabel("Progress")
-        ax.set_xlim(0, 50)
-        # ax.set(xlabel='Frame', ylabel='Progress')
-        ax.legend()
-    axs[0].set_title("(a) 3 Videos of length 10, 20, and 30", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
-    axs[1].set_title("(b) Average-index baseline", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
+    plt.figure(figsize=(6.4*1.5, 4.8*1.5))
+    # figure, axs = plt.subplots(1, 1, figsize=(12.8, 4.8))
+    # axs[0].plot([(i + 1) / 10 for i in range(10)], label="Video 1")
+    # axs[0].plot([(i + 1) / 20 for i in range(20)], label="Video 2")
+    # axs[0].plot([(i + 1) / 30 for i in range(30)], label="Video 3")
+    # axs[0].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ['0%', '20%', '40%', '60%', '80%', '100%'])
+    # axs[1].plot([(i + 1) / 10 for i in range(10)], label="Video 1", linestyle=':')
+    # axs[1].plot([(i + 1) / 20 for i in range(20)], label="Video 2", linestyle=':')
+    # axs[1].plot([(i + 1) / 30 for i in range(30)], label="Video 3", linestyle=':')
+    plt.plot([random.random() for _ in predictions], label='random', linestyle=':', linewidth=3)
+    plt.plot([0.5 for _ in predictions], label='static-0.5', linewidth=3)
+    plt.plot(predictions, label="average-index", linewidth=3)
+    plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ['0%', '20%', '40%', '60%', '80%', '100%'])
+    plt.xlabel('Frame')
+    plt.ylabel('Progress')
+    plt.xlim(0, 50)
+    plt.legend()
+    # for ax in axs.flat:
+    #     ax.set_xlabel("Frame")
+    #     ax.set_ylabel("Progress")
+    #     ax.set_xlim(0, 50)
+    #     # ax.set(xlabel='Frame', ylabel='Progress')
+    #     ax.legend()
+    # axs[0].set_title("(a) 3 Videos of length 10, 20, and 30", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
+    # axs[1].set_title("(b) Average-index baseline", y=TITLE_Y_OFFSET, x=TITLE_X_OFFSET)
     plt.tight_layout()
     plt.savefig(f"./plots/avg_index_example.{FILE}")
     plt.clf()
@@ -348,41 +356,49 @@ def plot_synthetic(video_index: int, frame_indices: List[int]):
     plt.clf()
 
 
-def visualise_video(video_dir: str, index: int, result_paths: List[str], video_name: str, N: int, offset: int = 0, subsample: int = 1):
+def visualise_video(video_dir: str, timestamps: List[int], result_paths: List[str], video_name: str, N: int, offset: int = 0, subsample: int = 1):
+    gs = plt.GridSpec(len(timestamps), 4)
+    fig = plt.figure(figsize=(6.4*2, 4.8*1.5))
+    ax1 = plt.subplot(gs[0, 0])
+    ax2 = plt.subplot(gs[1, 0])
+    ax3 = plt.subplot(gs[:, 1:])
+    axs = [ax1, ax2, ax3]
+
+    # fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8*1.5), gridspec_kw={'width_ratios': [1, 3]})
     frames = sorted(os.listdir(video_dir))[::subsample]
     num_frames = len(frames)
-    frame_path = os.path.join(video_dir, frames[index+offset])
-    frame = Image.open(frame_path)
-
-    fig, axs = plt.subplots(1, 2, figsize=(6.4*2, 4.8*1.5), gridspec_kw={'width_ratios': [1, 3]})
+    index = timestamps[0]
+    for i,index in enumerate(timestamps):
+        frame_path = os.path.join(video_dir, frames[index+offset])
+        frame = Image.open(frame_path)
+        axs[i].imshow(frame)
+        axs[i].axis('off')
+        axs[i].set_title(f't={index}', fontsize=20)
 
     ground_truth = [(i+1) / num_frames for i in range(num_frames)]
     static = [0.5 for _ in range(num_frames)]
-
-    axs[1].axvline(index, color='red', linestyle=':')
+    for index in timestamps:
+        axs[-1].axvline(index, color='red', linestyle=':')
     for name, path, linestyle in result_paths:
         with open(path) as f:
             data = [float(row.strip()) for row in f.readlines()][:num_frames]
         if name != 'average-index':
-            axs[1].plot(np.convolve(data, np.ones(N)/N, mode='full'), label=name, linestyle=linestyle, linewidth=LINEWIDTH)
+            axs[-1].plot(np.convolve(data, np.ones(N)/N, mode='full'), label=name, linestyle=linestyle, linewidth=LINEWIDTH)
         else:
-            axs[1].plot(data, label=name, linewidth=LINEWIDTH)
+            axs[-1].plot(data, label=name, linewidth=LINEWIDTH)
 
-    axs[1].plot(ground_truth, label='Ground Truth', linewidth=LINEWIDTH)
-    axs[0].imshow(frame)
-    axs[0].axis('off')
-    axs[1].set_xlabel('Frame')
-    axs[1].set_ylabel('Progress')
-
-    axs[1].tick_params(axis='both', which='major')
-    axs[1].tick_params(axis='both', which='minor')
+    axs[-1].plot(ground_truth, label='Ground Truth', linewidth=LINEWIDTH)
+    axs[-1].set_xlabel('Frame')
+    axs[-1].set_ylabel('Progress')
+    axs[-1].tick_params(axis='both', which='major')
+    axs[-1].tick_params(axis='both', which='minor')
 
     plt.grid(axis='y')
     yticks = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
     ytick_labels = ['0%', '20%', '40%', '60%', '80%', '100%']
-    axs[1].tick_params(axis='y', length = 0)
-    axs[1].set_yticks(yticks, ytick_labels)
-    axs[1].set_xlim(0, num_frames)
+    axs[-1].tick_params(axis='y', length = 0)
+    axs[-1].set_yticks(yticks, ytick_labels)
+    axs[-1].set_xlim(0, num_frames)
 
     plt.legend(loc='upper left')
     plt.tight_layout()
@@ -535,9 +551,9 @@ def cholec_visualisations():
     plt.savefig('./plots/c80_visualisations.pdf')
 
 def visualise_results():
-    for index, timestamp in zip(['04', '05', '12'], [210, 1650, 850]):
+    for index, timestamps in zip(['04', '05'], [(210, 1250), (200, 1650)]):
         visualise_video(
-            os.path.join(DATA_ROOT, f'cholec80/rgb-images/video{index}'), timestamp,
+            os.path.join(DATA_ROOT, f'cholec80/rgb-images/video{index}'), timestamps,
             [('ResNet-2D', f'./data/cholec/resnet_cholec/video{index}.txt', ':'),
             ('ResNet-LSTM', f'./data/cholec/lstm_cholec/video{index}.txt', ':'),
 
@@ -547,7 +563,7 @@ def visualise_results():
             ('average-index', f'./data/cholec_baseline.txt', '-')],
             f'cholec80_video{index}', 200
     )
-    for index, timestamp in zip(['00004', '00015'], [10, 45]):
+    for index, timestamp in zip(['00015'], [(10, 55)]):
         visualise_video(
             os.path.join(DATA_ROOT, f'bars/rgb-images/{index}'), timestamp,
             [('ResNet', f'./data/bars/resnet_bars/{index}.txt', ':'),
@@ -555,28 +571,27 @@ def visualise_results():
 
             ('UTE', f'./data/bars/ute_bars/{index}.txt', '-.'),
             ('RSDNet', f'./data/bars/rsd_bars/{index}.txt', '-.'),
-            ('ProgressNet', f'./data/bars/pn_bars/{index}.txt', '-.'),
-            ('Average Index', f'./data/cholec_baseline.txt', '-')],
+            ('ProgressNet', f'./data/bars/pn_bars/{index}.txt', '-.')],
             f'bars_video{index}', 1
     )
-    # 0, 122, 0, 0, 0
-    for index, timestamp, offset in zip(['Biking/v_Biking_g01_c02', 'Fencing/v_Fencing_g01_c01', 'FloorGymnastics/v_FloorGymnastics_g01_c03', 'GolfSwing/v_GolfSwing_g01_c03', 'GolfSwing/v_GolfSwing_g01_c02', 'HorseRiding/v_HorseRiding_g01_c01'], [80, 45, 60, 125, 45, 125], [0, 0, 0, 0, 0, 0]):
-        visualise_video(
-            os.path.join(DATA_ROOT, f'ucf24/rgb-images/{index}'), timestamp,
-            [('ProgressNet (full-video)', f'./data/ucf/pn_ucf/{index.replace("/", "_")}_0.txt', '-.'),
-             ('ProgressNet (full-video)', f'./data/ucf/pn_ucf_segments/{index.replace("/", "_")}_0.txt', '-.'),
-             ('average-index', f'./data/ucf_baseline.txt', '-')],
-             f'ucf_video_{index.replace("/", "_")}', 1, offset=offset
-        )
-    for index, timestamp in zip(['pancake/P12/cam01', 'sandwich/P07/webcam01'], [150, 65]):
-        visualise_video(
-            os.path.join(DATA_ROOT, f'breakfast/rgb-images/{index}'), timestamp,
-            [('ResNet-LSTM', f'./data/breakfast/lstm_bf_random/{index.replace("/", "_")}.txt', '-.'),
-             ('RSDNet', f'./data/breakfast/rsd_bf_random/{index.replace("/", "_")}.txt', '-.'),
-             ('ProgressNet', f'./data/breakfast/pn_bf_random/{index.replace("/", "_")}.txt', '-.'),
-             ('average-index', f'./data/bf_baseline_sampled.txt', '-')],
-             f'bf_video_{index.replace("/", "_")}', 1, subsample=15,
-        )
+    # # 0, 122, 0, 0, 0
+    # for index, timestamp, offset in zip(['Biking/v_Biking_g01_c02', 'Fencing/v_Fencing_g01_c01', 'FloorGymnastics/v_FloorGymnastics_g01_c03', 'GolfSwing/v_GolfSwing_g01_c03', 'GolfSwing/v_GolfSwing_g01_c02', 'HorseRiding/v_HorseRiding_g01_c01'], [80, 45, 60, 125, 45, 125], [0, 0, 0, 0, 0, 0]):
+    #     visualise_video(
+    #         os.path.join(DATA_ROOT, f'ucf24/rgb-images/{index}'), timestamp,
+    #         [('ProgressNet (full-video)', f'./data/ucf/pn_ucf/{index.replace("/", "_")}_0.txt', '-.'),
+    #          ('ProgressNet (full-video)', f'./data/ucf/pn_ucf_segments/{index.replace("/", "_")}_0.txt', '-.'),
+    #          ('average-index', f'./data/ucf_baseline.txt', '-')],
+    #          f'ucf_video_{index.replace("/", "_")}', 1, offset=offset
+    #     )
+    # for index, timestamp in zip(['pancake/P12/cam01', 'sandwich/P07/webcam01'], [150, 65]):
+    #     visualise_video(
+    #         os.path.join(DATA_ROOT, f'breakfast/rgb-images/{index}'), timestamp,
+    #         [('ResNet-LSTM', f'./data/breakfast/lstm_bf_random/{index.replace("/", "_")}.txt', '-.'),
+    #          ('RSDNet', f'./data/breakfast/rsd_bf_random/{index.replace("/", "_")}.txt', '-.'),
+    #          ('ProgressNet', f'./data/breakfast/pn_bf_random/{index.replace("/", "_")}.txt', '-.'),
+    #          ('average-index', f'./data/bf_baseline_sampled.txt', '-')],
+    #          f'bf_video_{index.replace("/", "_")}', 1, subsample=15,
+    #     )
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pdf', action='store_true')
@@ -590,6 +605,9 @@ def main():
         os.mkdir('./plots/examples')
     except:
         pass
+    # set_font_sizes(16, 18, 20)
+    # plot_baseline_example()
+    # return
     dataset_visualisations()
     cholec_visualisations()
     set_font_sizes(16, 18, 20)
@@ -603,8 +621,8 @@ def main():
     plot_result_bar(results, "Bars", ["'full-video' inputs", "'video-segments' inputs"], ['full video', 'video segments'])
     # average index baseline
     set_font_sizes(16, 18, 20)
-    plot_baselines()
-    plot_baseline_example()
+    # plot_baselines()
+    # plot_baseline_example()
     set_font_sizes()
     # dataset statistics
     plot_dataset_lengths()
@@ -615,7 +633,7 @@ def main():
     visualise_results()
 
     # dataset_statistics()
-    plot_dataset_lengths()
+    # plot_dataset_lengths()
     set_font_sizes(9, 10, 12)
     surgery_duration()
 
