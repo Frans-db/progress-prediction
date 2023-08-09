@@ -1,0 +1,32 @@
+\section{Related work}
+\label{sec:related}
+
+% \cite{becattini2017, hu2019, kukleva2019, han2017, li2017, pucci2023}
+% \cite{becattini2017, pucci2023} - closest to there works
+% \cite{kukleva2019, li2017} predicts progress, has a downstream task
+% \cite{hu2019, han2017} joint prediction task. \cite{han2017} predicts in buckets
+
+\noindent\textbf{Activity progress Prediction.} The task of progress prediction was formally introduced in \cite{becattini2017}. 
+Because the progress of an activity is an easy-to-obtain self-supervision signal, it is often used as an auxiliary signal in a multi-task prediction problem, as in \cite{hu2019} to improve the performance of spatio-temporal action localisation networks. 
+Progress prediction is also used as a pretext task for phase detection \cite{li2017}, or to create embeddings to perform unsupervised learning of action classes \cite{kukleva2019, vidalmata2020}. 
+The progress prediction problem can also be modelled as a classification problem, choosing from $n$ bins each of size $1 / n$ as is done in \cite{han2017}. Based on the literature surveyed, of works done on progress prediction, only \cite{becattini2017, pucci2023} have progress prediction as their primary task. This work is also on the topic of progress prediction, but we do not propose our own progress prediction method. 
+Instead, we consider the methods from \cite{becattini2017, kukleva2019} in our analysis and analyze their performance on the currently used datasets.
+
+\smallskip\noindent\textbf{Remaining Duration.} A topic closely related to progress prediction is Remaining Duration (RD) prediction. 
+While the goal of progress prediction is to predict the course of the activity as a percentage value in $[0,100\%]$, RD aims at predicting the remaining time $t$ in minutes or seconds. Previous work that researches the RD problem often does this in a surgical setting \cite{aksamentov2017, marafioti2021, twinanda2019, wang2013} and thus refers to it as the Remaining Surgery Duration (RSD) problem. Early methods work by pretraining a \textsl{ResNet-152} model to predict either the surgical phase \cite{aksamentov2017} or the surgery progress \cite{twinanda2019}, and then using the frame embeddings created from the ResNet-152 model in an LSTM block to perform RSD prediction. 
+Building on top of this is the observation in \cite{marafioti2021} that predicting extra information such as surgeon skill, may be beneficial to do RSD prediction.
+%which shows that by jointly predicting RSD, the surgeon's skill level as either a junior or senior surgeon and the surgical phase the RSD prediction improves. 
+Finally, RSD can also be modelled in a way closer to progress. By dividing all RSD values by the highest possible RSD, the RSD can be predicted as a value between $0$ and $1$ \cite{wang2023}. Unlike these methods that model the passage of time as a decreasing remaining duration, we model it as an increasing progress value. 
+We use \textsl{RSDNet} \cite{twinanda2019} in our analysis, as it performs both RSD and progress prediction.
+
+\smallskip\noindent\textbf{Phase prediction.} If an action consistently consists of separate sub-tasks or phases of similar duration, then recognizing the current phase gives a good approximation of the progress.  
+Previous work jointly performs phase-based progress prediction and surgical gesture recognition \cite{vanamsterdam2020}, jointly predicting the phase and the surgery tools \cite{twinanda2016}, or by using the embeddings in an LSTM to predict the surgical phase online \cite{yengera2018}. 
+More recent work applies transformers to perform surgical phase recognition \cite{jamal2023, liu2023lovit}. In this work, we do not consider phase-prediction methods as they are an inaccurate proxy for progress. 
+Furthermore, when activities are non-linear, phase prediction is no longer a good indicator of activity progress. 
+Knowing which phase is happening may be useful as an extra signal, however we do not consider this, as it requires additional annotations.
+
+\smallskip\noindent\textbf{Activity Completion.} The progress for each frame can be calculated using linear interpolation if the current activity time, $t$, the starting activity time, $t_\text{start}$, and the ending activity time, $t_\text{end}$, are available. Early work on this topic only predicts if an activity has been completed or not using an SVM \cite{heidarivincheh2016}. Follow-up work of Heidarivincheh \etal \cite{heidarivincheh2018} uses a CNN-LSTM architecture to predict the exact frame at which the activity is completed, \ie the activity completion moment. 
+The detection of the activity completion moment is done in a supervised setting \cite{heidarivincheh2018}, where the exact frame at which the activity ends is annotated.
+Alternatively, activity completion can be done in a weakly supervised setting where the only available annotation is if the activity has been completed or not \cite{heidarivincheh2019}. 
+Although related to progress prediction, activity completion only aims at predicting the completion moment. In contrast, we focus on the more fine-grained targets of activity progression at every frame.
+

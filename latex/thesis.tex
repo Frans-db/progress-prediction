@@ -1,0 +1,82 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{iccv}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{comment}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
+
+% For the thesis we do not use the submission format.
+\iccvfinalcopy % *** Uncomment this line for the final submission
+
+\def\iccvPaperID{2} % *** Enter the ICCV Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+\ificcvfinal\pagestyle{empty}\fi
+
+\begin{document}
+\input{macros}
+
+%%%%%%%%% TITLE
+%\title{Progress Prediction in Surgery Videos}
+%\title{How good are video progress prediction methods, really?}
+\title{Is there progress in activity progress prediction?}
+
+\author{Frans de Boer$^1$\\
+\and
+Jan C. van Gemert$^1$\\
+\and
+Jouke Dijkstra$^2$\\
+\and
+Silvia L. Pintea$^{1,2}$\\
+\and
+{\normalsize $^{1}$ Computer Vision Lab, Delft University of Technology}\\
+{\normalsize $^{2}$ Division of Image Processing (LKEB), Leiden University Medical Center}\\
+}
+
+\maketitle
+% Remove page # from the first page of camera-ready.
+\ificcvfinal\thispagestyle{empty}\fi
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{egbib}
+}
+
+\appendix
+% % \slp{move to appendix} 
+% Figure ~\ref{fig:visualisation} shows an example with 3 training videos of length 10, 20, and 30, and a test video of length 50. We can see that the predicted progress follows an average trajectory, which changes at frame 10 and frame 20 when video 1 and video 2 end. The test video is 20 frames longer than the longest train video so after frame 30 the predicted progress stays pinned at $1.0$.
+% % \slp{of what? say a bit more? what are the axis, what should we see?}. 
+% Note, that as opposed to the progress of an activity this baseline is not guaranteed to be a monotonically non-decreasing progress.
+
+% \begin{figure*}
+% \begin{center}
+%    \includegraphics[width=1.0\linewidth]{media/avg_index_example.pdf}
+% \end{center}
+%    \caption{Progress values of 3 videos of length 10, 20, and 30 (a) and their resulting average index baseline applied to a video of length 50 (b). The average index baseline follows the average trajectory of each video, changing directory at frame 10 and 20 when video 1 and video 2 end. After frame 30 the average index baseline predicts a constant progress value of $1.0$.
+%    % \slp{Use only pdf figures, make the labels bigger and the line thicker. Explain the axes here in text. Conclude what should the reader see.}
+%    }
+% \label{fig:visualisation}
+% \end{figure*}
+
+\end{document}

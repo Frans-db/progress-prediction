@@ -1,0 +1,79 @@
+\section{Activity progress prediction}
+\label{sec:method}
+We formulate activity progress prediction as the task of predicting a progress value $p_n^i \in [0, 100]\%$ at frame $i$ in a video indexed by $n$, where
+\begin{equation}
+  p_n^i = \frac{i}{l_n},
+  \label{eq:progress}
+\end{equation}
+$l_n$ is the total number of frames for video $n$. 
+Each video consists of a single activity which starts at frame $1$ and ends at frame $l_n$. 
+The activity may consist of multiple phases, but we do not use any phase annotation. 
+
+We predict progress percentages at every frame in the test videos.
+During training, the videos can be presented to the methods in two different ways: \textsl{full-videos} and \textsl{video-sequences}. 
+We start by using complete videos during training -- \textsl{full-videos}, where each video frame represents a data sample.
+Subsequently, we make the problem more realistic by applying two sampling augmentations, as done in \cite{becattini2017}: 
+(a) for every video, we sample a segment by randomly selecting a start and end point; 
+(b) we randomly subsample every such segment to vary its speed. 
+We denote the video sampling strategy implementing both points (a) and (b), as \textsl{video-segments}. 
+On \textsl{video-segments} the methods can only rely on the visual information for predicting progress. 
+
+%----------------------------------------------------------------------------------------------------------------
+\subsection{Progress prediction methods}
+\label{sec:progress_prediction_methods}
+We consider 3 progress prediction methods from previous work: \textsl{ProgressNet} \cite{becattini2017}, \textsl{RSDNet} \cite{twinanda2019}, and \textsl{UTE} \cite{kukleva2019}. 
+We select these methods as they are the only methods in the surveyed literature that report results on the progress prediction task. 
+Furthermore, these methods are the only methods in surveyed literature that do not require additional annotations, such as body joints \cite{pucci2023}.
+
+\smallskip\noindent\textbf{ProgressNet} \cite{becattini2017}: 
+A spatio-temporal network which uses a VGG-16 \cite{simonyan2015} backbone to embed video frames and extracts further features using spatial pyramid pooling (SPP) \cite{he2014} and region of interest (ROI) pooling \cite{girshick2015}. 
+Additionally, the model uses 2 LSTM layers to incorporate temporal information. 
+Becattini \etal also introduce a Boundary Observant (BO) loss. 
+This loss enables the network to be more accurate around the areas of phase transitions. 
+In our work, we do not use the BO loss because it requires annotating the phase boundaries. 
+\textsl{ProgressNet} uses ROI pooling and requires per-frame bounding box annotations. We use the complete frame as the bounding box on datasets where we do not have bounding box annotations.
+
+\smallskip\noindent\textbf{RSDNet} \cite{twinanda2019}: It uses a ResNet-152 \cite{he2015} backbone, followed by an LSTM layer with 512 nodes, and two additional single-node linear layers to jointly predict RSD and video progress. 
+The trained ResNet model creates embeddings from all the frames, which are concatenated with the elapsed time in minutes. 
+\textsl{RSDNet} jointly trains on RSD and progress prediction but evaluates only on RSD prediction.
+Here, we evaluate only the progress prediction head and train with both the RSD and progress loss.
+
+\smallskip\noindent\textbf{UTE} \cite{kukleva2019}: This is a simple 3-layer MLP (Multilayer Perceptron) which takes as input features extracted from RGB video frames such as dense trajectories \cite{wang2013} or I3D network embeddings \cite{carreira2018}. 
+Both dense trajectories and I3D embed frames over a sliding window which encodes temporal information into the features. 
+This gives the \textsl{UTE} network access to temporal information.
+Here, we use 3$D$ convolutional embeddings from the I3D backbone of dimension $1024$ and an embedding window of size $16$ on all datasets. 
+We use precisely the same network design as in \cite{kukleva2019}.
+
+%---------------------------------------------------------------------------------------------------------
+\subsection{Learning based baselines}
+Next to the published methods above, specifically designed for progress prediction, we also consider two more baselines. 
+The first is a spatial only \textsl{ResNet-2D} model, and the second is a spatio-temporal \textsl{ResNet-LSTM} model. 
+We use \textsl{ResNet-LSTM} as it is a progress-only variation of \textsl{RSDNet}. 
+Furthermore, the 2$D$ variant \textsl{ResNet-2D} can give us insights into the spatial-only information contained in the datasets, for progress prediction.
+We do not consider other architectures, such as a Video Transformer \cite{arnab2021}, because they do not share the same architecture structure as the progress prediction methods we consider in \sect{progress_prediction_methods}, so they would not display similar behaviors during training.
+
+
+\smallskip\noindent\textbf{ResNet-2D.} A spatial 2$D$ \textsl{ResNet} \cite{he2015} architecture that can only make use of 2$D$ visual data present in individual video frames, without access to any temporal information. 
+The last layer of the \textsl{ResNet} predicts the progress at each frame via a linear layer, followed by a \textsl{sigmoid} activation.
+
+\smallskip\noindent\textbf{ResNet-LSTM.} Additionally, we extend the above \textsl{ResNet-2D} with an LSTM block with 512 nodes, and a final progress-prediction linear layer using a \textsl{sigmoid} activation. 
+The LSTM block adds temporal information, which allows us to test the added value of the memory blocks for activity progress prediction. 
+
+%---------------------------------------------------------------------------------------------------------
+\subsection{Naive baselines}
+Next to the learning-based baselines, we consider a set of naive non-learning baselines. 
+These non-learning baselines represent upper-bounds on the errors we expect the learning-based methods to make. 
+
+\smallskip\noindent\textbf{Static-0.5.} This is the most obvious non-learning baseline, which always predicts $50\%$ completion at every frame. This is the best guess without any prior information.
+
+\smallskip\noindent\textbf{Random.} Additionally, we consider a \textsl{random} baseline that predicts a random value in $[0, 100]\%$ at every frame. 
+This represents the worst progress prediction a model can make, indicating that it failed to learn anything. 
+
+\smallskip\noindent\textbf{Frame-counting.} Finally, we consider a non-learning baseline which computes training-set statistics.
+It is a frame-counting strategy that makes per-frame average progress predictions. 
+For frame $i$ in video $n$ this baseline predicts a progress value equal to the average training-progress at frame $i$ of all training videos indexed by $m \in \{1, ..., N_i\}$: 
+\begin{equation}
+  \hat{p}^i_n = \frac{1}{N_i}\sum_{m=1}^{N_i} p^i_m,
+  \label{eq:pf_avg}
+\end{equation}
+where $N_i$ is the count of all the training videos with a length of at least $i$ frames. 
