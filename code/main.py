@@ -36,16 +36,23 @@ def main():
         root = "/home/frans/Datasets"
     data_root = os.path.join(root, args.dataset)
 
+    # setup experiment
     experiment_path = None
     if args.experiment_name and args.experiment_name.lower() != "none":
         experiment_path = os.path.join(root, "experiments", args.experiment_name)
-
+    
+    # setup sample transform
     if args.subsample:
         subsample = transforms.Compose([Subsection(), Subsample(), Truncate(args.max_length)])
     else:
         subsample = None
 
-    # TODO: Combine datasets
+    # create datasets
+    # TODO: Combine datasets and clean up code
+    # datasets can be roughly grouped into the following categories:
+    # UCFDataset: Dataset specifically made for the bounding boxes available in UCF101-24 
+    # ImageDataset: Dataset using image (sequences).
+    # FeatureDataset: Dataset using image (sequence) embeddings, i.e. embedding vectors.
     if "images" in args.data_dir:
         transform = [transforms.ToTensor()]
         if not args.no_resize:
@@ -146,6 +153,7 @@ def main():
         testset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False
     )
 
+    # load backbone and create the network
     # TODO: Reorganise networks
     if args.load_backbone:
         backbone_path = os.path.join(data_root, "train_data", args.load_backbone)
@@ -177,6 +185,7 @@ def main():
     else:
         raise Exception(f"Network {args.network} does not exist")
 
+    # load network file if available
     if args.load_experiment and args.load_iteration:
         network_path = os.path.join(
             root,
@@ -186,6 +195,7 @@ def main():
         )
         network.load_state_dict(torch.load(network_path))
 
+    # create optimizer, scheduler, and loss
     if args.optimizer == "sgd":
         optimizer = optim.SGD(
             network.parameters(),
@@ -214,6 +224,10 @@ def main():
     else:
         raise Exception(f"Loss {args.loss} does not exist")
 
+    # Get the training function used for the combination of network and dataset.
+    # This is a similar concept to pytorch lightning. A lot of the training/testing/logging logic remains the same
+    # and only the train/test function is swapped out.
+    # This part also creates a default dictionary which is used for wandb logging.
     # TODO: Redo
     result = {"l1_loss": 0.0, "l2_loss": 0.0, "count": 0}
     if args.embed:
@@ -238,6 +252,7 @@ def main():
         train_fn = train_progress
 
     wandb_init(args)
+    # create and start the experiment
     experiment = Experiment(
         network,
         criterion,

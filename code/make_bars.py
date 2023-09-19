@@ -38,7 +38,7 @@ def parse_args():
 
 COLOURS = torch.Tensor([(251,75,75), (255,193,99), (254,255,92), (192,255,51)]) / 255
 
-def create_frame(notch_list: list[str], notch_width: int, notch_height: int, size: int) -> torch.Tensor:
+def create_frame(notch_list, notch_width: int, notch_height: int, size: int) -> torch.Tensor:
     frame = torch.zeros(3, size, size)
     for i, colour in enumerate(notch_list):
         frame[:, 0:notch_height, i*notch_width:(i+1)*notch_width] = colour[:, None, None]
@@ -87,7 +87,7 @@ def visualise(args):
     data_dir = os.path.join(args.root, args.save_dir, 'rgb-images')
     video_names = sorted(os.listdir(data_dir))
     # video_names = [video_names[0], video_names[4], video_names[5], video_names[45]]
-    video_names = [video_names[1], video_names[4], video_names[5], video_names[45]]
+    video_names = [video_names[1]]
 
     frames_per_video = {}
     max_num_frames = 0
@@ -106,8 +106,8 @@ def visualise(args):
             frame_path = os.path.join(data_dir, video_name, f'{frame_index:05d}.jpg')
             frames.append(read_image(frame_path))
             progress.append((i + 1) / frames_per_video[video_name])
-        fig, axs = plt.subplots(1, 4, figsize=(6.8, 2.2))
-        for frame, prog, ax in zip(frames, progress, axs.flat):
+        fig, axs = plt.subplots(1, 1, figsize=(2.5, 2.5))
+        for frame, prog, ax in zip(frames, progress, [axs]):
             prog = min(1, prog)
             ax.imshow(transforms.ToPILImage()(frame))
             ax.axis('off')
@@ -123,7 +123,7 @@ def visualise(args):
         plt.clf()
 
     subprocess.call([
-        'ffmpeg', '-framerate', '3', '-i', './plots/bars/%03d.jpg', '-r', '30', '-pix_fmt', 'yuv420p',
+        'ffmpeg', '-framerate', '6', '-i', './plots/bars/%03d.jpg', '-r', '30', '-pix_fmt', 'yuv420p',
         './plots/bars/out.mp4'
     ])
 

@@ -17,20 +17,32 @@ def parse_args() -> argparse.Namespace:
     # data
     parser.add_argument("--dataset", type=str, default="cholec80")
     parser.add_argument("--data_dir", type=str, default="features/i3d_embeddings")
+    # use images instead of image sequences
     parser.add_argument("--flat", action="store_true")
+    # use bounding box data (available for UCF101-24)
     parser.add_argument("--bboxes", action="store_true")
     parser.add_argument("--shuffle", action="store_true")
+    # replace the frames with random noise
     parser.add_argument("--random", action="store_true")
+    # replace the frames with indices reshaped as random noise
     parser.add_argument("--indices", action="store_true")
+    # normalize the indices by dividing by this value
     parser.add_argument("--indices_normalizer", type=float, default=1.0)
+    # use subsampling as is described in "Am I Done" https://arxiv.org/abs/1705.01781
     parser.add_argument("--subsample", action="store_true")
+    # max length of a sequence, anything after this will be cutoff
     parser.add_argument('--max_length', type=int, default=1000000)
+    # subsample sequences to avoid sequences becoming too long
     parser.add_argument("--subsample_fps", type=int, default=1)
+    # set either no Remaining Surgery Duration (RSD), RSD in minutes, or RSD in seconds
     parser.add_argument(
         "--rsd_type", type=str, default="none", choices=["none", "minutes", "seconds"]
     )
+    # RSD normalizer value, this is the s_norm value described in RSDNet, https://arxiv.org/pdf/1802.03243.pdf
     parser.add_argument("--rsd_normalizer", type=float, default=1.0)
+    # fps of the data, used to calculate RSD
     parser.add_argument("--fps", type=float, default=1.0)
+    # disable resizing
     parser.add_argument("--no_resize", action="store_true")
     parser.add_argument("--train_split", type=str, default="train.txt")
     parser.add_argument("--test_split", type=str, default="test.txt")
@@ -42,6 +54,7 @@ def parse_args() -> argparse.Namespace:
         "--network",
         type=str,
         default="progressnet",
+        choices=['progressnet', 'rsdnet_flat', 'rsdnet', 'lstmnet', 'ute', 'toynet', 'resnet']
     )
     parser.add_argument(
         "--backbone",
