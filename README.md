@@ -51,3 +51,7 @@ This code was made to be as versatile as possible, with the goal of analysing mu
 To run the code a dataset is needed. This dataset needs to be structured the same way as the UCF101-24 data which can be downloaded [here](https://github.com/gurkirt/realtime-action-detection).
 
 Finally a syntethic dataset can be created using `make_bars.py`.
+
+## Contact
+
+If you have any questions feel free to contact me at [github.grumbly403@passmail.net](mailto:github.grumbly403@passmail.net) (private email generated using [Proton](https://proton.me/), any emails send to this are forwared to my real email address)
